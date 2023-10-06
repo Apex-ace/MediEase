@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify, render_template
+# from flask_jwt_extended import create_access_token
 import bcrypt
 from database import connect_to_db
 from database import init_db
@@ -46,9 +47,9 @@ def signupHelper():
     response=database.insert(conn=conn, table="customerAuth", data=data)
     print(response)
     if response["res"]==1:
-        return {"res": 1, "message": "Sign Up Successful"}
+        return jsonify({"res": 1, "message": "Sign Up Successful"})
     else:
-        return {"res": 0, "message": "Sign Up Unsuccessful! User Already Exists"}
+        return jsonify({"res": 0, "message": "Sign Up Unsuccessful! User Already Exists"})
     
 @app.post("/api/login")
 def loginHelper():
@@ -63,11 +64,11 @@ def loginHelper():
     if(response["res"]==1):
         hashed_password=response["result"][1]
         if bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8')):
-            return {"res": 1, "message": "User Logged In"}
+            return jsonify({"res": 1, "message": "User Logged In"})
         else:
-            return {"res": 0, "message": "Incorrect Password"}
+            return jsonify({"res": 0, "message": "Incorrect Password"})
     else:
-        return {"res": 0, "message": "User Does Not Exist"}
+        return jsonify({"res": 0, "message": "User Does Not Exist"})
     
 if __name__ == '__main__':
     # Run the Flask app
