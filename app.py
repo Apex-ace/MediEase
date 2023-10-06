@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify, render_template
 from flask_jwt_extended import create_access_token, JWTManager
 import bcrypt
 from database import connect_to_db, init_db
-import database
+import database, os
 
 # INIT the Flask APP
 app = Flask(__name__)
@@ -11,7 +11,7 @@ app = Flask(__name__)
 conn = connect_to_db()
 
 # INIT JWT
-app.config['JWT_SECRET_KEY'] = '1234'  # Replace with a secure secret key
+app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')  # Replace with a secure secret key
 jwt = JWTManager(app)
 
 # DB Initializing Route
