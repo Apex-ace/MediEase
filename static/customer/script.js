@@ -67,3 +67,28 @@ function submitSignupForm(event) {
         });
     form.reset();
 }
+
+// Function to logout
+function logout(event) {
+    event.preventDefault();
+
+    const accessToken = localStorage.getItem('accessToken');
+
+    fetch('/api/logout', {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${accessToken}`, // Include the JWT token in the headers
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(response => response.json())
+        .then(data => {
+            alert(data["message"]);
+            localStorage.removeItem('accessToken');
+            window.location.href = '/login';
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert(error);
+        });
+}
