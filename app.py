@@ -1,5 +1,5 @@
-from flask import Flask, request, jsonify, render_template
-from flask_jwt_extended import create_access_token, JWTManager
+from flask import Flask, request, jsonify, render_template, redirect
+from flask_jwt_extended import create_access_token, JWTManager, jwt_required, decode_token
 import bcrypt
 from database import connect_to_db, init_db
 import database, os
@@ -23,7 +23,7 @@ def initdb():
 # Home Page Route
 @app.route("/")
 def home():
-    return "hello world"
+    return render_template('customer/index.html')
 
 # Login Page Route
 @app.route("/login")
@@ -84,6 +84,23 @@ def loginHelper():
     else:
         return jsonify({"res": 0, "message": "User Does Not Exist"})
     
+# Sign-Up Page Route
+@app.post("/api/logout")
+@jwt_required()
+def logoutHelper():
+    current_user = decode_token(request.headers['Authorization'][7:])  # Extract the token from the "Bearer" header
+    username = current_user['sub']
+    response=database.select(conn=conn, table="customerAuth", condition=f"username='{username}'")
+    print(response)
+
+    # If search successful
+    if(response["res"]==1):
+        return jsonify({"res": 1, "message": "Logged Out Successfully"})
+    else:
+        return jsonify({"res": 0, "message": "Error Logging Out"})
+
+
+
 if __name__ == '__main__':
     # Run the Flask app
     initdb()
