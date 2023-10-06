@@ -46,9 +46,9 @@ def signupHelper():
     response=database.insert(conn=conn, table="customerAuth", data=data)
     print(response)
     if response["res"]==1:
-        return {"res": 1, "message": "sign up successful", "data": data}
+        return {"res": 1, "message": "Sign Up Successful"}
     else:
-        return {"res": 0, "message": "sign up unsuccessful", "data": data}
+        return {"res": 0, "message": "Sign Up Unsuccessful"}
     
 @app.post("/api/login")
 def loginHelper():
@@ -56,13 +56,18 @@ def loginHelper():
 
     username=data["username"]
     password=data["password"]
-    # response=database.insert(conn=conn, table="customerAuth", data=data)
-    # print(response)
-    if response["res"]==1:
-        return {"res": 1, "message": "sign up successful", "data": data}
-    else:
-        return {"res": 0, "message": "sign up unsuccessful", "data": data}
 
+    response=database.select(conn=conn, table="customerAuth", condition=f"username='{username}'")
+    print(response)
+
+    if(response["res"]==1):
+        hashed_password=response["result"][1]
+        if bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8')):
+            return {"res": 1, "message": "User Logged In"}
+        else:
+            return {"res": 0, "message": "Incorrect Password"}
+    else:
+        return {"res": 0, "message": "User Does Not Exist"}
     
 if __name__ == '__main__':
     # Run the Flask app
