@@ -1,1 +1,3 @@
 medikoenv/
+.env
+__pycache__/
