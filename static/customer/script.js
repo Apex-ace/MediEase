@@ -22,7 +22,9 @@ function submitLoginForm(event) {
                 alert(data["message"])
             }
             else{
-                alert(data["message"])
+                localStorage.setItem('accessToken', data["accessToken"]);
+                alert(data["message"]);
+                window.location.href = '/';
             }
         })
         .catch(error => {
@@ -52,10 +54,11 @@ function submitSignupForm(event) {
         .then(data => {
             console.log(data);
             if(data["res"]==0){
-                alert(data["message"])
+                alert(data["message"]);
             }
             else{
-                alert(data["message"])
+                alert(data["message"]);
+                window.location.href = '/login';
             }
         })
         .catch(error => {

@@ -1,8 +1,7 @@
 from flask import Flask, request, jsonify, render_template
-# from flask_jwt_extended import create_access_token
+from flask_jwt_extended import create_access_token, JWTManager
 import bcrypt
-from database import connect_to_db
-from database import init_db
+from database import connect_to_db, init_db
 import database
 
 # INIT the Flask APP
@@ -10,6 +9,10 @@ app = Flask(__name__)
 
 # Connect To DB
 conn = connect_to_db()
+
+# INIT JWT
+app.config['JWT_SECRET_KEY'] = '1234'  # Replace with a secure secret key
+jwt = JWTManager(app)
 
 # DB Initializing Route
 @app.route("/initdb")
@@ -22,14 +25,17 @@ def initdb():
 def home():
     return "hello world"
 
+# Login Page Route
 @app.route("/login")
 def login():
     return render_template('customer/login.html')
 
+# Sign-Up Page Route
 @app.route("/signup")
 def signup():
     return render_template('customer/signup.html')
 
+# Signup API
 @app.post("/api/signup")
 def signupHelper():
     data = request.get_json()
@@ -51,20 +57,28 @@ def signupHelper():
     else:
         return jsonify({"res": 0, "message": "Sign Up Unsuccessful! User Already Exists"})
     
+# Login API
 @app.post("/api/login")
 def loginHelper():
     data = request.get_json()
 
+    # Get the credentials
     username=data["username"]
     password=data["password"]
 
+    # search in database
     response=database.select(conn=conn, table="customerAuth", condition=f"username='{username}'")
     print(response)
 
+    # If search successful
     if(response["res"]==1):
+        # Get the hashed db password
         hashed_password=response["result"][1]
+        # Check if its same with input credentials
         if bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8')):
-            return jsonify({"res": 1, "message": "User Logged In"})
+            # Prepare a JWT token
+            access_token = create_access_token(identity=username)
+            return jsonify({"res": 1, "message": "User Logged In", "accessToken": access_token})
         else:
             return jsonify({"res": 0, "message": "Incorrect Password"})
     else:
