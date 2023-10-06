@@ -48,7 +48,7 @@ def signupHelper():
     if response["res"]==1:
         return {"res": 1, "message": "Sign Up Successful"}
     else:
-        return {"res": 0, "message": "Sign Up Unsuccessful"}
+        return {"res": 0, "message": "Sign Up Unsuccessful! User Already Exists"}
     
 @app.post("/api/login")
 def loginHelper():
