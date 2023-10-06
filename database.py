@@ -50,11 +50,16 @@ def select(conn, table, columns=None, condition=None, desc=False):
     if desc:
         query += f" ORDER BY DESC"
 
+    query+=";"
+    print(query)
     try:
         with conn:
             with conn.cursor() as cursor:
                 cursor.execute(query)
                 result = cursor.fetchall()
-                return {"res": 1, "message": "Selection Success", "result": result}
+                if(len(result)!=1):
+                    return {"res": 0, "message": "Selection Success: NULL Result"}
+                else:
+                    return {"res": 1, "message": "Selection Success: Valid Result", "result": result[0]}
     except:
         return {"res": 0, "message": "Selection Failure"}
