@@ -11,13 +11,15 @@
 <body>
     <div class="container">
         <ol>
-        {% for item in medicines %}
-            <li>{{ item["name"] }}</li>
-            <ul>
-                <li>{{ item["composition"] }}</li>
-                <li>{{ item["price"] }}</li>
-            </ul>
-        {% endfor %}
+            {% for item in medicines %}
+            <li>
+                <a href="/medicine/{{ item['id'] }}">{{ item['name'] }}</a>
+                <ul>
+                    <li>{{ item['composition'] }}</li>
+                    <li>{{ item['price'] }}</li>
+                </ul>
+            </li>
+            {% endfor %}
         </ol>
     </div>
 </body>
