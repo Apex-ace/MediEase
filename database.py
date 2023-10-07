@@ -60,7 +60,7 @@ def select(conn, table, columns=None, condition=None, desc=False):
                 if(len(result)==0):
                     return {"res": 0, "message": "Selection Success: NULL Result"}
                 else:
-                    return {"res": 1, "message": "Selection Success: Valid Result", "result": result[0]}
+                    return {"res": 1, "message": "Selection Success: Valid Result", "result": result}
     except:
         return {"res": 0, "message": "Selection Failure"}
     

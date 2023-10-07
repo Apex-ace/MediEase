@@ -35,6 +35,7 @@ def login():
 def signup():
     return render_template('customer/signup.html')
 
+
 # Signup API
 @app.post("/api/signup")
 def signupHelper():
@@ -56,7 +57,7 @@ def signupHelper():
         return jsonify({"res": 1, "message": "Sign Up Successful"})
     else:
         return jsonify({"res": 0, "message": "Sign Up Unsuccessful! User Already Exists"})
-    
+
 # Login API
 @app.post("/api/login")
 def loginHelper():
@@ -68,6 +69,7 @@ def loginHelper():
 
     # search in database
     response=database.select(conn=conn, table="customerAuth", condition=f"username='{username}'")
+    response["result"]=response["result"][0]
     print(response)
 
     # If search successful
@@ -84,13 +86,14 @@ def loginHelper():
     else:
         return jsonify({"res": 0, "message": "User Does Not Exist"})
     
-# Sign-Up Page Route
+# Logout API
 @app.post("/api/logout")
 @jwt_required()
 def logoutHelper():
     current_user = decode_token(request.headers['Authorization'][7:])  # Extract the token from the "Bearer" header
     username = current_user['sub']
     response=database.select(conn=conn, table="customerAuth", condition=f"username='{username}'")
+    response["result"]=response["result"][0]
     print(response)
 
     # If search successful
@@ -98,6 +101,13 @@ def logoutHelper():
         return jsonify({"res": 1, "message": "Logged Out Successfully"})
     else:
         return jsonify({"res": 0, "message": "Error Logging Out"})
+
+
+# Search Medicine API
+@app.get("/api/search/<key>")
+def searchHelper(key):
+    response=database.select(conn,"medicines",condition=f"name LIKE '%{key}%'")
+    return response
 
 
 
