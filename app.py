@@ -123,7 +123,7 @@ def logoutHelper():
 # Search Medicine API
 @app.get("/api/search/<key>")
 def searchHelper(key):
-    response=database.select(conn,"medicines", columns=["id","name","composition","price"], condition=f"name LIKE '%{key}%' OR composition ILIKE '{key}'", limit=20)
+    response=database.select(conn,"medicines", columns=["id","name","composition","price"], condition=f"name LIKE '%{key}%' OR composition ILIKE '%{key}%'", limit=20)
     if(response["res"]==0):
         return {"res": 0, "message": "Search Failure"}
     searchedMedicine=[]
