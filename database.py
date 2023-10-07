@@ -17,10 +17,13 @@ def connect_to_db():
 def init_db(conn):
     response=initCustomerAuthTable(conn)
     if(response["res"]==0):
-        return {"res": 0, "message": "INIT customerAuth Failure"}
+        return {"res": 0, "message": "INIT customerAuth Table Failure"}
     response=initMedicineDatabase(conn)
     if(response["res"]==0):
-        return {"res": 0, "message": "INIT MedicineDB Failure"}
+        return {"res": 0, "message": "INIT medicines Table Failure"}
+    response=initOrdersDatabase(conn)
+    if(response["res"]==0):
+        return {"res": 0, "message": "INIT orders Table Failure"}
     return {"res": 1, "message": "INIT Success"}
 
 def insert(conn, table, data):
@@ -130,4 +133,18 @@ def initMedicineDatabase(conn):
             return {"res": 0, "message": "Table Creation Unsuccessful"}
     return {"res": 1, "message": "Table Creation Successful"}
     
-    
+def initOrdersDatabase(conn):
+    query = '''
+    CREATE TABLE IF NOT EXISTS orders 
+    (orderid SERIAL PRIMARY KEY, 
+    name VARCHAR(255) NOT NULL,
+    address TEXT,
+    contact VARCHAR(20),
+    time TIMESTAMP);'''
+    try:
+        with conn:
+            with conn.cursor() as cursor:
+                cursor.execute(query)
+        return {"res": 1, "message": "Table Creation Successful"}
+    except:
+        return {"res": 0, "message": "Table Creation Unsuccessful"}
