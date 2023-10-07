@@ -107,7 +107,7 @@ def logoutHelper():
 # Search Medicine API
 @app.get("/api/search/<key>")
 def searchHelper(key):
-    response=database.select(conn,"medicines",condition=f"name LIKE '%{key}%' OR composition LIKE '{key}'", limit=100)
+    response=database.select(conn,"medicines", condition=f"name LIKE '%{key}%' OR composition LIKE '{key}'", limit=100)
     if(response["res"]==0):
         return jsonify({"res": 0, "message": "Search Failure"})
     searchedMedicine=[]
@@ -169,6 +169,16 @@ def getOrder(orderid):
             "status": result[7],
         }
         return jsonify({"res": 1, "message": "Order Fetched", "data": data})
+    return jsonify({"res": 0, "message": "Order Could Not be Fetched"})
+
+@app.get("/api/getOrderList/")
+@jwt_required()
+def getOrderList():
+    current_user = decode_token(request.headers['Authorization'][7:])  # Extract the token from the "Bearer" header
+    username = current_user['sub']
+    response=database.select(conn,"orders", columns=["orderid","time","status"], condition=f"username='{username}'")
+    if(response["res"]==1):
+        return jsonify({"res": 1, "message": "Order List Fetched", "data": response["result"]})
     return jsonify({"res": 0, "message": "Order Could Not be Fetched"})
 
 if __name__ == '__main__':
