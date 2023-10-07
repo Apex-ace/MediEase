@@ -81,14 +81,18 @@ function logout(event) {
             'Content-Type': 'application/json',
         },
     })
-    .then(response => response.json())
-        .then(data => {
-            alert(data["message"]);
+    .then(async response => {
+        if (!response.ok) {
+          alert("User already logged out");
+        }
+        else{
+            alert((await response.json())["message"]);
             localStorage.removeItem('accessToken');
-            window.location.href = '/login';
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert(error);
-        });
+        }
+        window.location.href = '/login';
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert(error);
+    });
 }
