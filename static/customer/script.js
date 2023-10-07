@@ -96,3 +96,13 @@ function logout(event) {
         alert(error);
     });
 }
+
+// Function to submit the signup form
+function submitSearchForm(event) {
+    event.preventDefault();
+
+    const form = document.getElementById('search_bar');
+    const key = form.querySelector('#content').value;
+    window.location.href = '/search/'.concat(key);
+    form.reset();
+}
