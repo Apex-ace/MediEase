@@ -136,11 +136,13 @@ def initMedicineDatabase(conn):
 def initOrdersDatabase(conn):
     query = '''
     CREATE TABLE IF NOT EXISTS orders 
-    (orderid SERIAL PRIMARY KEY, 
+    (orderid SERIAL PRIMARY KEY,
+    username TEXT NOT NULL,
+    time TIMESTAMP
     name VARCHAR(255) NOT NULL,
     address TEXT,
     contact VARCHAR(20),
-    time TIMESTAMP);'''
+    cart JSONB);'''
     try:
         with conn:
             with conn.cursor() as cursor:
