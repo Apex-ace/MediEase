@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify, render_template, redirect
 from flask_jwt_extended import create_access_token, JWTManager, jwt_required, decode_token
 import bcrypt
 from database import connect_to_db, init_db
-import database, os
+import database, os, json
 
 # INIT the Flask APP
 app = Flask(__name__)
@@ -34,7 +34,6 @@ def login():
 @app.route("/signup")
 def signup():
     return render_template('customer/signup.html')
-
 
 # Signup API
 @app.post("/api/signup")
@@ -80,6 +79,9 @@ def loginHelper():
         if bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8')):
             # Prepare a JWT token
             access_token = create_access_token(identity=username)
+            
+            # DELETE THIS LINE
+            print(access_token)
             return jsonify({"res": 1, "message": "User Logged In", "accessToken": access_token})
         else:
             return jsonify({"res": 0, "message": "Incorrect Password"})
@@ -102,14 +104,72 @@ def logoutHelper():
     else:
         return jsonify({"res": 0, "message": "Error Logging Out"})
 
-
 # Search Medicine API
 @app.get("/api/search/<key>")
 def searchHelper(key):
-    response=database.select(conn,"medicines",condition=f"name LIKE '%{key}%'")
-    return response
+    response=database.select(conn,"medicines",condition=f"name LIKE '%{key}%' OR composition LIKE '{key}'", limit=100)
+    if(response["res"]==0):
+        return jsonify({"res": 0, "message": "Search Failure"})
+    searchedMedicine=[]
+    for med in response["result"]:
+        data={
+            "id":med[0],
+            "name":med[1],
+            "composition":med[2],
+            "price":med[3],
+            "manufacturer":med[4],
+            "description":med[5],
+            "category":med[6],
+            "side_effects":med[7],
+        }
+        searchedMedicine.append(data)
+    return jsonify({"res": 1, "message": "Search Success", "data": searchedMedicine})
 
+# Make order API
+@app.post("/api/createOrder")
+@jwt_required()
+def createOrder():
+    current_user = decode_token(request.headers['Authorization'][7:])  # Extract the token from the "Bearer" header
+    username = current_user['sub']
+    data = request.get_json()
+    data["time"]="CURRENT_TIMESTAMP(2)"
+    data["cart"]=json.dumps(data["cart"])
+    data["status"]="Order Received"
+    print(data)
+    query = f'''INSERT INTO orders 
+    (username,time,name,address,contact,cart,status) VALUES (
+    '{username}',{data["time"]},'{data["name"]}','{data["address"]}',
+    '{data["contact"]}', '{data["cart"]}', '{data["status"]}')'''
+    try:
+        with conn:
+            with conn.cursor() as cursor:
+                cursor.execute(query)
+                return {"res": 1, "message": "Insertion Success"}
+    except Exception as e:
+        print(e)
+        return {"res": 0, "message": "Insertion Failure"}
 
+# Get Order API
+@app.get("/api/getOrder/<orderid>")
+@jwt_required()
+def getOrder(orderid):
+    current_user = decode_token(request.headers['Authorization'][7:])  # Extract the token from the "Bearer" header
+    username = current_user['sub']
+    response=database.select(conn,"orders",condition=f"orderid={orderid} AND username='{username}'")
+    if(response["res"]==1):
+        result=response["result"][0]
+        data={
+            "orderid": result[0],
+            "username": result[1],
+            "time": result[2],
+            "name": result[3],
+            "address": result[4],
+            "contact": result[5],
+            "cart": json.loads(result[6]),
+            "status": result[7],
+        }
+        return jsonify({"res": 1, "message": "Order Fetched", "data": data})
+    return jsonify({"res": 0, "message": "Order Could Not be Fetched"})
 
 if __name__ == '__main__':
     # Run the Flask app
