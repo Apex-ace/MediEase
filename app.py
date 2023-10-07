@@ -107,7 +107,7 @@ def logoutHelper():
 # Search Medicine API
 @app.get("/api/search/<key>")
 def searchHelper(key):
-    response=database.select(conn,"medicines", condition=f"name LIKE '%{key}%' OR composition LIKE '{key}'", limit=100)
+    response=database.select(conn,"medicines", columns=["id","name","composition","price"], condition=f"name LIKE '%{key}%' OR composition LIKE '{key}'", limit=100)
     if(response["res"]==0):
         return jsonify({"res": 0, "message": "Search Failure"})
     searchedMedicine=[]
@@ -117,13 +117,28 @@ def searchHelper(key):
             "name":med[1],
             "composition":med[2],
             "price":med[3],
-            "manufacturer":med[4],
-            "description":med[5],
-            "category":med[6],
-            "side_effects":med[7],
         }
         searchedMedicine.append(data)
     return jsonify({"res": 1, "message": "Search Success", "data": searchedMedicine})
+
+# Get medicine details API
+@app.get("/api/medicine/<id>")
+def medicineDetails(id):
+    response=database.select(conn,"medicines", condition=f"id='{id}'")
+    if(response["res"]==0):
+        return jsonify({"res": 0, "message": "Get Medicine Details Failure"})
+    data={
+            "id":response["result"][0][0],
+            "name":response["result"][0][1],
+            "composition":response["result"][0][2],
+            "price":response["result"][0][3],
+            "manufacturer":response["result"][0][4],
+            "description":response["result"][0][5],
+            "category":response["result"][0][6],
+            "side_effects":response["result"][0][7],
+        }
+    return jsonify({"res": 1, "message": "Medicine Details Fetched", "data": data})
+
 
 # Make order API
 @app.post("/api/createOrder")
