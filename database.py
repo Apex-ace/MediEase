@@ -36,7 +36,8 @@ def insert(conn, table, data):
             with conn.cursor() as cursor:
                 cursor.execute(query, values)
                 return {"res": 1, "message": "Insertion Success"}
-    except:
+    except Exception as e:
+        print(e)
         return {"res": 0, "message": "Insertion Failure"}
 
 def select(conn, table, columns=None, condition=None, desc=False, limit=None):
@@ -65,7 +66,8 @@ def select(conn, table, columns=None, condition=None, desc=False, limit=None):
                     return {"res": 0, "message": "Selection Success: NULL Result"}
                 else:
                     return {"res": 1, "message": "Selection Success: Valid Result", "result": result}
-    except:
+    except Exception as e:
+        print(e)
         return {"res": 0, "message": "Selection Failure"}
 
 def initCustomerAuthTable(conn):
@@ -77,7 +79,8 @@ def initCustomerAuthTable(conn):
             with conn.cursor() as cursor:
                 cursor.execute(query)
         return {"res": 1, "message": "Table Creation Successful"}
-    except:
+    except Exception as e:
+        print(e)
         return {"res": 0, "message": "Table Creation Unsuccessful"}
 
 def initMedicineDatabase(conn):
@@ -94,7 +97,8 @@ def initMedicineDatabase(conn):
         with conn:
             with conn.cursor() as cursor:
                 cursor.execute(query)
-    except:
+    except Exception as e:
+        print(e)
         return {"res": 0, "message": "Table Creation Unsuccessful"}
     # response=select(conn, table="medicines")
 
@@ -105,7 +109,8 @@ def initMedicineDatabase(conn):
                 cursor.execute(query)
                 if(cursor.fetchone()[0]!=0):
                     return {"res": 1, "message": "Table Creation Successful"}
-    except:
+    except Exception as e:
+        print(e)
         return {"res": 0, "message": "Table Creation Unsuccessful"}
 
     medFile=open("extras/medicine_data.csv", mode="r", newline="")
@@ -138,15 +143,17 @@ def initOrdersDatabase(conn):
     CREATE TABLE IF NOT EXISTS orders 
     (orderid SERIAL PRIMARY KEY,
     username TEXT NOT NULL,
-    time TIMESTAMP
+    time TIMESTAMP,
     name VARCHAR(255) NOT NULL,
     address TEXT,
     contact VARCHAR(20),
-    cart JSONB);'''
+    cart TEXT,
+    status VARCHAR(20) NOT NULL);'''
     try:
         with conn:
             with conn.cursor() as cursor:
                 cursor.execute(query)
         return {"res": 1, "message": "Table Creation Successful"}
-    except:
+    except Exception as e:
+        print(e)
         return {"res": 0, "message": "Table Creation Unsuccessful"}
