@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Page</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='customer/styles.css') }}">
+    <script src="{{ url_for('static', filename='customer/script.js') }}"></script>
+</head>
+<body>
+    <div class="container">
+        <ol>
+        {% for key in medicine %}
+            <li>{{ key }} = {{ medicine[key] }}</li>
+        {% endfor %}
+        </ol>
+    </div>
+</body>
+</html>
