@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template, redirect
+from flask import Flask, request, render_template, redirect
 from flask_jwt_extended import create_access_token, JWTManager, jwt_required, decode_token
 import bcrypt
 from database import connect_to_db, init_db
@@ -35,6 +35,14 @@ def login():
 def signup():
     return render_template('customer/signup.html')
 
+# Search Page Route
+@app.route("/search/<key>")
+def searchPage(key):
+    response=searchHelper(key)
+    if(response["res"]==1):
+        return render_template('customer/search.html', medicines=response["data"])
+    return render_template('customer/search.html')
+
 # Signup API
 @app.post("/api/signup")
 def signupHelper():
@@ -53,10 +61,10 @@ def signupHelper():
     response=database.insert(conn=conn, table="customerAuth", data=data)
     print(response)
     if response["res"]==1:
-        return jsonify({"res": 1, "message": "Sign Up Successful"})
+        return {"res": 1, "message": "Sign Up Successful"}
     else:
-        return jsonify({"res": 0, "message": "Sign Up Unsuccessful! User Already Exists"})
-
+        return {"res": 0, "message": "Sign Up Unsuccessful! User Already Exists"}
+    
 # Login API
 @app.post("/api/login")
 def loginHelper():
@@ -82,11 +90,11 @@ def loginHelper():
             
             # DELETE THIS LINE
             print(access_token)
-            return jsonify({"res": 1, "message": "User Logged In", "accessToken": access_token})
+            return {"res": 1, "message": "User Logged In", "accessToken": access_token}
         else:
-            return jsonify({"res": 0, "message": "Incorrect Password"})
+            return {"res": 0, "message": "Incorrect Password"}
     else:
-        return jsonify({"res": 0, "message": "User Does Not Exist"})
+        return {"res": 0, "message": "User Does Not Exist"}
     
 # Logout API
 @app.post("/api/logout")
@@ -100,16 +108,16 @@ def logoutHelper():
 
     # If search successful
     if(response["res"]==1):
-        return jsonify({"res": 1, "message": "Logged Out Successfully"})
+        return {"res": 1, "message": "Logged Out Successfully"}
     else:
-        return jsonify({"res": 0, "message": "Error Logging Out"})
+        return {"res": 0, "message": "Error Logging Out"}
 
 # Search Medicine API
 @app.get("/api/search/<key>")
 def searchHelper(key):
-    response=database.select(conn,"medicines", columns=["id","name","composition","price"], condition=f"name LIKE '%{key}%' OR composition LIKE '{key}'", limit=100)
+    response=database.select(conn,"medicines", columns=["id","name","composition","price"], condition=f"name LIKE '%{key}%' OR composition ILIKE '{key}'", limit=20)
     if(response["res"]==0):
-        return jsonify({"res": 0, "message": "Search Failure"})
+        return {"res": 0, "message": "Search Failure"}
     searchedMedicine=[]
     for med in response["result"]:
         data={
@@ -119,14 +127,14 @@ def searchHelper(key):
             "price":med[3],
         }
         searchedMedicine.append(data)
-    return jsonify({"res": 1, "message": "Search Success", "data": searchedMedicine})
+    return {"res": 1, "message": "Search Success", "data": searchedMedicine}
 
 # Get medicine details API
 @app.get("/api/medicine/<id>")
 def medicineDetails(id):
     response=database.select(conn,"medicines", condition=f"id='{id}'")
     if(response["res"]==0):
-        return jsonify({"res": 0, "message": "Get Medicine Details Failure"})
+        return {"res": 0, "message": "Get Medicine Details Failure"}
     data={
             "id":response["result"][0][0],
             "name":response["result"][0][1],
@@ -137,7 +145,7 @@ def medicineDetails(id):
             "category":response["result"][0][6],
             "side_effects":response["result"][0][7],
         }
-    return jsonify({"res": 1, "message": "Medicine Details Fetched", "data": data})
+    return {"res": 1, "message": "Medicine Details Fetched", "data": data}
 
 
 # Make order API
@@ -183,8 +191,8 @@ def getOrder(orderid):
             "cart": json.loads(result[6]),
             "status": result[7],
         }
-        return jsonify({"res": 1, "message": "Order Fetched", "data": data})
-    return jsonify({"res": 0, "message": "Order Could Not be Fetched"})
+        return {"res": 1, "message": "Order Fetched", "data": data}
+    return {"res": 0, "message": "Order Could Not be Fetched"}
 
 @app.get("/api/getOrderList/")
 @jwt_required()
@@ -193,8 +201,8 @@ def getOrderList():
     username = current_user['sub']
     response=database.select(conn,"orders", columns=["orderid","time","status"], condition=f"username='{username}'")
     if(response["res"]==1):
-        return jsonify({"res": 1, "message": "Order List Fetched", "data": response["result"]})
-    return jsonify({"res": 0, "message": "Order Could Not be Fetched"})
+        return {"res": 1, "message": "Order List Fetched", "data": response["result"]}
+    return {"res": 0, "message": "Order Could Not be Fetched"}
 
 if __name__ == '__main__':
     # Run the Flask app
