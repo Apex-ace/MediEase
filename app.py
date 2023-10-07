@@ -7,12 +7,18 @@ import database, os, json
 # INIT the Flask APP
 app = Flask(__name__)
 
-# Connect To DB
-conn = connect_to_db()
-
+'''
+JWT INITIALIZATION
+'''
 # INIT JWT
 app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')  # Replace with a secure secret key
 jwt = JWTManager(app)
+
+'''
+DATABASE INITIALIZATION
+'''
+# Connect To DB
+conn = connect_to_db()
 
 # DB Initializing Route
 @app.route("/initdb")
@@ -20,6 +26,9 @@ def initdb():
     msg=init_db(conn)
     return msg
 
+'''
+PAGE ROUTE FUNCTIONS
+'''
 # Home Page Route
 @app.route("/")
 def home():
@@ -51,6 +60,10 @@ def medicinePage(id):
         return render_template('customer/medicine_page.html', medicine=response["data"])
     return render_template('customer/medicine_page.html')
 
+
+'''
+API FUNCTIONS BELOW
+'''
 # Signup API
 @app.post("/api/signup")
 def signupHelper():
@@ -155,7 +168,6 @@ def medicineDetails(id):
         }
     return {"res": 1, "message": "Medicine Details Fetched", "data": data}
 
-
 # Make order API
 @app.post("/api/createOrder")
 @jwt_required()
@@ -212,6 +224,10 @@ def getOrderList():
         return {"res": 1, "message": "Order List Fetched", "data": response["result"]}
     return {"res": 0, "message": "Order Could Not be Fetched"}
 
+
+'''
+MAIN FUNCTION
+'''
 if __name__ == '__main__':
     # Run the Flask app
     print(initdb())
