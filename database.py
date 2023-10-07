@@ -35,9 +35,8 @@ def insert(conn, table, data):
                 return {"res": 1, "message": "Insertion Success"}
     except:
         return {"res": 0, "message": "Insertion Failure"}
-    
 
-def select(conn, table, columns=None, condition=None, desc=False):
+def select(conn, table, columns=None, condition=None, desc=False, limit=None):
     if columns:
         columns_str = ', '.join(columns)
     else:
@@ -49,6 +48,8 @@ def select(conn, table, columns=None, condition=None, desc=False):
         query += f" WHERE {condition}"
     if desc:
         query += f" ORDER BY DESC"
+    if limit:
+        query += f" LIMIT {limit}"
 
     query+=";"
     print(query)
@@ -63,7 +64,6 @@ def select(conn, table, columns=None, condition=None, desc=False):
                     return {"res": 1, "message": "Selection Success: Valid Result", "result": result}
     except:
         return {"res": 0, "message": "Selection Failure"}
-    
 
 def initCustomerAuthTable(conn):
     query = '''
