@@ -231,4 +231,4 @@ MAIN FUNCTION
 if __name__ == '__main__':
     # Run the Flask app
     print(initdb())
-    app.run()
+    app.run(debug=True, use_reloader=True)
