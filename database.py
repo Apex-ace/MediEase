@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
 import psycopg2
-import os 
+import os
+import csv
 
 load_dotenv()
 
@@ -14,14 +15,13 @@ def connect_to_db():
     return conn
 
 def init_db(conn):
-    CREATE_CUSTOMER_AUTH_TABLE = "CREATE TABLE IF NOT EXISTS customerAuth (username TEXT PRIMARY KEY, password TEXT);"
-    try:
-        with conn:
-            with conn.cursor() as cursor:
-                cursor.execute(CREATE_CUSTOMER_AUTH_TABLE)
-        return {"res": 1, "message": "Table Creation Successful"}
-    except:
-        return {"res": 0, "message": "Table Creation Unsuccessful"}
+    response=initCustomerAuthTable(conn)
+    if(response["res"]==0):
+        return {"res": 0, "message": "INIT customerAuth Failure"}
+    response=initMedicineDatabase(conn)
+    if(response["res"]==0):
+        return {"res": 0, "message": "INIT MedicineDB Failure"}
+    return {"res": 1, "message": "INIT Success"}
 
 def insert(conn, table, data):
     columns = ', '.join(data.keys())
@@ -57,9 +57,77 @@ def select(conn, table, columns=None, condition=None, desc=False):
             with conn.cursor() as cursor:
                 cursor.execute(query)
                 result = cursor.fetchall()
-                if(len(result)!=1):
+                if(len(result)==0):
                     return {"res": 0, "message": "Selection Success: NULL Result"}
                 else:
                     return {"res": 1, "message": "Selection Success: Valid Result", "result": result[0]}
     except:
         return {"res": 0, "message": "Selection Failure"}
+    
+
+def initCustomerAuthTable(conn):
+    query = '''
+    CREATE TABLE IF NOT EXISTS customerAuth 
+    (username TEXT PRIMARY KEY, password TEXT);'''
+    try:
+        with conn:
+            with conn.cursor() as cursor:
+                cursor.execute(query)
+        return {"res": 1, "message": "Table Creation Successful"}
+    except:
+        return {"res": 0, "message": "Table Creation Unsuccessful"}
+
+def initMedicineDatabase(conn):
+    query = '''CREATE TABLE IF NOT EXISTS medicines
+      (id SERIAL PRIMARY KEY,
+       name TEXT NOT NULL,
+       composition TEXT NOT NULL,
+       price TEXT NOT NULL,
+       manufacturer TEXT,
+       description TEXT,
+       category TEXT,
+       side_effects TEXT);'''
+    try:
+        with conn:
+            with conn.cursor() as cursor:
+                cursor.execute(query)
+    except:
+        return {"res": 0, "message": "Table Creation Unsuccessful"}
+    # response=select(conn, table="medicines")
+
+    query = '''SELECT COUNT(*) FROM medicines;'''
+    try:
+        with conn:
+            with conn.cursor() as cursor:
+                cursor.execute(query)
+                if(cursor.fetchone()[0]!=0):
+                    return {"res": 1, "message": "Table Creation Successful"}
+    except:
+        return {"res": 0, "message": "Table Creation Unsuccessful"}
+
+    medFile=open("extras/medicine_data.csv", mode="r", newline="")
+    medFileReader=csv.reader(medFile)
+    next(medFileReader)
+    for row in medFileReader:
+        price=row[3]
+        if(price==""):
+            price="50"
+        data={
+            "category":row[0],
+            "name":row[1],
+            "composition":row[2],
+            "price":price,
+            "manufacturer":row[4],
+            "description":row[5],
+            "side_effects":row[6],
+        }
+        response=insert(conn,"medicines",data)
+        if(response["res"]==0):
+            query = '''DROP TABLE medicines;'''
+            with conn:
+                with conn.cursor() as cursor:
+                    cursor.execute(query)
+            return {"res": 0, "message": "Table Creation Unsuccessful"}
+    return {"res": 1, "message": "Table Creation Successful"}
+    
+    
