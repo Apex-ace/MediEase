@@ -43,6 +43,14 @@ def searchPage(key):
         return render_template('customer/search.html', medicines=response["data"])
     return render_template('customer/search.html')
 
+# Medicine Page Route
+@app.route("/medicine/<id>")
+def medicinePage(id):
+    response=medicineDetails(id)
+    if(response["res"]==1):
+        return render_template('customer/medicine_page.html', medicine=response["data"])
+    return render_template('customer/medicine_page.html')
+
 # Signup API
 @app.post("/api/signup")
 def signupHelper():
