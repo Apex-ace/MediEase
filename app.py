@@ -103,5 +103,5 @@ def logoutHelper():
 
 if __name__ == '__main__':
     # Run the Flask app
-    initdb()
+    print(initdb())
     app.run()
