@@ -1,12 +1,14 @@
 body {
-    background-color: #f5f5f5;
+    background-color: white
 }
 
 .container {
+    width: 100%;
     background-color: #fff;
     border-radius: 5px;
-    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
-    padding: 20px;
+    margin-top: 10px;
+    margin-bottom: 20px;
+    padding: 1px;
 }
 
 form {
@@ -17,3 +19,18 @@ form {
     margin-top: 20px;
 }
 
+body {
+    margin: 0;
+    padding: 0;
+}
+
+.no-margin {
+    margin: 0;
+}
+
+#medicines {
+    background-color: lightblue;
+    margin-bottom: 10px;
+    margin-right: 20px;
+    border-radius: 5px;
+}

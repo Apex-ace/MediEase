@@ -3,28 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up Page</title>
+    <title>Login Page</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='customer/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='customer/login-signup.css') }}">
     <script src="{{ url_for('static', filename='customer/script.js') }}"></script>
+    <style>
+        /* Custom CSS to set full-page height */
+        body, html {
+            height: 100%;
+        }
+        .full-height {
+            width: 100%;
+            min-width: 100%;
+            min-height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
+    <div class="container full-height">
         <div class="row">
             <div class="col-md-6 offset-md-3 mt-5">
-                <h2 class="text-center mb-4">Sign Up</h2>
-                <form id="signup-form" onsubmit="submitSignupForm(event)">
-                    <div class="mb-3">
-                        <label for="username" class="form-label">Username</label>
-                        <input type="text" class="form-control" id="username" name="username" placeholder="Enter your username">
-                    </div>
-                    <div class="mb-3">
-                        <label for="password" class="form-label">Password</label>
-                        <input type="password" class="form-control" id="password" name="password" placeholder="Enter your password">
-                    </div>
-                    <button type="submit" class="btn btn-success btn-block">Sign Up</button>
+                <h2 class="text-center mb-4">Signup</h2>
+                <form id="login-form" onsubmit="submitSignupForm(event)">
+                    <center>
+                        <div class="mb-3" style="width: 50%;">
+                            <label  style="text-align: left; margin-right: 300px;" for="username" class="form-label">Username</label>
+                            <input type="text" class="form-control" id="username" name="username" placeholder="Enter your username">
+                        </div>
+                    </center>
+                    <center>
+                        <div class="mb-3" style="width: 50%;">
+                            <label style="text-align: left; margin-right: 300px;" for="password" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="password" name="password" placeholder="Enter your password">
+                        </div>
+                    </center>
+                    <center>
+                        <button id="login" type="submit" class="btn btn-primary btn-block">Login</button>
+                    </center>
                 </form>
-                <p class="text-center mt-3">Already have an account? <a href="/login">Login</a></p>
+                <p class="text-center mt-3">Already have an account? <a href="/login">login</a></p>
             </div>
         </div>
     </div>
