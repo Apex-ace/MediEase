@@ -2,45 +2,6 @@ html {
     background-color: white;
 }
 
-.navbar {
-    background-color: white;
-    height: 110px;
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-}
-
-#logo {
-    margin-left: 20px;
-    width: 20%;
-}
-
-#index {
-    width: 50%;
-}
-
-#index a {
-    font-family: 'Red Hat Display', sans-serif;
-    text-decoration: none;
-    color: blue;
-}
-
-#index li :hover {
-    font-size: 15pt;
-    border-bottom-style: outset;
-    border-bottom-color: blue;
-}
-
-#index ul {
-    display: flex;
-    height: 100%;
-    flex-direction: row;
-    justify-content: space-around;
-    align-items: center;
-    font-size: 14pt;
-    margin-left: 0;
-}
-
 .container {
     width: 100%;
     min-height: 100vh;
