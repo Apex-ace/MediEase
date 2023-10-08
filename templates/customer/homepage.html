@@ -9,46 +9,7 @@
 </head>
 
 <body>
-    <nav class=navbar>
-
-        <div style="margin-left: 20px; width: 25%;">
-            <img id="logo" src="../../static/customer/mediko_logo.png">
-        </div>
-        <div id=index>
-            <ul style="list-style-type: none; margin-left: 0;">
-                <li>
-                    <a href="Products.html">
-                        Products
-                    </a>
-                </li>
-                <li>
-                    <a href="Offers.html">
-                        Offers
-                    </a>
-                </li>
-                <li>
-                    <a href="/myaccount">
-                        My Account
-                    </a>
-                </li>
-                <li>
-                    <a href="/login">
-                        Login
-                    </a>
-                </li>
-                <li>
-                    <a href="/signup">
-                        signup
-                    </a>
-                </li>
-                <li>
-                    <a id="logout-button" onclick="logout(event)">
-                        Log Out
-                    </a>
-                </li>
-            </ul>
-        </div>
-    </nav>
+    {% include 'customer/navbar.html' %}
     
     <div id="horizontal_divide" class="container">
         <div id="align-top">
