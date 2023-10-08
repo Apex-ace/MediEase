@@ -75,10 +75,9 @@ function logout(event) {
     const accessToken = localStorage.getItem('accessToken');
 
     fetch('/api/logout', {
-        method: 'POST',
+        method: 'GET',
         headers: {
-            'Authorization': `Bearer ${accessToken}`, // Include the JWT token in the headers
-            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`,
         },
     })
     .then(async response => {

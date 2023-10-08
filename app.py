@@ -60,6 +60,10 @@ def medicinePage(id):
         return render_template('customer/medicine_page.html', medicine=response["data"])
     return render_template('customer/medicine_page.html')
 
+@app.route("/myaccount")
+def myaccountPage():
+    return render_template('customer/myaccount.html')
+
 
 '''
 API FUNCTIONS BELOW
@@ -118,7 +122,7 @@ def loginHelper():
         return {"res": 0, "message": "User Does Not Exist"}
     
 # Logout API
-@app.post("/api/logout")
+@app.get("/api/logout")
 @jwt_required()
 def logoutHelper():
     current_user = decode_token(request.headers['Authorization'][7:])  # Extract the token from the "Bearer" header
