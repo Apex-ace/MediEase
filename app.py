@@ -1,5 +1,6 @@
+import requests
 from flask import Flask, request, render_template, redirect
-from flask_jwt_extended import create_access_token, JWTManager, jwt_required, decode_token
+from flask_jwt_extended import create_access_token, JWTManager, jwt_required, decode_token,get_jwt_identity
 import bcrypt
 from database import connect_to_db, init_db
 import database, os, json
@@ -62,8 +63,17 @@ def medicinePage(id):
 
 @app.route("/myaccount")
 def myaccountPage():
-    return render_template('customer/myaccount.html')
-
+    accessToken=request.args.get('accessToken')
+    headers = {
+    'Authorization': f'Bearer {accessToken}'
+    }
+    response = requests.get("http://127.0.0.1:5000/api/getOrderList/", headers=headers)
+    if response.status_code == 200:
+        orderlist=response.json()['data']
+        print(orderlist)
+        return render_template('customer/myaccount.html', orderlist=response.json()['data'])
+    else:
+        return render_template('customer/myaccount.html')
 
 '''
 API FUNCTIONS BELOW
@@ -223,7 +233,9 @@ def getOrder(orderid):
 def getOrderList():
     current_user = decode_token(request.headers['Authorization'][7:])  # Extract the token from the "Bearer" header
     username = current_user['sub']
+    print(username)
     response=database.select(conn,"orders", columns=["orderid","time","status"], condition=f"username='{username}'")
+    print(response)
     if(response["res"]==1):
         return {"res": 1, "message": "Order List Fetched", "data": response["result"]}
     return {"res": 0, "message": "Order Could Not be Fetched"}
