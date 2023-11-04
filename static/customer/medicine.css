@@ -1,0 +1,120 @@
+html {
+    background-color: white;
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+
+}
+
+#horizontal_divide {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin-left: 20pt;
+    margin-right: 30pt; 
+    margin-top: 0px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#vertical_divide {
+    margin-top: 10px;
+    margin-left: 20px;
+    margin-right: 10px;
+    display: flex;
+    flex-direction: row;
+    /* justify-content: space-between; */
+}
+
+.content {
+    text-align: left; 
+    color: black; 
+    text-decoration: solid; 
+    margin-top: 30px; 
+    margin-left: 20px; 
+    margin-right: 20px;
+}
+
+.center-text {
+    width: 100%;
+    margin-left: 20pt;
+    margin-right: 30pt; 
+    margin-top: 0px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100px; /* Set the height of the container */
+    border: 1px solid black; /* Add a border for visualization */
+    border-radius: 10px;
+}
+
+.center-button {
+    margin-top: 10px;
+    margin-right: 8px;
+    margin-left: 0px
+}
+
+.price-style {
+    text-align: center; 
+    color: green; 
+    text-decoration: solid; 
+    margin-top: 30px;
+}
+
+.image {
+    margin-top: 30px;
+    border-radius: 10px;
+    border: 1px solid black;
+}
+
+#align-top {
+    width: 100%;
+    text-align: center;
+    align-items: center;
+    justify-content: center;
+    margin-top: 20px;
+    margin-right: auto;
+}
+
+#align-bottom {
+    width: 50%;
+    text-align: center;
+    align-items: center;
+    justify-content: center;
+    margin-right: 20px;
+}
+
+::placeholder {
+    color: grey;
+}
+
+.search_bar button img {
+    width: 20px;
+}
+
+.search_bar button {
+    border: 0;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    background: #58629b;
+    cursor: pointer;
+}
+
+.banner {
+    align-items: center;
+}
+
+.top-div {
+    margin-top: 400px;
+
+}
+
+.bottom-div {
+    margin-bottom: 250px;
+    width: 50%;
+}
