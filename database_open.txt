@@ -1,0 +1,6 @@
+sudo -u postgres psql - open postgres server
+\l - show databases;
+\c database_name - use database;
+\dt - show tables;
+\d - desc table
+
