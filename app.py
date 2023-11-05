@@ -74,6 +74,11 @@ def myaccountPage():
     else:
         return render_template('customer/myaccount.html'), 422
 
+@app.route("/myorder/")
+def myOrderPage():
+    accessToken=request.args.get('accessToken')
+    return render_template('customer/myorder.html'), 200
+
 @app.route("/createorder")
 def createOrderPage():
     return render_template('customer/create_order.html'), 200 
