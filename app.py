@@ -70,10 +70,13 @@ def myaccountPage():
     response = requests.get("http://127.0.0.1:5000/api/getOrderList/", headers=headers)
     if response.status_code == 200:
         orderlist=response.json()['data']
-        print(orderlist)
-        return render_template('customer/myaccount.html', orderlist=response.json()['data'])
+        return render_template('customer/myaccount.html', orderlist=orderlist), 200
     else:
-        return render_template('customer/myaccount.html')
+        return render_template('customer/myaccount.html'), 422
+
+@app.route("/createorder")
+def createOrderPage():
+    return render_template('customer/create_order.html'), 200 
 
 '''
 API FUNCTIONS BELOW
