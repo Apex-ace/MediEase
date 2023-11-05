@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Page</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link
+    rel="stylesheet"
+    href="{{ url_for('static', filename='customer/styles.css') }}"
+    />
+    <!-- <link rel="stylesheet" href="{{ url_for('static', filename='customer/medicine.css') }}"> -->
+    <script src="{{ url_for('static', filename='customer/common.js') }}"></script>
+    <script src="{{ url_for('static', filename='customer/create_order.js') }}"></script>
+</head>
+<body>
+    {% include 'customer/navbar.html' %}
+</body>
+</html>
