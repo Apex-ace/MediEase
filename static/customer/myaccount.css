@@ -1,0 +1,68 @@
+body {
+    background-color: white
+}
+
+.container {
+    width: 100%;
+    background-color: #fff;
+    border-radius: 5px;
+    margin-top: 10px;
+    margin-bottom: 20px;
+    padding: 1px;
+}
+
+form {
+    margin-top: 20px;
+}
+
+.btn-block {
+    margin-top: 20px;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+}
+
+.no-margin {
+    margin: 0;
+}
+
+#medicines {
+    background-color: lightblue;
+    margin-bottom: 10px;
+    margin-right: 500pt;
+    border-radius: 5px;
+}
+
+.tab-space {
+    margin-left: 20px; /* Adjust the value as needed */
+}
+
+#horizontal_divide {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin-left: 20pt;
+    margin-right: 30pt; 
+    margin-top: 0px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#vertical_divide {
+    margin-top: 10px;
+    margin-left: 20px;
+    margin-right: 10px;
+    display: flex;
+    flex-direction: row;
+    /* justify-content: space-between; */
+}
+
+.image {
+    margin-top: 30px;
+    border-radius: 10px;
+    border: 1px solid black;
+}
