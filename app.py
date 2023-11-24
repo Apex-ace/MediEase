@@ -67,17 +67,25 @@ def myaccountPage():
     headers = {
     'Authorization': f'Bearer {accessToken}'
     }
-    response = requests.get("http://127.0.0.1:5000/api/getOrderList/", headers=headers)
+    response = requests.get("http://127.0.0.1:"+os.getenv('APP_PORT')+"/api/getOrderList/", headers=headers)
     if response.status_code == 200:
         orderlist=response.json()['data']
         return render_template('customer/myaccount.html', orderlist=orderlist), 200
     else:
         return render_template('customer/myaccount.html'), 422
 
-@app.route("/myorder/")
-def myOrderPage():
+@app.route("/myorder/<id>")
+def myOrderPage(id):
     accessToken=request.args.get('accessToken')
-    return render_template('customer/myorder.html'), 200
+    headers = {
+    'Authorization': f'Bearer {accessToken}'
+    }
+    response = requests.get("http://127.0.0.1:"+os.getenv('APP_PORT')+"/api/getOrder/"+id, headers=headers)
+    if response.status_code == 200:
+        order=response.json()['data']
+        return render_template('customer/orderpage.html', order=order), 200
+    else:
+        return render_template('customer/orderpage.html'), 422
 
 @app.route("/createorder")
 def createOrderPage():
@@ -119,13 +127,14 @@ def loginHelper():
 
     # search in database
     response=database.select(conn=conn, table="customerAuth", condition=f"username='{username}'")
-    response["result"]=response["result"][0]
+    
     print(response)
 
     # If search successful
     if(response["res"]==1):
         # Get the hashed db password
-        hashed_password=response["result"][1]
+        hashed_password=response["result"][0][1]
+        
         # Check if its same with input credentials
         if bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8')):
             # Prepare a JWT token
@@ -255,4 +264,4 @@ MAIN FUNCTION
 if __name__ == '__main__':
     # Run the Flask app
     print(initdb())
-    app.run(debug=True, use_reloader=True)
+    app.run(debug=True, use_reloader=True, port=os.getenv('APP_PORT'))
