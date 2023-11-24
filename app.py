@@ -74,9 +74,8 @@ def myaccountPage():
     else:
         return render_template('customer/myaccount.html'), 422
 
-@app.route("/myorder/<id>")
-def myOrderPage(id):
-    accessToken=request.args.get('accessToken')
+@app.route("/myorder/<accessToken>/<id>")
+def myOrderPage(accessToken,id):
     headers = {
     'Authorization': f'Bearer {accessToken}'
     }
