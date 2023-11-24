@@ -90,6 +90,10 @@ def myOrderPage(accessToken,id):
 def createOrderPage():
     return render_template('customer/create_order.html'), 200 
 
+@app.route("/cart")
+def cartPage():
+    return render_template('customer/cart.html'), 200 
+
 '''
 API FUNCTIONS BELOW
 '''
