@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Search Page</title>
+    <title>Medicine Page</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
     <link
     rel="stylesheet"
@@ -41,9 +41,16 @@
                     <dd><h5>{{medicine['price']}}</h5></dd>
                 </dl>
             </div>
+            <label for="quantity">Quantity:</label>
+            <select id="quantitySelector" class="quantity-selector">
+              <!-- Populate the dropdown with options (e.g., from 1 to 10) -->
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+            </select>
             <div class="center-button">
                 <center>
-                    <button id="Login" type="submit" class="btn btn-primary btn-block">Buy Now</button>
+                    <button type="submit" class="btn btn-primary btn-block" onclick="addToCart({{ medicine['id'] }})">Add to Cart</button>
                 </center>
             </div>
         </div>
