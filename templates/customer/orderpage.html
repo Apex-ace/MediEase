@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Order Page</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Pacifico&family=Playfair+Display&family=Red+Hat+Display&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='customer/styles.css') }}"
+    />
+    <script src="{{ url_for('static', filename='customer/orderpage.js') }}"></script>
+
+    <script src="{{ url_for('static', filename='customer/common.js') }}"></script>
+  </head>
+  <body>
+    {% include 'customer/navbar.html' %}
+    <div class="container">
+      {{ order }}
+  </div>
+  </body>
+</html>
