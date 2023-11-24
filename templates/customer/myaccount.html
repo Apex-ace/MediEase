@@ -1,29 +1,73 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>My Account Page</title>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Pacifico&family=Playfair+Display&family=Red+Hat+Display&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='customer/styles.css') }}"
-    />
-    <script src="{{ url_for('static', filename='customer/myaccount.js') }}"></script>
 
-    <script src="{{ url_for('static', filename='customer/common.js') }}"></script>
-  </head>
-  <body>
-    {% include 'customer/navbar.html' %}
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Account Page</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@300&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='customer/myaccount.css') }}" />
+  <script src="{{ url_for('static', filename='customer/myaccount.js') }}"></script>
+  <script src="{{ url_for('static', filename='customer/common.js') }}"></script>
+  <style>
+    /* Custom CSS to set full-page height */
+    body,
+    html {
+      height: 100%;
+    }
+
+    .full-height {
+      width: 100%;
+      min-width: 100%;
+      min-height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    a:link {
+      text-decoration: none;
+    }
+
+    a:visited {
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    a:active {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+
+<body>
+  {% include 'customer/navbar.html' %}
+  <div id="vertical_divide">
+    <div id="image">
+      <img class="image" src="../../static/customer/paracetamol.webp" alt="Description of the image" width="400"
+        height="280">
+    </div>
     <div class="container">
-      <ol>
-      {% for i in orderlist %}
-          <li>{{ i }}</li>
-      {% endfor %}
-      </ol>
+      <ul>
+        {% for i in orderlist %}
+        <div id="medicines" style="font-family: 'Red Hat Display', sans-serif; ">
+          <li>
+            <a href="#" data-order-id="{{i[0]}}" onclick="redirectToOrder(event)">
+              <b>Order id:</b> &nbsp;{{ i[0] }}<br>
+              <b>Time:</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ i[1] }}<br>
+              <b>Status:</b> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ i[2] }}<br>
+            </a>
+          </li>
+        </div>
+        {% endfor %}
+      </ul>
+    </div>
   </div>
-  </body>
+</body>
+
 </html>
