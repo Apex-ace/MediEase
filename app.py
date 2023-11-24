@@ -86,7 +86,7 @@ def myOrderPage(accessToken,id):
     else:
         return render_template('customer/orderpage.html'), 422
 
-@app.route("/createorder")
+@app.route("/createOrder")
 def createOrderPage():
     return render_template('customer/create_order.html'), 200 
 
