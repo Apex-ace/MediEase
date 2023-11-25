@@ -12,14 +12,17 @@ document.addEventListener('DOMContentLoaded', function () {
     var cartContainer = document.getElementById('cartContainer');
     cartData.forEach(function (item) {
         var listItem = document.createElement('div');
+        listItem.classList.add('card'); 
         
         // Display item details
-        var itemDetails = document.createElement('p');
-        itemDetails.textContent = 'Name: ' + item.name + ', Quantity: ' + item.qty;
+        var itemDetails = document.createElement('h6');
+        itemDetails.textContent = 'Name: ' + item.name;
         listItem.appendChild(itemDetails);
-
-        // Add remove button
+        itemDetails = document.createElement('h6');
+        itemDetails.textContent = 'Quantity: ' + item.qty;
+        listItem.appendChild(itemDetails);
         var removeButton = document.createElement('button');
+        removeButton.classList.add('card-button'); 
         removeButton.textContent = 'Remove';
         removeButton.onclick = function () {
             // Call a function to handle item removal, passing the index of the item
