@@ -63,7 +63,7 @@ def select(conn, table, columns=None, condition=None, desc=False, limit=None):
                 cursor.execute(query)
                 result = cursor.fetchall()
                 if(len(result)==0):
-                    return {"res": 0, "message": "Selection Success: NULL Result"}
+                    return {"res": 1, "message": "Selection Success: NULL Result", "result": []}
                 else:
                     return {"res": 1, "message": "Selection Success: Valid Result", "result": result}
     except Exception as e:
