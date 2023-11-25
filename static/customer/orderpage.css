@@ -46,6 +46,19 @@ body {
     border: #05000058;
 }
 
+.cancel-button {
+    background-color: #ccc;
+    color: #333;
+    border: 1px solid #999;
+}
+
+
+.contact-button {
+    background-color: #3498db;
+    color: #fff;
+    border: none;
+}
+
 #tab-space {
     margin-left: 0px;
 }
