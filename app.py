@@ -348,6 +348,24 @@ def shopGetOrder(orderid):
         return {"res": 1, "message": "Order Fetched", "data": data}
     return {"res": 0, "message": "Order Could Not be Fetched"}
 
+@app.post("/api/shop/updateOrder")
+def shopUpdateOrder():
+    data = request.get_json()
+
+    print(data)
+
+    # Get the credentials
+    orderid=data["orderid"]
+    status=data["status"]
+
+    response=database.update(conn,"orders",{"status":status},condition=f"orderid={orderid}")
+    print(response)
+    if response["res"]==1:
+        return {"res": 1, "message": "Update Successful"}
+    else:
+        return {"res": 0, "message": "Update Unsuccessful!"}
+    
+
 '''
 MAIN FUNCTION
 '''
