@@ -1,4 +1,4 @@
-const accessToken = localStorage.getItem('accessToken');
+var accessToken = localStorage.getItem('accessToken');
 fetch('/api/isvalid', {
   method: 'GET',
   headers: {
