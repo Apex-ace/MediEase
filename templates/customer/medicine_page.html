@@ -1,59 +1,94 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Medicine Page</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@300&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link
-    rel="stylesheet"
-    href="{{ url_for('static', filename='customer/styles.css') }}"
-    />
+    <!-- <link rel="stylesheet" href="{{ url_for('static', filename='customer/styles.css') }}" /> -->
     <link rel="stylesheet" href="{{ url_for('static', filename='customer/medicine.css') }}">
     <script src="{{ url_for('static', filename='customer/common.js') }}"></script>
     <script src="{{ url_for('static', filename='customer/cart.js') }}"></script>
 </head>
+
 <body>
     {% include 'customer/navbar.html' %}
-    <div id="vertical_divide">
-        <div id="image">
-            <img class="image" src="../../static/customer/paracetamol.webp" alt="Description of the image" width="500" height="350">
-            <h2 style="margin-top: 10px; margin-bottom: 2px;"><b>{{ medicine['name'] }}</b></h2>
-            <h4 style="margin-top: 0px;"><b>{{ medicine['manufacturer'] }}</b></h4>
+    <div id="vertical_divide" style="margin-left: 100px;">
+        <div id="image" style="margin-right: 50px;">
+            <img class="image" src="../../static/customer/paracetamol.webp" alt="Description of the image" width="500"
+                height="350">
         </div>
-        
-        <div>
-            <dl class="content">
-                <dt><h4><b>Composition:</b></h4></dt>
-                <dd><h6>{{ medicine['composition'] }}</h6></dd>
-                <dt><h4><b>Description:</b></h4></dt>
-                <dd><h6>{{ medicine['description'] }}</h6></dd>
-                <dt><h4><b>Category:</b></h4></dt>
-                <dd><h6>{{ medicine['category'] }}</h6></dd>
-                <dt><h4 style="color: red;"><b>Side Effects:</b></h4></dt>
-                <dd><h6>{{ medicine['side_effects'] }}</h6></dd>
-            </dl>
-        </div>
-        <div id="horizontal_divide">
+
+        <div id="horizontal_divide" style="margin-right: 40px;">
+            <div>
+                <h2 style="margin-top: 10px; margin-bottom: 2px; text-align: left;"><b>{{ medicine['name'] }}</b></h2>
+                <h5 style="margin-top: 0px;color: brown;"><b>{{ medicine['manufacturer'] }}</b></h5>
+            </div>
             <div class="center-text">
                 <dl class="price-style">
-                    <dt><h4><b>Price</b></h4></dt>
-                    <dd><h5>{{medicine['price']}}</h5></dd>
+                    <dt>
+                        <h4><b>Price</b></h4>
+                    </dt>
+                    <dd>
+                        <h5>{{medicine['price']}}</h5>
+                    </dd>
                 </dl>
             </div>
-            <label for="quantity">Quantity:</label>
-            <select id="quantitySelector" class="quantity-selector">
-              <!-- Populate the dropdown with options (e.g., from 1 to 10) -->
-              <option value="1">1</option>
-              <option value="2">2</option>
-              <option value="3">3</option>
-            </select>
+            <div style="margin-right: 35px;">
+                <br>
+                <label for="quantity">Quantity:</label>
+                <select id="quantitySelector" class="quantity-selector">
+                    <!-- Populate the dropdown with options (e.g., from 1 to 10) -->
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                </select>
+            </div>
             <div class="center-button">
                 <center>
-                    <button type="submit" class="btn btn-primary btn-block" onclick="addToCart({{ medicine['id'] }},'{{ medicine['name'] }}')">Add to Cart</button>
+                    <button type="submit" class="btn btn-primary btn-block"
+                        onclick="addToCart({{ medicine['id'] }},'{{ medicine['name'] }}')">Add to Cart</button>
                 </center>
             </div>
         </div>
+
+        <div>
+            <dl class="content" style="margin-right: 300px; width: 60%; margin-top: 60px;">
+                <dt>
+                    <h4><b>Composition:</b></h4>
+                </dt>
+                <dd>
+                    <h6 style="color: rgb(119, 20, 20);">{{ medicine['composition'] }}</h6>
+                </dd>
+                <dt>
+                    <h4><b>Category:</b></h4>
+                </dt>
+                <dd>
+                    <h6 style="color: rgb(119, 20, 20);">{{ medicine['category'] }}</h6>
+                </dd>
+                <dt>
+                    <h4 style="color: red;"><b>Side Effects:</b></h4>
+                </dt>
+                <dd>
+                    <h6 style="color: rgb(119, 20, 20);">{{ medicine['side_effects'] }}</h6>
+                </dd>
+            </dl>
+        </div>
+    </div>
+    <div>
+        <dl class="content">
+            <dt>
+                <h4><b>Description:</b></h4>
+            </dt>
+            <dd>
+                <h6 style="color: rgb(119, 20, 20);">{{ medicine['description'] }}</h6>
+            </dd>
+        </dl>
     </div>
 </body>
+
 </html>
