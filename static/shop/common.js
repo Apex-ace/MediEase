@@ -33,3 +33,24 @@ function submitLoginForm(event) {
         });
     form.reset();
 }
+
+function redirectToMedicineStock(event){
+
+}
+
+function redirectToOrders(event){
+    window.location.href = "/shop/orders";
+}
+
+function redirectToOrder(event){
+    var button = event.target;
+
+    // Get the order ID from the data attribute
+    var orderId = button.getAttribute('data-order-id');
+
+    // Construct the redirect URL
+    var redirectUrl = '/shop/order/' + '/' +  orderId;
+
+    // Redirect to the constructed URL
+    window.location.href = redirectUrl;
+}

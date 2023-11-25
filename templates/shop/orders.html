@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Shop Home Page</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@300&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='shop/orders.css') }}"
+    />
+    <script src="{{ url_for('static', filename='shop/common.js') }}"></script>
+  </head>
+
+  <body>
+    <div class="order-list">
+      <div>
+        <h2>Your Orders</h2>
+      </div>
+      <ul>
+        {% for i in orderlist %}
+        <div id="medicines" style="font-family: 'Red Hat Display', sans-serif">
+          <li class="card">
+            <button
+              class="btn btn-light"
+              data-order-id="{{i[0]}}"
+              onclick="redirectToOrder(event)"
+            >
+              <b>Order id:</b>{{ i[0] }}<br />
+              <b>Username:</b>{{ i[1] }}<br />
+              <b>Time:</b> {{ i[2] }}<br />
+              <b>Status: </b> {{ i[3] }}
+            </button>
+          </li>
+        </div>
+        {% endfor %}
+      </ul>
+    </div>
+  </body>
+</html>
