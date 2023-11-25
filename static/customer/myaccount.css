@@ -29,14 +29,30 @@ body {
 }
 
 #medicines {
-    background-color: rgb(216, 235, 242);
+    background-color: rgb(189, 212, 221);
     margin-bottom: 10px;
-    margin-right: 280pt;
+    margin-right: 50pt;
     border-radius: 5px;
 }
 
 .tab-space {
     margin-left: 20px; /* Adjust the value as needed */
+}
+
+.container {
+    width: 97.5%;
+    min-height: 69vh;
+    padding: 0;
+    background-image: url(../../static/customer/backround_image.png);
+    background-position: center;
+    background-size: cover;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    /* justify-content: space-between; */
 }
 
 #horizontal_divide {
@@ -56,9 +72,10 @@ body {
     align-items: left;
     margin-top: 10px;
     margin-left: 20px;
-    margin-right: 10px;
+    margin-right: 101x;
     display: flex;
     flex-direction: row;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
     /* justify-content: space-between; */
 }
 
