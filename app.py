@@ -28,7 +28,23 @@ def initdb():
     return msg
 
 '''
-PAGE ROUTE FUNCTIONS
+PAGE ROUTE FUNCTIONS FOR SHOP
+'''
+# Login Page Route
+@app.route("/shop/login")
+def shopLogin():
+    return render_template('shop/login.html')
+
+@app.route("/shop")
+def shop():
+    return render_template('shop.html')
+
+@app.route("/shop/orders")
+def shopOrders():
+    return render_template('orders.html')
+
+'''
+PAGE ROUTE FUNCTIONS FOR CUSTOMER
 '''
 # Home Page Route
 @app.route("/")
@@ -94,7 +110,7 @@ def cartPage():
     return render_template('customer/cart.html'), 200 
 
 '''
-API FUNCTIONS BELOW
+API FUNCTIONS BELOW FOR CUSTOMER
 '''
 # Signup API
 @app.post("/api/signup")
@@ -263,6 +279,7 @@ def getOrder(orderid):
         return {"res": 1, "message": "Order Fetched", "data": data}
     return {"res": 0, "message": "Order Could Not be Fetched"}
 
+# Get Order List API
 @app.get("/api/getOrderList/")
 @jwt_required()
 def getOrderList():
@@ -274,6 +291,24 @@ def getOrderList():
     if(response["res"]==1):
         return {"res": 1, "message": "Order List Fetched", "data": response["result"]}
     return {"res": 0, "message": "Order Could Not be Fetched"}
+
+'''
+API FUNCTIONS BELOW FOR SHOP
+'''
+# Shop Login API
+@app.post("/api/shop/login")
+def shopLoginHelper():
+    data = request.get_json()
+
+    # Get the credentials
+    username=data["username"]
+    password=data["password"]
+
+    if(username=="admin" and password=="admin"):
+        return {"res": 1, "message": "Admin Logged In"}
+    else:
+        return {"res": 0, "message": "Admin Login Failure"}
+ 
 
 
 '''
