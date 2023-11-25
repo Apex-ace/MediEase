@@ -12,14 +12,17 @@ document.addEventListener('DOMContentLoaded', function () {
     var cartContainer = document.getElementById('cartContainer');
     cartData.forEach(function (item) {
         var listItem = document.createElement('div');
+        listItem.classList.add('card'); 
         
         // Display item details
-        var itemDetails = document.createElement('p');
-        itemDetails.textContent = 'Name: ' + item.name + ', Quantity: ' + item.qty;
+        var itemDetails = document.createElement('h6');
+        itemDetails.textContent = 'Name: ' + item.name;
         listItem.appendChild(itemDetails);
-
-        // Add remove button
+        itemDetails = document.createElement('h6');
+        itemDetails.textContent = 'Quantity: ' + item.qty;
+        listItem.appendChild(itemDetails);
         var removeButton = document.createElement('button');
+        removeButton.classList.add('card-button'); 
         removeButton.textContent = 'Remove';
         removeButton.onclick = function () {
             // Call a function to handle item removal, passing the index of the item
@@ -37,28 +40,33 @@ document.addEventListener('DOMContentLoaded', function () {
 // Function to buy an item to the cart
 function buyNow() {
   const accessToken = localStorage.getItem('accessToken');
-  if(!accessToken){
-    alert("User is logged out. Login Again");
-    window.location.href = '/';
-  }
-  else {
-    var cartData = localStorage.getItem('cart');
-    if (cartData) {
-      cartData = JSON.parse(cartData);
-      if (cartData.length === 0) {
-        alert("Cart is Empty. Add some medicines to order");
-        window.location.href = '/';
+  var cartData = JSON.parse(localStorage.getItem('cart'));
+  fetch('/api/isvalid', {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${accessToken}`,
+    },
+  })
+    .then(async response => {
+      if (!response.ok) {
+        alert("Please login before placing order");
       }
-      else{
-        window.location.href = '/createOrder';
+      else {
+        if (cartData.length === 0) {
+          alert("Cart is Empty. Add some medicines to order");
+          window.location.href = '/';
+        }
+        else{
+          window.location.href = '/createOrder';
+        }
+
       }
-    }
-    else {
-      alert("Cart is Empty. Add some medicines to order");
-      window.location.href = '/';
-    }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert(error);
+    });
   }
-}
 
 // Function to add an item to the cart
 function addToCart(id, name) {
