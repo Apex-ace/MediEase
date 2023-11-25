@@ -3,8 +3,10 @@ import psycopg2
 import os
 import csv
 
+# Loads the env file
 load_dotenv()
 
+# Make connection to database
 def connect_to_db():
     conn = psycopg2.connect(
     host=os.getenv("POSTGRES_HOST"),
@@ -14,6 +16,7 @@ def connect_to_db():
 
     return conn
 
+# Initialise the database [ Make tables and populate data]
 def init_db(conn):
     response=initCustomerAuthTable(conn)
     if(response["res"]==0):
@@ -26,6 +29,7 @@ def init_db(conn):
         return {"res": 0, "message": "INIT orders Table Failure"}
     return {"res": 1, "message": "INIT Success"}
 
+# Standard Insert Query
 def insert(conn, table, data):
     columns = ', '.join(data.keys())
     placeholders = ', '.join(['%s'] * len(data))
@@ -39,7 +43,8 @@ def insert(conn, table, data):
     except Exception as e:
         print(e)
         return {"res": 0, "message": "Insertion Failure"}
-    
+
+# Standard Update Query
 def update(conn, table, data, condition=None):
     set=[]
     for col in data:
@@ -60,6 +65,7 @@ def update(conn, table, data, condition=None):
         print(e)
         return {"res": 0, "message": "Update Failure"}
     
+# Standard Select Query
 def select(conn, table, columns=None, condition=None, desc=False, limit=None):
     if columns:
         columns_str = ', '.join(columns)
@@ -90,6 +96,7 @@ def select(conn, table, columns=None, condition=None, desc=False, limit=None):
         print(e)
         return {"res": 0, "message": "Selection Failure"}
 
+# Initialise the Customer Auth Table
 def initCustomerAuthTable(conn):
     query = '''
     CREATE TABLE IF NOT EXISTS customerAuth 
@@ -103,6 +110,7 @@ def initCustomerAuthTable(conn):
         print(e)
         return {"res": 0, "message": "Table Creation Unsuccessful"}
 
+# Initialise the Medicine Table
 def initMedicineDatabase(conn):
     query = '''CREATE TABLE IF NOT EXISTS medicines
       (id SERIAL PRIMARY KEY,
@@ -157,7 +165,8 @@ def initMedicineDatabase(conn):
                     cursor.execute(query)
             return {"res": 0, "message": "Table Creation Unsuccessful"}
     return {"res": 1, "message": "Table Creation Successful"}
-    
+
+# Initialise the Order Table
 def initOrdersDatabase(conn):
     query = '''
     CREATE TABLE IF NOT EXISTS orders 

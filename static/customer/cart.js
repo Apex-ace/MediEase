@@ -1,3 +1,4 @@
+// On document loaded run this
 document.addEventListener('DOMContentLoaded', function () {
   var cartData = JSON.parse(localStorage.getItem('cart'));
   // alert(cartData)
@@ -11,6 +12,8 @@ document.addEventListener('DOMContentLoaded', function () {
   }
   else {
     var cartContainer = document.getElementById('cartContainer');
+
+    // Make card for each of the cart item
     cartData.forEach(function (item) {
         var listItem = document.createElement('div');
         listItem.classList.add('card'); 
@@ -33,6 +36,8 @@ document.addEventListener('DOMContentLoaded', function () {
         // Append the complete item container to the cartContainer
         cartContainer.appendChild(listItem);
     });
+
+    // Show the total amount
     getTotal(cartData)
     .then(total => {
       var totalItem = document.createElement('div');
@@ -46,15 +51,21 @@ document.addEventListener('DOMContentLoaded', function () {
       alert("Failed to calculate total");
       console.log(error);
     });
+
+    // Show the buy now button
     var button = document.getElementById('buy-now-button');
     button.style.display = 'block';
   }
 });
 
-// Function to buy an item to the cart
+// Function to redirect to create order page
 function buyNow() {
+
+  // Get the accesstoken
   const accessToken = localStorage.getItem('accessToken');
   var cartData = JSON.parse(localStorage.getItem('cart'));
+
+  // Check if accesstoken valid
   fetch('/api/isvalid', {
     method: 'GET',
     headers: {
@@ -63,13 +74,16 @@ function buyNow() {
   })
     .then(async response => {
       if (!response.ok) {
+        // Not valid(Logged out)
         alert("Please login before placing order");
       }
+      // valid
       else {
         if (cartData.length === 0) {
           alert("Cart is Empty. Add some medicines to order");
           window.location.href = '/';
         }
+        // Redirect to create order page
         else{
           window.location.href = '/createOrder';
         }
@@ -80,7 +94,7 @@ function buyNow() {
       console.error('Error:', error);
       alert(error);
     });
-  }
+}
 
 // Function to add an item to the cart
 function addToCart(id, name) {
@@ -110,11 +124,16 @@ function addToCart(id, name) {
   localStorage.setItem('cart', JSON.stringify(cartData));
 }
 
-
+// FUnction to remove an item from the cart
 function removeFromCart(id){
+  
+  // get the cart from the localstorafe
   var cartData = JSON.parse(localStorage.getItem('cart'));
+
+  // find the medicine id in the cart
   var existingItemIndex = cartData.findIndex(item => item.id === id);
 
+  // remove it
   if (existingItemIndex !== -1) {
     // If the product exists, remove it
     cartData.splice(existingItemIndex, 1);
@@ -123,11 +142,16 @@ function removeFromCart(id){
     // If the product doesn't exist, add a new item to the cart
     alert("Product already removed from cart")
   }
+
+  // update the cart item in localstorage
   localStorage.setItem('cart', JSON.stringify(cartData));
   window.location.href = '/cart';
 }
 
+// Function which calculates the total of the cart
 function getTotal(cart) {
+
+  // Call the getcarttotal api
   return new Promise((resolve, reject) => {
     fetch('/api/getCartTotal', {
       method: 'POST',

@@ -4,11 +4,13 @@ function submitLoginForm(event) {
 
     const form = document.getElementById('login-form');
 
+    // Get the credentials
     const username = form.querySelector('#username').value;
     const password = form.querySelector('#password').value;
 
     form.reset();
 
+    // Call the login api with the credentials
     fetch('/api/login', {
         method: 'POST',
         body: JSON.stringify({ "username": username, "password": password }),
@@ -22,6 +24,7 @@ function submitLoginForm(event) {
                 alert(data["message"])
             }
             else {
+                // Store the returned accesstoken from server
                 localStorage.setItem('accessToken', data["accessToken"]);
                 alert(data["message"]);
                 window.location.href = '/';
@@ -40,9 +43,11 @@ function submitSignupForm(event) {
 
     const form = document.getElementById('signup-form');
 
+    // Get the credentials
     const username = form.querySelector('#username').value;
     const password = form.querySelector('#password').value;
 
+    // Call signup api with credentials as body
     fetch('/api/signup', {
         method: 'POST',
         body: JSON.stringify({ "username": username, "password": password }),
@@ -57,6 +62,7 @@ function submitSignupForm(event) {
                 alert(data["message"]);
             }
             else {
+                // Redirect to login upon successful sign up
                 alert(data["message"]);
                 window.location.href = '/login';
             }
@@ -72,8 +78,10 @@ function submitSignupForm(event) {
 function logout(event) {
     event.preventDefault();
 
+    // get the accesstoken from localstorage
     const accessToken = localStorage.getItem('accessToken');
 
+    // Call the log out api with accesstoken
     fetch('/api/logout', {
         method: 'GET',
         headers: {
@@ -85,10 +93,12 @@ function logout(event) {
                 alert("User already logged out");
             }
             else {
+                // Remove accesstoken and cart on logout
                 alert((await response.json())["message"]);
                 localStorage.removeItem('accessToken');
                 localStorage.removeItem('cart');
             }
+            // Redirect to home
             window.location.href = '/';
         })
         .catch(error => {
@@ -107,20 +117,15 @@ function submitSearchForm(event) {
     form.reset();
 }
 
+// Function to redirect to my account page from navbar
 function redirectToMyAccount(event) {
     event.preventDefault();
 
+    // Get the accesstoken
     const accessToken = localStorage.getItem('accessToken');
-    // Check if the access token exists
-    if (accessToken) {
-        // Construct the redirect URL
-        var redirectUrl = '/myaccount/' + accessToken;
+    
+    var redirectUrl = '/myaccount/' + accessToken;
 
-        // Redirect to the constructed URL
-        window.location.href = redirectUrl;
-    } else {
-        alert("User logged out");
-        // Redirect to home
-        window.location.href = "/";
-    }
+    // Redirect to the constructed URL
+    window.location.href = redirectUrl;
 }
