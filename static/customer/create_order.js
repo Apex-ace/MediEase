@@ -45,7 +45,10 @@ function submitOrder(event) {
             else {
               alert("Your order has been successfully placed");
               localStorage.setItem('cart', JSON.stringify([]));
-              window.location.href = '/';
+              var redirectUrl = '/myaccount/' + accessToken;
+
+              // Redirect to the constructed URL
+              window.location.href = redirectUrl;
             }
           })
           .catch(error => {
