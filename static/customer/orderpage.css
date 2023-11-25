@@ -31,9 +31,19 @@ body {
 #medicines {
     background-color: lightblue;
     margin-bottom: 10px;
-    margin-right: 500pt;
+    margin-right: 50pt;
     margin-left: 20pt;
     border-radius: 5px;
+    width: 100%;
+}
+
+#item {
+    background-color: rgba(49, 48, 47, 0.325);
+    margin: 10px;
+    margin-left: 18px;
+    border-radius: 5px;
+    width: 65%;
+    border: #05000058;
 }
 
 #tab-space {
