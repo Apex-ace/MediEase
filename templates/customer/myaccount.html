@@ -12,52 +12,77 @@
   <script src="{{ url_for('static', filename='customer/myaccount.js') }}"></script>
   <script src="{{ url_for('static', filename='customer/common.js') }}"></script>
   <style>
-    /* Custom CSS to set full-page height */
-    body,
-    html {
-      height: 100%;
+    body {
+      font-family: 'Arial', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f4;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
     }
 
-    .full-height {
-      width: 100%;
-      min-width: 100%;
-      min-height: 100%;
+    header {
+      background-color: #3498db;
+      color: #fff;
+      padding: 20px;
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    section {
       display: flex;
-      flex-direction: column;
-      justify-content: center;
+      justify-content: space-around;
+      align-items: center;
+      padding: 20px;
     }
 
-    a:link {
+    .medicine-container {
+      flex: 1;
+      width: 200px;
+      padding: 20px;
+    }
+
+    .medicine-image {
+      width: 110%;
+      height: auto;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .order-list {
+      flex: 1;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      margin-right: 100px;
+    }
+
+    .no-underline {
       text-decoration: none;
-    }
-
-    a:visited {
-      text-decoration: none;
-    }
-
-    a:hover {
-      text-decoration: underline;
-    }
-
-    a:active {
-      text-decoration: underline;
+      /* Remove underline from links with the class "no-underline" */
     }
   </style>
 </head>
 
 <body>
   {% include 'customer/navbar.html' %}
+  <header>
+    <h1>Medicine Order</h1>
+  </header>
+
   <div id="vertical_divide">
-    <div id="image">
-      <img class="image" src="../../static/customer/paracetamol.webp" alt="Description of the image" width="400"
-        height="280">
+    <div style="width: 300px; margin-right: 30px; padding: 30px;">
+      <img class="medicine-image" src="../../static/customer/profile.webp" alt="Medicine-image">
     </div>
-    <div class="container">
+    <div class="order-list">
+      <h2>Your Orders</h2>
       <ul>
         {% for i in orderlist %}
         <div id="medicines" style="font-family: 'Red Hat Display', sans-serif; ">
           <li>
-            <a href="#" data-order-id="{{i[0]}}" onclick="redirectToOrder(event)">
+            <a href="#" data-order-id="{{i[0]}}" onclick="redirectToOrder(event)" class="no-underline">
               <b>Order id:</b> &nbsp;{{ i[0] }}<br>
               <b>Time:</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ i[1] }}<br>
               <b>Status:</b> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ i[2] }}<br>
