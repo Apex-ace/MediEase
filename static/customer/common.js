@@ -18,12 +18,12 @@ function submitLoginForm(event) {
     })
         .then(response => response.json())
         .then(data => {
-            if(data["res"]==0){
+            if (data["res"] == 0) {
                 alert(data["message"])
             }
-            else{
+            else {
                 localStorage.setItem('accessToken', data["accessToken"]);
-                localStorage.setItem('cart',JSON.stringify([]));
+                localStorage.setItem('cart', JSON.stringify([]));
                 alert(data["message"]);
                 window.location.href = '/';
             }
@@ -54,10 +54,10 @@ function submitSignupForm(event) {
         .then(response => response.json())
         .then(data => {
             console.log(data);
-            if(data["res"]==0){
+            if (data["res"] == 0) {
                 alert(data["message"]);
             }
-            else{
+            else {
                 alert(data["message"]);
                 window.location.href = '/login';
             }
@@ -81,21 +81,21 @@ function logout(event) {
             'Authorization': `Bearer ${accessToken}`,
         },
     })
-    .then(async response => {
-        if (!response.ok) {
-          alert("User already logged out");
-        }
-        else{
-            alert((await response.json())["message"]);
-            localStorage.removeItem('accessToken');
-            localStorage.removeItem('cart');
-        }
-        window.location.href = '/login';
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert(error);
-    });
+        .then(async response => {
+            if (!response.ok) {
+                alert("User already logged out");
+            }
+            else {
+                alert((await response.json())["message"]);
+                localStorage.removeItem('accessToken');
+                localStorage.removeItem('cart');
+            }
+            window.location.href = '/';
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert(error);
+        });
 }
 
 // Function to submit the signup form
@@ -106,4 +106,22 @@ function submitSearchForm(event) {
     const key = form.querySelector('#content').value;
     window.location.href = '/search/'.concat(key);
     form.reset();
+}
+
+function redirectToMyAccount(event) {
+    event.preventDefault();
+
+    const accessToken = localStorage.getItem('accessToken');
+    // Check if the access token exists
+    if (accessToken) {
+        // Construct the redirect URL
+        var redirectUrl = '/myaccount/' + accessToken;
+
+        // Redirect to the constructed URL
+        window.location.href = redirectUrl;
+    } else {
+        alert("User logged out");
+        // Redirect to home
+        window.location.href = "/";
+    }
 }
