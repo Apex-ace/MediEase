@@ -16,7 +16,11 @@ document.addEventListener('DOMContentLoaded', function () {
 // Function to buy an item to the cart
 function buyNow() {
   const accessToken = localStorage.getItem('accessToken');
-  if (accessToken) {
+  if(!accessToken){
+    alert("User is logged out. Login Again");
+    window.location.href = '/';
+  }
+  else {
     var cartData = localStorage.getItem('cart');
     if (cartData) {
       cartData = JSON.parse(cartData);
@@ -32,9 +36,5 @@ function buyNow() {
       alert("Cart is Empty. Add some medicines to order");
       window.location.href = '/';
     }
-  } else {
-    alert("User is logged out. Login Again");
-    window.location.href = '/login';
   }
-
 }
