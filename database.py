@@ -39,7 +39,27 @@ def insert(conn, table, data):
     except Exception as e:
         print(e)
         return {"res": 0, "message": "Insertion Failure"}
+    
+def update(conn, table, data, condition=None):
+    set=[]
+    for col in data:
+        set.append(f"{col}='{data[col]}'")
+    set=",".join(set)
+    query = f"UPDATE {table} SET {set}"
+    if(condition):
+        query += f" WHERE {condition}"
 
+    query+=";"
+    print(query)
+    try:
+        with conn:
+            with conn.cursor() as cursor:
+                cursor.execute(query)
+                return {"res": 1, "message": "Update Success"}
+    except Exception as e:
+        print(e)
+        return {"res": 0, "message": "Update Failure"}
+    
 def select(conn, table, columns=None, condition=None, desc=False, limit=None):
     if columns:
         columns_str = ', '.join(columns)

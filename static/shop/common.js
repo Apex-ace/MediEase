@@ -34,22 +34,40 @@ function submitLoginForm(event) {
     form.reset();
 }
 
-function redirectToMedicineStock(event){
-
-}
-
-function redirectToOrders(event){
-    window.location.href = "/shop/orders";
-}
-
-function redirectToOrder(event){
-    var button = event.target;
-
-    // Get the order ID from the data attribute
-    var orderId = button.getAttribute('data-order-id');
-
+function redirectToOrder(orderid){
     // Construct the redirect URL
-    var redirectUrl = '/shop/order/' + '/' +  orderId;
+    var redirectUrl = '/shop/order/' +  orderid;
+
+    // Redirect to the constructed URL
+    window.location.href = redirectUrl;
+}
+
+function changeOrderStatus(orderid){
+    var quantitySelector = document.getElementById('quantitySelector');
+    var status = quantitySelector.value;
+    fetch('/api/shop/updateOrder', {
+        method: 'POST',
+        body: JSON.stringify({ "orderid": orderid, "status": status }),
+        headers: {
+            "Content-type": "application/json; charset=UTF-8"
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log(data);
+        if (data["res"] == 0) {
+            alert(data["message"]);
+        }
+        else {
+            alert(data["message"]);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert(error);
+    });
+    // Construct the redirect URL
+    var redirectUrl = '/shop/order/' +  orderid;
 
     // Redirect to the constructed URL
     window.location.href = redirectUrl;

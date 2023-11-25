@@ -22,27 +22,16 @@
   </head>
 
   <body>
-    <div class="order-list">
-      <div>
-        <h2>Your Orders</h2>
-      </div>
-      <ul>
-        {% for i in orderlist %}
-        <div id="medicines" style="font-family: 'Red Hat Display', sans-serif">
-          <li class="card">
-            <button
-              class="btn btn-light"
-              onclick="redirectToOrder({{i[0]}})"
-            >
-              <b>Order id:</b>{{ i[0] }}<br />
-              <b>Username:</b>{{ i[1] }}<br />
-              <b>Time:</b> {{ i[2] }}<br />
-              <b>Status: </b> {{ i[3] }}
-            </button>
-          </li>
-        </div>
-        {% endfor %}
-      </ul>
-    </div>
+    {{ order }}
+    <!-- <label for="quantity">Change:</label> -->
+    <select id="quantitySelector" class="quantity-selector">
+      <!-- Populate the dropdown with options (e.g., from 1 to 10) -->
+      <option value="Order Received">Order Received</option>
+      <option value="Order Packed">Order Packed</option>
+      <option value="Order Shipped">Order Shipped</option>
+      <option value="Order Delivered">Order Delivered</option>
+      <option value="Order Cancelled">Order Cancelled</option>
+    </select>
+    <button onclick="changeOrderStatus({{ order['orderid'] }})">Change Order Status</button>
   </body>
 </html>
