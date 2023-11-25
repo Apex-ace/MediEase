@@ -23,7 +23,6 @@ function submitLoginForm(event) {
             }
             else {
                 localStorage.setItem('accessToken', data["accessToken"]);
-                localStorage.setItem('cart', JSON.stringify([]));
                 alert(data["message"]);
                 window.location.href = '/';
             }

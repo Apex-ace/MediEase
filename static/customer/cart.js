@@ -1,15 +1,22 @@
 document.addEventListener('DOMContentLoaded', function () {
   var cartData = JSON.parse(localStorage.getItem('cart'));
-  var cartList = document.getElementById('cartList');
   if (cartData.length === 0) {
+    var cartContainer = document.getElementById('cartContainer');
+    var listItem = document.createElement('h4');
     listItem.textContent = 'Your Cart is Empty';
+    cartContainer.appendChild(listItem);
+    var button = document.getElementById('buy-now-button');
+    button.style.display = 'none';
   }
   else {
+    var cartContainer = document.getElementById('cartContainer');
     cartData.forEach(function (item) {
-      var listItem = document.createElement('li');
-      listItem.textContent = 'Product Name: ' + item.name + ', Quantity: ' + item.qty;
-      cartList.appendChild(listItem);
+      var listItem = document.createElement('p');
+      listItem.textContent = 'Name: ' + item.name + ', Quantity: ' + item.qty;
+      cartContainer.appendChild(listItem);
     });
+    var button = document.getElementById('buy-now-button');
+    button.style.display = 'block';
   }
 });
 

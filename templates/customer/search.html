@@ -40,6 +40,7 @@
 <body>
     {% include 'customer/navbar.html' %}
     <div class="container">
+        {% if  medicines %}
         <ul>
             {% for item in medicines %}
             <div id="medicines" style="font-family: 'Red Hat Display', sans-serif; ">
@@ -53,6 +54,14 @@
             </div>
             {% endfor %}
         </ul>
+        {% else %}
+        <center><h4>
+            No medicines found in that name
+        </h4>
+        <a href="/"><button>Go Back</button></a>
+        </center>
+        
+        {% endif %}
     </div>
 </body>
 </html>
