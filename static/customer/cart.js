@@ -1,8 +1,9 @@
 document.addEventListener('DOMContentLoaded', function () {
   var cartData = JSON.parse(localStorage.getItem('cart'));
-  if (cartData.length === 0) {
+  // alert(cartData)
+  if (cartData === null || cartData.length === 0) {
     var cartContainer = document.getElementById('cartContainer');
-    var listItem = document.createElement('h4');
+    var listItem = document.createElement('h5');
     listItem.textContent = 'Your Cart is Empty';
     cartContainer.appendChild(listItem);
     var button = document.getElementById('buy-now-button');
@@ -31,6 +32,19 @@ document.addEventListener('DOMContentLoaded', function () {
         listItem.appendChild(removeButton);
         // Append the complete item container to the cartContainer
         cartContainer.appendChild(listItem);
+    });
+    getTotal(cartData)
+    .then(total => {
+      var totalItem = document.createElement('div');
+      totalItem.classList.add('amount-card')
+      var totalItemDetails = document.createElement('h6');
+      totalItemDetails.textContent = "Total Amount: ₹"+total;
+      totalItem.appendChild(totalItemDetails);
+      cartContainer.appendChild(totalItem);
+    })
+    .catch(error => {
+      alert("Failed to calculate total");
+      console.log(error);
     });
     var button = document.getElementById('buy-now-button');
     button.style.display = 'block';
@@ -111,4 +125,31 @@ function removeFromCart(id){
   }
   localStorage.setItem('cart', JSON.stringify(cartData));
   window.location.href = '/cart';
+}
+
+function getTotal(cart) {
+  return new Promise((resolve, reject) => {
+    fetch('/api/getCartTotal', {
+      method: 'POST',
+      body: JSON.stringify({"cart": cart}),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8"
+      }
+    })
+      .then(response => response.json())
+      .then(data => {
+        console.log(data);
+        if (data["res"] == 0) {
+          alert("Total Could Not be Calculated");
+          resolve(0); // Resolve with 0 if total couldn't be calculated
+        } else {
+          resolve(data['total']); // Resolve with the actual total value
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert(error);
+        reject(error); // Reject the promise if there's an error
+      });
+  });
 }

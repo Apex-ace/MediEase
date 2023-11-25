@@ -96,7 +96,7 @@ def myAccountPage(accessToken):
     headers = {
     'Authorization': f'Bearer {accessToken}'
     }
-    response = requests.get("http://127.0.0.1:"+os.getenv('APP_PORT')+"/api/getOrderList/", headers=headers)
+    response = requests.get("http://127.0.0.1:"+os.getenv('APP_PORT')+"/api/getOrderList", headers=headers)
     if response.status_code == 200:
         orderlist=response.json()['data']
         username=response.json()['username']
@@ -255,7 +255,10 @@ def createOrder():
     current_user = decode_token(request.headers['Authorization'][7:])  # Extract the token from the "Bearer" header
     username = current_user['sub']
     data = request.get_json()
-    total=calculateTotal(data["cart"])
+    response=calculateTotal(data["cart"])
+    if(response['res']==0):
+        return response
+    total=response['total']
     print(total)
     data["time"]="CURRENT_TIMESTAMP(2)"
     data["cart"]=json.dumps(data["cart"])
@@ -297,7 +300,7 @@ def getOrder(orderid):
     return {"res": 0, "message": "Order Could Not be Fetched"}
 
 # Get Order List API
-@app.get("/api/getOrderList/")
+@app.get("/api/getOrderList")
 @jwt_required()
 def getOrderList():
     current_user = decode_token(request.headers['Authorization'][7:])  # Extract the token from the "Bearer" header
@@ -308,6 +311,12 @@ def getOrderList():
     if(response["res"]==1):
         return {"res": 1, "message": "Order List Fetched", "username":username, "data": response["result"]}
     return {"res": 0, "message": "Order Could Not be Fetched"}
+
+@app.post("/api/getCartTotal")
+def getCartTotal():
+    data = request.get_json()
+    cart=data["cart"]
+    return calculateTotal(cart)
 
 '''
 API FUNCTIONS BELOW FOR SHOP
@@ -379,7 +388,8 @@ def calculateTotal(cart):
         if(response['res']==0):
             return {"res": 0, "message": "Selection Failure", "total": total}
         total+=float(response["result"][0][0][1:])*int(item['qty'])
-    return total
+    total=round(total,2)
+    return {"res": 1, "message": "Selection Success", "total": total}
 '''
 MAIN FUNCTION
 '''
