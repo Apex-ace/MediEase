@@ -15,6 +15,7 @@
 #logo {
     margin-left: 20px;
     width: 60px;
+    margin-top: 1px;
 }
 
 #index {
@@ -29,8 +30,8 @@
 
 #index li :hover {
     font-size: 15pt;
-    border-bottom-style: outset;
-    border-bottom-color: blue;
+    /* border-bottom-style:
+    border-bottom-color: blue; */
 }
 
 #index ul {
