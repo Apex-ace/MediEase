@@ -327,7 +327,7 @@ def shopLoginHelper():
 
 @app.get("/api/shop/getOrderList")
 def shopGetOrderList():
-    response=database.select(conn, table="orders", columns=["orderid","username","time","status"])
+    response=database.select(conn, table="orders", columns=["orderid","username","time","total","status"])
     print(response)
     if(response["res"]==1):
         return {"res": 1, "message": "Order List Fetched", "data": response["result"]}
@@ -347,6 +347,7 @@ def shopGetOrder(orderid):
             "contact": result[5],
             "cart": json.loads(result[6]),
             "status": result[7],
+            "total": result[8]
         }
         return {"res": 1, "message": "Order Fetched", "data": data}
     return {"res": 0, "message": "Order Could Not be Fetched"}
