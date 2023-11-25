@@ -33,6 +33,15 @@
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
     }
 
+    button 
+    {
+      margin: 5px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 8px;
+    }
+
     .full-height {
       width: 100%;
       min-width: 100%;
@@ -65,6 +74,7 @@
   <header>
     <h1>Order Details</h1>
   </header>
+
   <div id="vertical_divide" style="justify-content: center;">
     <div id="medicines" style="font-family: 'Red Hat Display', sans-serif; margin-left: 50px;">
       <dl style="text-align: center;">
@@ -108,6 +118,11 @@
         <b>Order Status:</b> {{order['status']}}
       </dl>
     </div>
+  </div>
+
+  <div style="text-align: center; margin-top: 20px;">
+    <button class="cancel-button">Cancel</button>
+    <button class="contact-button">Contact Us</button>
   </div>
 </body>
 
