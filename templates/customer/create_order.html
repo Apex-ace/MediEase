@@ -15,5 +15,35 @@
 </head>
 <body>
     {% include 'customer/navbar.html' %}
+    <div class="container full-height">
+        <div class="row">
+            <div class="col-md-6 offset-md-3 mt-5">
+                <h2 class="text-center mb-4">Add Contact Details</h2>
+                <form id="order-form" onsubmit="submitOrder(event)">
+                    <center>
+                        <div class="mb-3" style="width: 50%;">
+                            <label  style="text-align: left; margin-right: 300px;" for="name" class="form-label">Name</label>
+                            <input type="text" class="form-control" id="name" name="name" placeholder="Enter Name">
+                        </div>
+                    </center>
+                    <center>
+                        <div class="mb-3" style="width: 50%;">
+                            <label style="text-align: left; margin-right: 300px;" for="address" class="form-label">Address</label>
+                            <input type="text" class="form-control" id="address" name="address" placeholder="Enter Address">
+                        </div>
+                    </center>
+                    <center>
+                        <div class="mb-3" style="width: 50%;">
+                            <label style="text-align: left; margin-right: 300px;" for="contact" class="form-label">Contact</label>
+                            <input type="number" class="form-control" id="contact" name="contact" placeholder="Enter Phon Number">
+                        </div>
+                    </center>
+                    <center>
+                        <button type="submit" class="btn btn-primary btn-block">Confirm Order</button>
+                    </center>
+                </form>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

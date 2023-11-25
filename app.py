@@ -61,9 +61,8 @@ def medicinePage(id):
         return render_template('customer/medicine_page.html', medicine=response["data"])
     return render_template('customer/medicine_page.html')
 
-@app.route("/myaccount")
-def myaccountPage():
-    accessToken=request.args.get('accessToken')
+@app.route("/myaccount/<accessToken>")
+def myaccountPage(accessToken):
     headers = {
     'Authorization': f'Bearer {accessToken}'
     }
@@ -86,9 +85,13 @@ def myOrderPage(accessToken,id):
     else:
         return render_template('customer/orderpage.html'), 422
 
-@app.route("/createorder")
+@app.route("/createOrder")
 def createOrderPage():
     return render_template('customer/create_order.html'), 200 
+
+@app.route("/cart")
+def cartPage():
+    return render_template('customer/cart.html'), 200 
 
 '''
 API FUNCTIONS BELOW
@@ -162,6 +165,22 @@ def logoutHelper():
         return {"res": 1, "message": "Logged Out Successfully"}
     else:
         return {"res": 0, "message": "Error Logging Out"}
+
+# Check Log In
+@app.get("/api/isvalid")
+@jwt_required()
+def isValid():
+    current_user = decode_token(request.headers['Authorization'][7:])  # Extract the token from the "Bearer" header
+    username = current_user['sub']
+    response=database.select(conn=conn, table="customerAuth", condition=f"username='{username}'")
+    response["result"]=response["result"][0]
+    print(response)
+
+    # If search successful
+    if(response["res"]==1):
+        return {"res": 1, "message": "User is Valid"}
+    else:
+        return {"res": 0, "message": "User Invalid"}
 
 # Search Medicine API
 @app.get("/api/search/<key>")
