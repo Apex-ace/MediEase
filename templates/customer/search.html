@@ -1,13 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    
+    <!-- title page for the page -->
     <title>Search Page</title>
+
+    <!-- Including the css file for styling -->
     <link rel="stylesheet" href="{{ url_for('static', filename='customer/styles.css') }}">
+
+    <!-- Including the javascript file -->
     <script src="{{ url_for('static', filename='customer/common.js') }}"></script>
+
+    <!-- Including the fonts for the webpage -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@300&display=swap" rel="stylesheet">
-    <style>    
+    <style>  
+
     /* Custom CSS to set full-page height */
         body, html {
             height: 100%;
@@ -38,15 +47,23 @@
     </style>
 </head>
 <body>
+
+    <!-- Including the navbar for the webpage -->
     {% include 'customer/navbar.html' %}
+
+    <!-- division for medicine composition and price -->
     <div class="container">
+
+        <!-- if searched medicine is found -->
         {% if  medicines %}
-        <ul>
+        <ul style="list-style-type: none;">
+
+            <!-- printing information about the medicines -->
             {% for item in medicines %}
             <div id="medicines" style="font-family: 'Red Hat Display', sans-serif; ">
                 <li>
                     <b><a href="/medicine/{{ item['id'] }}">{{ item['name'] }}</a></b>
-                    <ul>
+                    <ul style="list-style-type: none;">
                         <li>{{ item['composition'] }}</li>
                         <li>{{ item['price'] }}</li>
                     </ul>
@@ -54,6 +71,8 @@
             </div>
             {% endfor %}
         </ul>
+
+        <!-- if no such medicine found -->
         {% else %}
         <center><h4>
             No medicines found in that name

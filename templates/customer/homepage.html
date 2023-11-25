@@ -2,21 +2,35 @@
 <html>
 
 <head>
-    <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Playfair+Display&family=Red+Hat+Display&display=swap" rel="stylesheet">
+
+    <!-- include the font for this page -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Jomolhari&family=Red+Hat+Display:wght@300&display=swap"
+        rel="stylesheet">
+
+    <!-- include the css file and js file -->
     <link rel="stylesheet" href="{{ url_for('static', filename='customer/homepage.css')}}">
     <script src="{{ url_for('static', filename='customer/common.js') }}"></script>
+
+    <!-- Title of the page -->
     <title>Mediko Homepage</title>
 </head>
 
 <body>
+
+    <!-- Including the navbar in the webpage -->
     {% include 'customer/navbar.html' %}
-    
+
+    <!-- creating a custom horizontal divider in the webpage  -->
     <div id="horizontal_divide" class="container">
-        <div id="align-top">
-            <h2 style="font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;">
-                Welcome to Mediko
-            </h2>
+
+        <!-- Add the mediko logo at the webpage -->
+        <div style="width: 250px; margin-bottom: 20px;">
+            <img src="../../static/customer/mediko.png" alt="logo" style="width: 100%; border-radius: 10px;">
         </div>
+
+        <!-- Include the search bar interface below logo -->
         <div id="align-bottom">
             <form class="search_bar" id="search_bar" onsubmit="submitSearchForm(event)">
                 <input type="text" class="form-control" placeholder="search medicine" id="content">
@@ -25,18 +39,29 @@
                 </button>
             </form>
         </div>
+
+        <!-- Creating custom vertical divide with in the horizontal divide to include the offer interface -->
         <div id="vertical_divide" style="text-align: center;">
+
+            <!-- Offer 1 div -->
             <div style="width: 200px; margin-right: 55px;">
-                <img src="../../static/customer/discount1.png" alt="Discount Image 1" style="width: 100%; border-radius: 10px;">
-             </div>
-             <div style="width: 200px; margin-right: 55px;">
-                <img src="../../static/customer/discount2.png" alt="Discount Image 1" style="width: 100%; border-radius: 10px;">
-             </div>
-             <div style="width: 200px;">
-                <img src="../../static/customer/discount3.png" alt="Discount Image 1" style="width: 100%; border-radius: 10px;">
-             </div>
+                <img src="../../static/customer/discount1.png" alt="Discount Image 1"
+                    style="width: 100%; border-radius: 10px;">
+            </div>
+
+            <!-- Offer 2 div -->
+            <div style="width: 200px; margin-right: 55px;">
+                <img src="../../static/customer/discount2.png" alt="Discount Image 1"
+                    style="width: 100%; border-radius: 10px;">
+            </div>
+
+            <!-- offer 3 div -->
+            <div style="width: 200px;">
+                <img src="../../static/customer/discount3.png" alt="Discount Image 1"
+                    style="width: 100%; border-radius: 10px;">
+            </div>
         </div>
-    </div> 
+    </div>
     <!-- <footer>
         <p>
             <h3 style="text-align: center;">Medico 2023</h3>

@@ -1,35 +1,45 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
+
+    <!-- Meta tags for character set and responsive design -->
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Title of the page -->
     <title>Cart Page</title>
+
+    <!-- Link to Bootstrap CSS for styling -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Link to Google Fonts for the 'Red Hat Display' font -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@300&display=swap"
-      rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@300&display=swap" rel="stylesheet" />
+    
+    <!-- Link to the external CSS and script files for styling and functionality -->
     <link rel="stylesheet" href="{{ url_for('static', filename='customer/cart.css') }}">
     <script src="{{ url_for('static', filename='customer/cart.js') }}"></script>
     <script src="{{ url_for('static', filename='customer/common.js') }}"></script>
   </head>
 
   <body>
+
+    <!-- Including the navigation bar -->
     {% include 'customer/navbar.html' %}
+
+    <!-- Centering the content on the page -->
     <center>
+
+      <!-- Container for the cart content -->
       <div id="cartContainer">
         <h2>Your Cart</h2>
       </div>
       <br />
+      
+      <!-- Button to trigger the 'buyNow()' function -->
       <div id="buyButton">
-        <button
-          id="buy-now-button"
-          type="submit"
-          class="btn btn-success btn-block"
-          onclick="buyNow()"
-        >
+        <button id="buy-now-button" type="submit" class="btn btn-success btn-block" onclick="buyNow()">
           Buy Now
         </button>
       </div>

@@ -1,35 +1,52 @@
-<link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Playfair+Display&family=Red+Hat+Display&display=swap" rel="stylesheet">
+<!-- Adding font for the webpage -->
+<link
+    href="https://fonts.googleapis.com/css2?family=Pacifico&family=Playfair+Display&family=Red+Hat+Display&display=swap"
+    rel="stylesheet">
+
+<!-- Including the CSS file for better styling -->
 <link rel="stylesheet" href="{{ url_for('static', filename='customer/navbar.css') }}">
+
+<!-- Including the script file -->
 <script src="{{ url_for('static', filename='customer/navbar.js') }}"></script>
 
+<!-- Navigation bar section -->
 <nav class=navbar>
+    <!-- Logo section, linking to the home page -->
     <div>
-        <a href="\">
+        <a href="/">
+            <!-- Logo image -->
             <img id="logo" src="../../static/customer/mediko_logo.png">
         </a>
     </div>
-    <div id=index>
+    <!-- Index section containing navigation buttons -->
+    <div id="index">
+        <!-- Unordered list of navigation buttons -->
         <ul>
+            <!-- Button 1: My Account -->
             <li id="button1">
                 <a href="#" onclick="redirectToMyAccount(event)">
                     My Account
                 </a>
             </li>
+            <!-- Button 2: Cart -->
             <li id="button2">
                 <a href="/cart">
                     Cart
                 </a>
             </li>
+            <!-- Button 3: Login -->
             <li id="button3">
                 <a href="/login">
                     Login
                 </a>
             </li>
+            <!-- Button 4: Sign Up -->
             <li id="button4">
                 <a href="/signup">
                     Sign Up
                 </a>
             </li>
+            <!-- Button 5: Log Out -->
             <li id="button5">
                 <a href="#" id="logout-button" onclick="logout(event)">
                     Log Out

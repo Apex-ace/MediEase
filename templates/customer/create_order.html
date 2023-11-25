@@ -1,28 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
+    <!-- Meta tags for character set and responsive design -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Title of the page -->
     <title>Search Page</title>
+
+    <!-- Link to Bootstrap CSS for styling -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link
-    rel="stylesheet"
-    href="{{ url_for('static', filename='customer/styles.css') }}"
-    />
-    <!-- <link rel="stylesheet" href="{{ url_for('static', filename='customer/medicine.css') }}"> -->
+
+    <!-- Link to the external CSS and script files for styling and functionality -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='customer/styles.css') }}">
     <script src="{{ url_for('static', filename='customer/common.js') }}"></script>
     <script src="{{ url_for('static', filename='customer/create_order.js') }}"></script>
 </head>
+
 <body>
+
+    <!-- Including the navigation bar -->
     {% include 'customer/navbar.html' %}
+
+    <!-- Main content section with full-height container -->
     <div class="container full-height">
         <div class="row">
+
+            <!-- Column for centering the form -->
             <div class="col-md-6 offset-md-3 mt-5">
                 <h2 class="text-center mb-4">Add Contact Details</h2>
+
+                <!-- Order form with centered input fields -->
                 <form id="order-form" onsubmit="submitOrder(event)">
                     <center>
                         <div class="mb-3" style="width: 50%;">
-                            <label  style="text-align: left; margin-right: 300px;" for="name" class="form-label">Name</label>
+                            <label style="text-align: left; margin-right: 300px;" for="name" class="form-label">Name</label>
                             <input type="text" class="form-control" id="name" name="name" placeholder="Enter Name">
                         </div>
                     </center>
@@ -39,6 +53,8 @@
                         </div>
                     </center>
                     <center>
+                        
+                        <!-- Submit button for confirming the order -->
                         <button type="submit" class="btn btn-primary btn-block">Confirm Order</button>
                     </center>
                 </form>
@@ -46,4 +62,5 @@
         </div>
     </div>
 </body>
+
 </html>

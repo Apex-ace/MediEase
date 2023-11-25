@@ -1,14 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Meta tags for character set and responsive design -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Title of the page -->
     <title>Login Page</title>
+
+    <!-- Link to Bootstrap CSS from CDN for styling -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Link to a custom CSS file for additional styling -->
     <link rel="stylesheet" href="{{ url_for('static', filename='customer/login-signup.css') }}">
+
+    <!-- Link to a common JavaScript file -->
     <script src="{{ url_for('static', filename='customer/common.js') }}"></script>
+
+    <!-- Custom CSS to set full-page height -->
     <style>
-        /* Custom CSS to set full-page height */
         body, html {
             height: 100%;
         }
@@ -23,27 +33,45 @@
     </style>
 </head>
 <body>
+
+    <!-- Container for the login content, set to full height -->
     <div class="container full-height">
+
+        <!-- Bootstrap grid system: row -->
         <div class="row">
+
+            <!-- Bootstrap grid system: column, centered in medium size and offset by 3 columns -->
             <div class="col-md-6 offset-md-3 mt-5">
+
+                <!-- Heading for the login form -->
                 <h2 class="text-center mb-4">Login</h2>
+
+                <!-- Form with an ID, submitting the form triggers the submitLoginForm function -->
                 <form id="login-form" onsubmit="submitLoginForm(event)">
+
+                    <!-- Centered div with a label and input for the username -->
                     <center>
                         <div class="mb-3" style="width: 50%;">
-                            <label  style="text-align: left; margin-right: 300px;" for="username" class="form-label">Username</label>
+                            <label style="text-align: left; margin-right: 300px;" for="username" class="form-label">Username</label>
                             <input type="text" class="form-control" id="username" name="username" placeholder="Enter your username">
                         </div>
                     </center>
+
+                    <!-- Centered div with a label and input for the password -->
                     <center>
                         <div class="mb-3" style="width: 50%;">
                             <label style="text-align: left; margin-right: 300px;" for="password" class="form-label">Password</label>
                             <input type="password" class="form-control" id="password" name="password" placeholder="Enter your password">
                         </div>
                     </center>
+
+                    <!-- Login button for form submission -->
                     <center>
                         <button id="login" type="submit" class="btn btn-primary btn-block">Login</button>
                     </center>
                 </form>
+                
+                <!-- Paragraph with a link for users who don't have an account -->
                 <p class="text-center mt-3">Don't have an account? <a href="/signup">Sign up</a></p>
             </div>
         </div>

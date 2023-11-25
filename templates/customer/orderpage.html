@@ -2,14 +2,23 @@
 <html lang="en">
 
 <head>
+
+  <!-- Meta tags for character set and responsive design -->
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+   <!-- Title of the page -->
   <title>My Order Page</title>
+
+  <!-- Adding font for the webpage -->
   <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@300&display=swap" rel="stylesheet">
+  
+  <!-- Adding the necessary css and javascript files for the webpage -->
   <link rel="stylesheet" href="{{ url_for('static', filename='customer/orderpage.css') }}" />
   <script src="{{ url_for('static', filename='customer/orderpage.js') }}"></script>
   <script src="{{ url_for('static', filename='customer/common.js') }}"></script>
   <style>
+
     /* Custom CSS to set full-page height */
     body {
       font-family: 'Arial', sans-serif;
@@ -21,6 +30,7 @@
       background-repeat: no-repeat;
     }
 
+    /* Styling the header part */
     header {
       background-color: #37586e;
       color: #fff;
@@ -33,6 +43,7 @@
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
     }
 
+    /* Styling the buttons */
     button 
     {
       margin: 5px;
@@ -70,13 +81,22 @@
 </head>
 
 <body>
+
+  <!-- Including the navigation bar -->
   {% include 'customer/navbar.html' %}
+
+  <!-- Heading for the Order details -->
   <header>
     <h1>Order Details</h1>
   </header>
 
+  <!-- Vertical division for the Shipping address and Order detials -->
   <div id="vertical_divide" style="justify-content: center;">
+
+    <!-- Shipping address section -->
     <div id="medicines" style="font-family: 'Red Hat Display', sans-serif; margin-left: 50px;">
+
+      <!-- Individual details of shipping address -->
       <dl style="text-align: center;">
         <h2><b>Shipping Address</b></h2>
       </dl>
@@ -94,7 +114,10 @@
       </dl>
     </div>
 
+    <!-- Order details section -->
     <div id="medicines" style="font-family: 'Red Hat Display', sans-serif; margin-left: 50px;">
+
+      <!-- Individual details of order details -->
       <dl style="text-align: center;">
         <h2><b>Order Details</b></h2>
       </dl>
@@ -120,6 +143,7 @@
     </div>
   </div>
 
+  <!-- Button section for Cancel and Contact Us -->
   <div style="text-align: center; margin-top: 20px;">
     <button class="cancel-button">Cancel</button>
     <button class="contact-button">Contact Us</button>
