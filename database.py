@@ -168,7 +168,8 @@ def initOrdersDatabase(conn):
     address TEXT,
     contact VARCHAR(20),
     cart TEXT,
-    status VARCHAR(20) NOT NULL);'''
+    status VARCHAR(20) NOT NULL,
+    total FLOAT NOT NULL DEFAULT 0);'''
     try:
         with conn:
             with conn.cursor() as cursor:

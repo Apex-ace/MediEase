@@ -255,14 +255,15 @@ def createOrder():
     current_user = decode_token(request.headers['Authorization'][7:])  # Extract the token from the "Bearer" header
     username = current_user['sub']
     data = request.get_json()
+    total=calculateTotal(data["cart"])
+    print(total)
     data["time"]="CURRENT_TIMESTAMP(2)"
     data["cart"]=json.dumps(data["cart"])
     data["status"]="Order Received"
-    print(data)
     query = f'''INSERT INTO orders 
-    (username,time,name,address,contact,cart,status) VALUES (
+    (username,time,name,address,contact,cart,status,total) VALUES (
     '{username}',{data["time"]},'{data["name"]}','{data["address"]}',
-    '{data["contact"]}', '{data["cart"]}', '{data["status"]}')'''
+    '{data["contact"]}', '{data["cart"]}', '{data["status"]}',{total})'''
     try:
         with conn:
             with conn.cursor() as cursor:
@@ -290,6 +291,7 @@ def getOrder(orderid):
             "contact": result[5],
             "cart": json.loads(result[6]),
             "status": result[7],
+            "total": result[8]
         }
         return {"res": 1, "message": "Order Fetched", "data": data}
     return {"res": 0, "message": "Order Could Not be Fetched"}
@@ -301,7 +303,7 @@ def getOrderList():
     current_user = decode_token(request.headers['Authorization'][7:])  # Extract the token from the "Bearer" header
     username = current_user['sub']
     print(username)
-    response=database.select(conn,"orders", columns=["orderid","time","status"], condition=f"username='{username}'")
+    response=database.select(conn,"orders", columns=["orderid","time","total","status"], condition=f"username='{username}'")
     print(response)
     if(response["res"]==1):
         return {"res": 1, "message": "Order List Fetched", "username":username, "data": response["result"]}
@@ -366,7 +368,17 @@ def shopUpdateOrder():
     else:
         return {"res": 0, "message": "Update Unsuccessful!"}
     
-
+'''
+NORMAL FUNCTIONS
+'''
+def calculateTotal(cart):
+    total=0
+    for item in cart:
+        response=database.select(conn, table="medicines", columns=["price"], condition=f"id={item['id']}")
+        if(response['res']==0):
+            return {"res": 0, "message": "Selection Failure", "total": total}
+        total+=float(response["result"][0][0][1:])*int(item['qty'])
+    return total
 '''
 MAIN FUNCTION
 '''
