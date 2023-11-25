@@ -10,9 +10,7 @@ html {
 #horizontal_divide {
     display: flex;
     flex-direction: column;
-    width: 70%;
-    margin-left: 20pt;
-    margin-right: 50pt; 
+    width: 40%;
     margin-top: 0px;
     text-align: left;
     display: flex;
@@ -22,11 +20,11 @@ html {
 
 #vertical_divide {
     margin-top: 10px;
-    margin-left: 20px;
-    margin-right: 10px;
+    margin-left: 100px;
+    margin-right: 100px;
     display: flex;
     flex-direction: row;
-    /* justify-content: space-between; */
+    justify-content: space-between;
 }
 
 .content {

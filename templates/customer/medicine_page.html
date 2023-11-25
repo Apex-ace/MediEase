@@ -18,12 +18,12 @@
 <body>
     {% include 'customer/navbar.html' %}
     <div id="vertical_divide">
-        <div id="image" style="margin-right: 50px;">
+        <div id="image">
             <img class="image" src="../../static/customer/paracetamol.webp" alt="Description of the image" width="500"
                 height="350">
         </div>
 
-        <div id="horizontal_divide" style="margin-right: px;">
+        <div id="horizontal_divide">
             <div>
                 <h2 style="margin-top: 10px; margin-bottom: 2px; text-align: left;"><b>{{ medicine['name'] }}</b></h2>
                 <h5 style="margin-top: 0px;color: brown;"><b>{{ medicine['manufacturer'] }}</b></h5>
@@ -38,7 +38,7 @@
                     </dd>
                 </dl>
             </div>
-            <div style="margin-right: 35px;">
+            <div>
                 <br>
                 <label for="quantity">Quantity:</label>
                 <select id="quantitySelector" class="quantity-selector">
@@ -56,8 +56,8 @@
             </div>
         </div>
 
-        <div>
-            <dl class="content" style="margin-right: 300px; width: 60%; margin-top: 60px;">
+        <div style="margin-top: 30px;">
+            <dl class="content">
                 <dt>
                     <h4><b>Composition:</b></h4>
                 </dt>
