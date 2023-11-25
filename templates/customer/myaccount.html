@@ -84,11 +84,11 @@
     </div>
     <div class="order-list">
       <h2>Your Orders</h2>
-      <ul>
+      <ul style="list-style-type: none;">
         {% for i in orderlist %}
         <div id="medicines" style="font-family: 'Red Hat Display', sans-serif; ">
           <li>
-            <a href="#" data-order-id="{{i[0]}}" onclick="redirectToOrder(event)" class="no-underline">
+            <a href="#" onclick="redirectToOrder({{i[0]}})" class="no-underline">
               <b>Order id:</b> &nbsp;{{ i[0] }}<br>
               <b>Time:</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ i[1] }}<br>
               <b>Status:</b> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ i[2] }}<br>
