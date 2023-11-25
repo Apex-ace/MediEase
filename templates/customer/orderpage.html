@@ -11,9 +11,26 @@
   <script src="{{ url_for('static', filename='customer/common.js') }}"></script>
   <style>
     /* Custom CSS to set full-page height */
-    body,
-    html {
-      height: 100%;
+    body {
+      font-family: 'Arial', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f4;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+
+    header {
+      background-color: #37586e;
+      color: #fff;
+      padding: 20px;
+      text-align: center;
+      margin-top: 10px;
+      border-radius: 8px;
+      margin-right: 20px;
+      margin-left: 20px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
     }
 
     .full-height {
@@ -45,33 +62,52 @@
 
 <body>
   {% include 'customer/navbar.html' %}
-  <div id="medicines" style="font-family: 'Red Hat Display', sans-serif; ">
-    <dl class="content">
-      <b>Billing Address:</b> &nbsp;{{ order['address'] }}
-    </dl>
-    {% for item in order['cart'] %}
-    <dl class="content">
-      <b>Product ID:</b> &nbsp;{{ item['id'] }}
-    </dl>
-    <dl class="content">
-      <b>Quantity:</b> &nbsp;{{ item['qty'] }}
-    </dl>
-    {% endfor %}
-    <dl class="content">
-      <b>Contact:</b> &nbsp;{{ order['contact'] }}
-    </dl>
-    <dl class="content">
-      <b>Cutomer Name:</b> &nbsp;{{ order['name'] }}
-    </dl>
-    <dl class="content">
-      <b>Order Id:</b> &nbsp;{{ order['orderid'] }}
-    </dl>
-    <dl class="content">
-      <b>Time:</b> &nbsp;{{ order['time'] }}
-    </dl>
-    <dl class="content">
-      <b>Username:</b> &nbsp;{{ order['username'] }}
-    </dl>
+  <header>
+    <h1>Order Details</h1>
+  </header>
+  <div id="vertical_divide" style="justify-content: center;">
+    <div id="medicines" style="font-family: 'Red Hat Display', sans-serif; margin-left: 50px;">
+      <dl style="text-align: center;">
+        <h2><b>Shipping Address</b></h2>
+      </dl>
+      <dl class="content">
+        <b>Username:</b> &nbsp;{{ order['username'] }}
+      </dl>
+      <dl class="content">
+        <b>Cutomer Name:</b> &nbsp;{{ order['name'] }}
+      </dl>
+      <dl class="content">
+        <b>Billing Address:</b> &nbsp;{{ order['address'] }}
+      </dl>
+      <dl class="content">
+        <b>Contact Detils:</b> &nbsp;{{ order['contact'] }}
+      </dl>
+    </div>
+
+    <div id="medicines" style="font-family: 'Red Hat Display', sans-serif; margin-left: 50px;">
+      <dl style="text-align: center;">
+        <h2><b>Order Details</b></h2>
+      </dl>
+      <dl class="content">
+        <b>Order Id:</b> &nbsp;{{ order['orderid'] }}
+      </dl>
+      {% for item in order['cart'] %}
+      <div id="item">
+        <dl class="content" style="margin-left: 2px;">
+          <b>Product Name:</b> &nbsp;{{ item['name'] }}
+        </dl>
+        <dl class="content" style="margin-left: 2px";>
+          <b>Quantity:</b> &nbsp;{{ item['qty'] }}
+        </dl>
+      </div>
+      {% endfor %}
+      <dl class="content">
+        <b>Order Time:</b> &nbsp;{{ order['time'] }}
+      </dl>
+      <dl class="content">
+        <b>Order Status:</b> {{order['status']}}
+      </dl>
+    </div>
   </div>
 </body>
 
