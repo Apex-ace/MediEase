@@ -37,11 +37,25 @@ def shopLogin():
 
 @app.route("/shop")
 def shop():
-    return render_template('shop.html')
+    return render_template('shop/shop.html')
 
 @app.route("/shop/orders")
 def shopOrders():
-    return render_template('orders.html')
+    response = requests.get("http://127.0.0.1:"+os.getenv('APP_PORT')+"/api/shop/getOrderList")
+    if response.status_code == 200:
+        orderlist=response.json()['data']
+        return render_template('shop/orders.html', orderlist=orderlist), 200
+    else:
+        return render_template('shop/orders.html'), 422
+
+@app.route("/shop/order/<orderid>")
+def shopOrderPage(orderid):
+    response = requests.get("http://127.0.0.1:"+os.getenv('APP_PORT')+"/api/shop/getOrder/"+orderid)
+    if response.status_code == 200:
+        order=response.json()['data']
+        return render_template('shop/orderpage.html', order=order), 200
+    else:
+        return render_template('shop/orderpage.html'), 422
 
 '''
 PAGE ROUTE FUNCTIONS FOR CUSTOMER
@@ -78,7 +92,7 @@ def medicinePage(id):
     return render_template('customer/medicine_page.html')
 
 @app.route("/myaccount/<accessToken>")
-def myaccountPage(accessToken):
+def myAccountPage(accessToken):
     headers = {
     'Authorization': f'Bearer {accessToken}'
     }
@@ -306,10 +320,33 @@ def shopLoginHelper():
 
     if(username=="admin" and password=="admin"):
         return {"res": 1, "message": "Admin Logged In"}
-    else:
-        return {"res": 0, "message": "Admin Login Failure"}
- 
+    return {"res": 0, "message": "Admin Login Failure"}
 
+@app.get("/api/shop/getOrderList")
+def shopGetOrderList():
+    response=database.select(conn, table="orders", columns=["orderid","username","time","status"])
+    print(response)
+    if(response["res"]==1):
+        return {"res": 1, "message": "Order List Fetched", "data": response["result"]}
+    return {"res": 0, "message": "Order Could Not be Fetched"}
+
+@app.get("/api/shop/getOrder/<orderid>")
+def shopGetOrder(orderid):
+    response=database.select(conn,"orders",condition=f"orderid={orderid}")
+    if(response["res"]==1):
+        result=response["result"][0]
+        data={
+            "orderid": result[0],
+            "username": result[1],
+            "time": result[2],
+            "name": result[3],
+            "address": result[4],
+            "contact": result[5],
+            "cart": json.loads(result[6]),
+            "status": result[7],
+        }
+        return {"res": 1, "message": "Order Fetched", "data": data}
+    return {"res": 0, "message": "Order Could Not be Fetched"}
 
 '''
 MAIN FUNCTION

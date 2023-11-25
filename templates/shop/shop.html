@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Shop Home Page</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@300&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <!-- <link rel="stylesheet" href="{{ url_for('static', filename='customer/medicine.css') }}"> -->
+    <script src="{{ url_for('static', filename='shop/common.js') }}"></script>
+  </head>
+
+  <body>
+    <center>
+      <div>
+        <h1>Welcome to Shop Interface</h1>
+      </div>
+      <div>
+        <button
+          class="btn btn-success btn-block"
+          onclick="redirectToMedicineStock(event)"
+        >
+          Medicine Stock
+        </button>
+        <button
+          class="btn btn-success btn-block"
+          onclick="redirectToOrders(event)"
+        >
+          Orders
+        </button>
+      </div>
+    </center>
+  </body>
+</html>
