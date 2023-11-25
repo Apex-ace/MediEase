@@ -1,46 +1,36 @@
 <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Playfair+Display&family=Red+Hat+Display&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{ url_for('static', filename='customer/navbar.css') }}">
+<script src="{{ url_for('static', filename='customer/navbar.js') }}"></script>
 
 <nav class=navbar>
-
-    <div style="margin-left: 20px; width: 25%;">
+    <div>
         <a href="\">
             <img id="logo" src="../../static/customer/mediko_logo.png">
         </a>
     </div>
     <div id=index>
-        <ul style="list-style-type: none; margin-left: 0;">
-            <li>
-                <a href="Products.html">
-                    Products
-                </a>
-            </li>
-            <li>
-                <a href="Offers.html">
-                    Offers
-                </a>
-            </li>
-            <li>
-                <a href="/myaccount">
+        <ul>
+            <li id="button1">
+                <a onclick="redirectToMyAccount(event)">
                     My Account
                 </a>
             </li>
-            <li>
+            <li id="button2">
                 <a href="/cart">
                     Cart
                 </a>
             </li>
-            <li>
+            <li id="button3">
                 <a href="/login">
                     Login
                 </a>
             </li>
-            <li>
+            <li id="button4">
                 <a href="/signup">
                     Sign Up
                 </a>
             </li>
-            <li>
+            <li id="button5">
                 <a id="logout-button" onclick="logout(event)">
                     Log Out
                 </a>
