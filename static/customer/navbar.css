@@ -1,11 +1,15 @@
 .navbar {
     margin: 3px;
     margin-bottom: 2px;
-    background-color: white;
+    background-color: rgb(255, 255, 255);
     height: 90px;
     display: flex;
     flex-direction: row;
     justify-content: space-between;
+    border-radius: 8px;
+    margin-right: 20px;
+    margin-left: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
 }
 
 #logo {
