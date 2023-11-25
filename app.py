@@ -99,7 +99,8 @@ def myAccountPage(accessToken):
     response = requests.get("http://127.0.0.1:"+os.getenv('APP_PORT')+"/api/getOrderList/", headers=headers)
     if response.status_code == 200:
         orderlist=response.json()['data']
-        return render_template('customer/myaccount.html', orderlist=orderlist), 200
+        username=response.json()['username']
+        return render_template('customer/myaccount.html', username=username, orderlist=orderlist), 200
     else:
         return render_template('customer/myaccount.html'), 422
 
@@ -303,7 +304,7 @@ def getOrderList():
     response=database.select(conn,"orders", columns=["orderid","time","status"], condition=f"username='{username}'")
     print(response)
     if(response["res"]==1):
-        return {"res": 1, "message": "Order List Fetched", "data": response["result"]}
+        return {"res": 1, "message": "Order List Fetched", "username":username, "data": response["result"]}
     return {"res": 0, "message": "Order Could Not be Fetched"}
 
 '''
