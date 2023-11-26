@@ -9,6 +9,7 @@ function submitLoginForm(event) {
 
     form.reset();
 
+    // call login api for shop
     fetch('/api/shop/login', {
         method: 'POST',
         body: JSON.stringify({ "username": username, "password": password }),
@@ -22,7 +23,6 @@ function submitLoginForm(event) {
                 alert(data["message"])
             }
             else {
-                localStorage.setItem('accessToken', data["accessToken"]);
                 alert(data["message"]);
                 window.location.href = '/shop';
             }
@@ -42,9 +42,14 @@ function redirectToOrder(orderid){
     window.location.href = redirectUrl;
 }
 
+// Function to change the order status for an order id
 function changeOrderStatus(orderid){
+
+    // Fetches the status
     var quantitySelector = document.getElementById('quantitySelector');
     var status = quantitySelector.value;
+
+    // call update order api with status in body
     fetch('/api/shop/updateOrder', {
         method: 'POST',
         body: JSON.stringify({ "orderid": orderid, "status": status }),

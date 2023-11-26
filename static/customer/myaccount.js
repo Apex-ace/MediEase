@@ -1,4 +1,10 @@
+// Check for access token validity.
+// If not valid, redirect to homepage
+
+// Get the accesstoken from local storage
 var accessToken = localStorage.getItem('accessToken');
+
+// Call the isvalid api on page open
 fetch('/api/isvalid', {
   method: 'GET',
   headers: {
@@ -7,6 +13,7 @@ fetch('/api/isvalid', {
 })
 .then(async response => {
   if (!response.ok) {
+    // If invalid (Logged Out)
     alert("User has beed logged out. Please login again");
     window.location.href = "/";
   }
@@ -16,25 +23,11 @@ fetch('/api/isvalid', {
   alert(error);
 });
 
-function redirectToOrder(event) {
-  const accessToken = localStorage.getItem('accessToken');
-
-  // Check if the access token exists
-  if (accessToken) {
-    // Get the clicked anchor tag
-    var anchorTag = event.target;
-
-    // Get the order ID from the data attribute
-    var orderId = anchorTag.getAttribute('data-order-id');
-
-    // Construct the redirect URL
-    var redirectUrl = '/myorder/' + accessToken + '/' +  orderId;
-
-    // Redirect to the constructed URL
-    window.location.href = redirectUrl;
-  } else {
-    console.error('Access token not found in local storage');
-  }
+// Function helping with redirecting order to order page
+function redirectToOrder(orderid) {
+  var redirectUrl = '/myorder/' + accessToken + '/' +  orderid;
+  // Redirect to the constructed URL
+  window.location.href = redirectUrl;
 }
 
 

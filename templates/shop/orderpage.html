@@ -110,6 +110,9 @@
         <dl class="content">
           <b>Order Id:</b> &nbsp;{{ order['orderid'] }}
         </dl>
+        <dl class="content">
+          <b>Order Time:</b> &nbsp;{{ order['time'] }}
+        </dl>
         {% for item in order['cart'] %}
         <div id="item">
           <dl class="content" style="margin-left: 2px;">
@@ -121,7 +124,7 @@
         </div>
         {% endfor %}
         <dl class="content">
-          <b>Order Time:</b> &nbsp;{{ order['time'] }}
+          <b>Total Amount:</b> &nbsp;{{ order['total'] }}
         </dl>
         <dl class="content">
           <b>Order Status:</b> {{order['status']}}

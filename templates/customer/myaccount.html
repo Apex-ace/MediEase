@@ -89,7 +89,7 @@
 
   <!-- Header section for the webpage -->
   <header>
-    <h1>Your Orders</h1>
+    <h1>Hello {{username}}!</h1>
   </header>
 
   <!-- vertical division for the image and order list -->
@@ -103,20 +103,15 @@
     <!-- Div container for the orderlist -->
     <div class="order-list">
       <h2>Your Orders</h2>
-
-      <!-- looping through the orderlist list to print the order detials on myaccount -->
-      <ul>
+      <ul style="list-style-type: none;">
         {% for i in orderlist %}
         <div id="medicines" style="font-family: 'Red Hat Display', sans-serif; ">
           <li>
-
-            <!-- Anchor tag with data attributes and onclick event -->
-            <a href="#" data-order-id="{{i[0]}}" onclick="redirectToOrder(event)" class="no-underline">
-              
-               <!-- Displaying order information with line breaks -->
+            <a href="#" onclick="redirectToOrder({{i[0]}})" class="no-underline">
               <b>Order id:</b> &nbsp;{{ i[0] }}<br>
               <b>Time:</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ i[1] }}<br>
-              <b>Status:</b> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ i[2] }}<br>
+              <b>Amount:</b> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ i[2] }}<br>
+              <b>Status:</b> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ i[3] }}<br>
             </a>
           </li>
         </div>

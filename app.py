@@ -8,12 +8,14 @@ import database, os, json
 # INIT the Flask APP
 app = Flask(__name__)
 
+
 '''
 JWT INITIALIZATION
 '''
 # INIT JWT
 app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')  # Replace with a secure secret key
 jwt = JWTManager(app)
+
 
 '''
 DATABASE INITIALIZATION
@@ -27,31 +29,39 @@ def initdb():
     msg=init_db(conn)
     return msg
 
+
 '''
 PAGE ROUTE FUNCTIONS FOR SHOP
 '''
-# Login Page Route
+# Shop Login Page Route
 @app.route("/shop/login")
 def shopLogin():
     return render_template('shop/login.html')
 
+# Shop Home Page Route
 @app.route("/shop")
 def shop():
     return render_template('shop/shop.html')
 
+# Shop Orders Page Route
 @app.route("/shop/orders")
 def shopOrders():
+    # Request to get the list of orders
     response = requests.get("http://127.0.0.1:"+os.getenv('APP_PORT')+"/api/shop/getOrderList")
     if response.status_code == 200:
+        # Return the orderlist as list with 200 status
         orderlist=response.json()['data']
         return render_template('shop/orders.html', orderlist=orderlist), 200
     else:
         return render_template('shop/orders.html'), 422
 
+# Shop Order ID Page Route
 @app.route("/shop/order/<orderid>")
 def shopOrderPage(orderid):
+    # Request to get the order for that order id
     response = requests.get("http://127.0.0.1:"+os.getenv('APP_PORT')+"/api/shop/getOrder/"+orderid)
     if response.status_code == 200:
+        # Return the order as dict
         order=response.json()['data']
         return render_template('shop/orderpage.html', order=order), 200
     else:
@@ -91,34 +101,45 @@ def medicinePage(id):
         return render_template('customer/medicine_page.html', medicine=response["data"])
     return render_template('customer/medicine_page.html')
 
+# Account Page Route
 @app.route("/myaccount/<accessToken>")
 def myAccountPage(accessToken):
+    # Add AccessToken as header
     headers = {
     'Authorization': f'Bearer {accessToken}'
     }
-    response = requests.get("http://127.0.0.1:"+os.getenv('APP_PORT')+"/api/getOrderList/", headers=headers)
+    # Request to get all the orders for that user
+    response = requests.get("http://127.0.0.1:"+os.getenv('APP_PORT')+"/api/getOrderList", headers=headers)
     if response.status_code == 200:
+        # Return page with orderlist and username
         orderlist=response.json()['data']
-        return render_template('customer/myaccount.html', orderlist=orderlist), 200
+        username=response.json()['username']
+        return render_template('customer/myaccount.html', username=username, orderlist=orderlist), 200
     else:
         return render_template('customer/myaccount.html'), 422
 
+# Order Page Route
 @app.route("/myorder/<accessToken>/<id>")
 def myOrderPage(accessToken,id):
+    # Add AccessToken as header
     headers = {
     'Authorization': f'Bearer {accessToken}'
     }
+    # Request to get the orders for the orderid
     response = requests.get("http://127.0.0.1:"+os.getenv('APP_PORT')+"/api/getOrder/"+id, headers=headers)
     if response.status_code == 200:
+        # Return the order as dict
         order=response.json()['data']
         return render_template('customer/orderpage.html', order=order), 200
     else:
         return render_template('customer/orderpage.html'), 422
 
+# Create Order Page Route
 @app.route("/createOrder")
 def createOrderPage():
     return render_template('customer/create_order.html'), 200 
 
+# Cart Page Route
 @app.route("/cart")
 def cartPage():
     return render_template('customer/cart.html'), 200 
@@ -130,19 +151,23 @@ API FUNCTIONS BELOW FOR CUSTOMER
 @app.post("/api/signup")
 def signupHelper():
     data = request.get_json()
-    
+
+    # Get the username and password from post
     username=data["username"]
     password=data["password"]
 
+    # Hash Password with bcrypt library
     hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
     
+    # Store user details in customerAuth table
     data = {
             'username': username,
             'password': hashed_password.decode('utf-8')
         }
-    
     response=database.insert(conn=conn, table="customerAuth", data=data)
     print(response)
+
+    # Return the response
     if response["res"]==1:
         return {"res": 1, "message": "Sign Up Successful"}
     else:
@@ -157,7 +182,7 @@ def loginHelper():
     username=data["username"]
     password=data["password"]
 
-    # search in database
+    # Search in database if user exists
     response=database.select(conn=conn, table="customerAuth", condition=f"username='{username}'")
     
     print(response)
@@ -173,7 +198,9 @@ def loginHelper():
             access_token = create_access_token(identity=username)
             
             # DELETE THIS LINE
-            print(access_token)
+            # print(access_token)
+
+            # Return the accesstoken (JWT) for that user
             return {"res": 1, "message": "User Logged In", "accessToken": access_token}
         else:
             return {"res": 0, "message": "Incorrect Password"}
@@ -184,8 +211,11 @@ def loginHelper():
 @app.get("/api/logout")
 @jwt_required()
 def logoutHelper():
+    # Get user details from accesstoken
     current_user = decode_token(request.headers['Authorization'][7:])  # Extract the token from the "Bearer" header
     username = current_user['sub']
+
+    # Check if user exists
     response=database.select(conn=conn, table="customerAuth", condition=f"username='{username}'")
     response["result"]=response["result"][0]
     print(response)
@@ -200,8 +230,11 @@ def logoutHelper():
 @app.get("/api/isvalid")
 @jwt_required()
 def isValid():
+    # Get user details from accesstoken
     current_user = decode_token(request.headers['Authorization'][7:])  # Extract the token from the "Bearer" header
     username = current_user['sub']
+
+    # Check if user exists
     response=database.select(conn=conn, table="customerAuth", condition=f"username='{username}'")
     response["result"]=response["result"][0]
     print(response)
@@ -215,9 +248,12 @@ def isValid():
 # Search Medicine API
 @app.get("/api/search/<key>")
 def searchHelper(key):
+    # Search using the key in medicine table
     response=database.select(conn,"medicines", columns=["id","name","composition","price"], condition=f"name ILIKE '%{key}%' OR composition ILIKE '%{key}%'", limit=20)
     if(response["res"]==0):
         return {"res": 0, "message": "Search Failure"}
+    
+    # Get the matched medicine with the key
     searchedMedicine=[]
     for med in response["result"]:
         data={
@@ -227,14 +263,19 @@ def searchHelper(key):
             "price":med[3],
         }
         searchedMedicine.append(data)
+    
+    # Return the result
     return {"res": 1, "message": "Search Success", "data": searchedMedicine}
 
 # Get medicine details API
 @app.get("/api/medicine/<id>")
 def medicineDetails(id):
+    # Get the medicine with that id
     response=database.select(conn,"medicines", condition=f"id='{id}'")
     if(response["res"]==0):
         return {"res": 0, "message": "Get Medicine Details Failure"}
+    
+    # Prepare a JSON/dict before sending
     data={
             "id":response["result"][0][0],
             "name":response["result"][0][1],
@@ -245,23 +286,36 @@ def medicineDetails(id):
             "category":response["result"][0][6],
             "side_effects":response["result"][0][7],
         }
+
+    # Return the response
     return {"res": 1, "message": "Medicine Details Fetched", "data": data}
 
-# Make order API
+# Create Order API
 @app.post("/api/createOrder")
 @jwt_required()
 def createOrder():
+    # Get the user details from accesstoken
     current_user = decode_token(request.headers['Authorization'][7:])  # Extract the token from the "Bearer" header
     username = current_user['sub']
+
+    # Get the order details from post body
     data = request.get_json()
+
+    # Calculate the total amount
+    response=calculateTotal(data["cart"])
+    if(response['res']==0):
+        return response
+    
+    # Insert the order in DB
+    total=response['total']
+    print(total)
     data["time"]="CURRENT_TIMESTAMP(2)"
     data["cart"]=json.dumps(data["cart"])
     data["status"]="Order Received"
-    print(data)
     query = f'''INSERT INTO orders 
-    (username,time,name,address,contact,cart,status) VALUES (
+    (username,time,name,address,contact,cart,status,total) VALUES (
     '{username}',{data["time"]},'{data["name"]}','{data["address"]}',
-    '{data["contact"]}', '{data["cart"]}', '{data["status"]}')'''
+    '{data["contact"]}', '{data["cart"]}', '{data["status"]}',{total})'''
     try:
         with conn:
             with conn.cursor() as cursor:
@@ -275,9 +329,14 @@ def createOrder():
 @app.get("/api/getOrder/<orderid>")
 @jwt_required()
 def getOrder(orderid):
+    # Get the user details from accesstoken
     current_user = decode_token(request.headers['Authorization'][7:])  # Extract the token from the "Bearer" header
     username = current_user['sub']
+
+    # Search for that order id
     response=database.select(conn,"orders",condition=f"orderid={orderid} AND username='{username}'")
+    
+    # Prepare a JSON/dict before sending
     if(response["res"]==1):
         result=response["result"][0]
         data={
@@ -289,22 +348,35 @@ def getOrder(orderid):
             "contact": result[5],
             "cart": json.loads(result[6]),
             "status": result[7],
+            "total": result[8]
         }
         return {"res": 1, "message": "Order Fetched", "data": data}
     return {"res": 0, "message": "Order Could Not be Fetched"}
 
 # Get Order List API
-@app.get("/api/getOrderList/")
+@app.get("/api/getOrderList")
 @jwt_required()
 def getOrderList():
+    # Get the user details from accesstoken
     current_user = decode_token(request.headers['Authorization'][7:])  # Extract the token from the "Bearer" header
     username = current_user['sub']
     print(username)
-    response=database.select(conn,"orders", columns=["orderid","time","status"], condition=f"username='{username}'")
+
+    # Search for orders for that user
+    response=database.select(conn,"orders", columns=["orderid","time","total","status"], condition=f"username='{username}'")
     print(response)
+
+    # return the response
     if(response["res"]==1):
-        return {"res": 1, "message": "Order List Fetched", "data": response["result"]}
+        return {"res": 1, "message": "Order List Fetched", "username":username, "data": response["result"]}
     return {"res": 0, "message": "Order Could Not be Fetched"}
+
+# Get the cart total
+@app.post("/api/getCartTotal")
+def getCartTotal():
+    data = request.get_json()
+    cart=data["cart"]
+    return calculateTotal(cart)
 
 '''
 API FUNCTIONS BELOW FOR SHOP
@@ -318,21 +390,29 @@ def shopLoginHelper():
     username=data["username"]
     password=data["password"]
 
+    # Check if it matches
     if(username=="admin" and password=="admin"):
         return {"res": 1, "message": "Admin Logged In"}
     return {"res": 0, "message": "Admin Login Failure"}
 
+# Shop Order List API
 @app.get("/api/shop/getOrderList")
 def shopGetOrderList():
-    response=database.select(conn, table="orders", columns=["orderid","username","time","status"])
+    # Get the orders from db
+    response=database.select(conn, table="orders", columns=["orderid","username","time","total","status"])
     print(response)
+    # Return the response
     if(response["res"]==1):
         return {"res": 1, "message": "Order List Fetched", "data": response["result"]}
     return {"res": 0, "message": "Order Could Not be Fetched"}
 
+# Shop Get Order API
 @app.get("/api/shop/getOrder/<orderid>")
 def shopGetOrder(orderid):
+    # Get the order based on order id
     response=database.select(conn,"orders",condition=f"orderid={orderid}")
+    
+    # Return the response
     if(response["res"]==1):
         result=response["result"][0]
         data={
@@ -344,10 +424,12 @@ def shopGetOrder(orderid):
             "contact": result[5],
             "cart": json.loads(result[6]),
             "status": result[7],
+            "total": result[8]
         }
         return {"res": 1, "message": "Order Fetched", "data": data}
     return {"res": 0, "message": "Order Could Not be Fetched"}
 
+# Shop Update Order API
 @app.post("/api/shop/updateOrder")
 def shopUpdateOrder():
     data = request.get_json()
@@ -358,6 +440,7 @@ def shopUpdateOrder():
     orderid=data["orderid"]
     status=data["status"]
 
+    # Update the status of that orderid
     response=database.update(conn,"orders",{"status":status},condition=f"orderid={orderid}")
     print(response)
     if response["res"]==1:
@@ -365,7 +448,19 @@ def shopUpdateOrder():
     else:
         return {"res": 0, "message": "Update Unsuccessful!"}
     
-
+'''
+NORMAL FUNCTIONS
+'''
+# Calculates the total amount based on cart using DB
+def calculateTotal(cart):
+    total=0
+    for item in cart:
+        response=database.select(conn, table="medicines", columns=["price"], condition=f"id={item['id']}")
+        if(response['res']==0):
+            return {"res": 0, "message": "Selection Failure", "total": total}
+        total+=float(response["result"][0][0][1:])*int(item['qty'])
+    total=round(total,2)
+    return {"res": 1, "message": "Selection Success", "total": total}
 '''
 MAIN FUNCTION
 '''
