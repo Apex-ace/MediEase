@@ -188,7 +188,7 @@ def loginHelper():
     print(response)
 
     # If search successful
-    if(response["res"]==1):
+    if(response["res"]==1 and len(response["result"])!=0):
         # Get the hashed db password
         hashed_password=response["result"][0][1]
         
