@@ -29,6 +29,14 @@
   * Run 'pip install -r requirements.txt'
   * Run python3 app.py
 
+### Environment Variables
+- APP_PORT=####
+- POSTGRES_DATABASE=####
+- POSTGRES_HOST=###
+- POSTGRES_USER=####
+- POSTGRES_PASSWORD=###
+- JWT_SECRET_KEY=###
+
 ### Improvements / Future Work
 * Adding inventory management from the shop interface. Owners can add, delete or update the stock of medicines in the shop.
 * Customers can request cancellation from the customer's end.
