@@ -34,16 +34,16 @@ function submitLoginForm(event) {
     form.reset();
 }
 
-function redirectToOrder(orderid){
+function redirectToOrder(orderid) {
     // Construct the redirect URL
-    var redirectUrl = '/shop/order/' +  orderid;
+    var redirectUrl = '/shop/order/' + orderid;
 
     // Redirect to the constructed URL
     window.location.href = redirectUrl;
 }
 
 // Function to change the order status for an order id
-function changeOrderStatus(orderid){
+function changeOrderStatus(orderid) {
 
     // Fetches the status
     var quantitySelector = document.getElementById('quantitySelector');
@@ -57,23 +57,24 @@ function changeOrderStatus(orderid){
             "Content-type": "application/json; charset=UTF-8"
         }
     })
-    .then(response => response.json())
-    .then(data => {
-        console.log(data);
-        if (data["res"] == 0) {
-            alert(data["message"]);
-        }
-        else {
-            alert(data["message"]);
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert(error);
-    });
-    // Construct the redirect URL
-    var redirectUrl = '/shop/order/' +  orderid;
+        .then(response => response.json())
+        .then(data => {
+            console.log(data);
+            if (data["res"] == 0) {
+                alert(data["message"]);
+            }
+            else {
+                alert(data["message"]);
+            }
+            // Construct the redirect URL
+            var redirectUrl = '/shop/order/' + orderid;
 
-    // Redirect to the constructed URL
-    window.location.href = redirectUrl;
+            // Redirect to the constructed URL
+            window.location.href = redirectUrl;
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert(error);
+        });
+
 }
