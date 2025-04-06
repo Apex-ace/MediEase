@@ -1,7 +1,7 @@
 services:
   # Main web service
   - type: web
-    name: mediease-app
+    name: mediease-tnd1
     runtime: python
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn app:app --bind 0.0.0.0:$PORT
@@ -13,11 +13,11 @@ services:
       - key: PORT
         value: 10000
       - key: CHATBOT_URL
-        value: https://mediease-chatbot.onrender.com
+        value: https://mediease-chatbot-tnd1.onrender.com
 
   # Chatbot service (changed from worker to web)
   - type: web
-    name: mediease-chatbot
+    name: mediease-chatbot-tnd1
     runtime: python
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn chatbot_server:app --bind 0.0.0.0:$PORT

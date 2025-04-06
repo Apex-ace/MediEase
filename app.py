@@ -503,7 +503,7 @@ def chatbot_proxy():
     """
     try:
         # Get the chatbot service URL from environment or use default for Render
-        chatbot_url = os.environ.get('CHATBOT_URL', 'https://mediease-chatbot.onrender.com')
+        chatbot_url = os.environ.get('CHATBOT_URL', 'https://mediease-chatbot-tnd1.onrender.com')
         
         app.logger.info(f"Chatbot proxy: Forwarding request to {chatbot_url}/chat")
         
