@@ -76,5 +76,5 @@ def ping():
 # Only run the app directly if this file is run, not when imported
 if __name__ == "__main__":
     # Get port from environment variable
-    port = int(os.getenv('CHATBOT_PORT', 5001))
+    port = int(os.getenv('PORT', 5001))
     app.run(host='0.0.0.0', port=port, debug=os.getenv('FLASK_ENV') == 'development')

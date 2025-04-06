@@ -15,18 +15,18 @@ services:
       - key: CHATBOT_URL
         value: https://mediease-chatbot.onrender.com
 
-  # Chatbot worker service
-  - type: worker
+  # Chatbot service (changed from worker to web)
+  - type: web
     name: mediease-chatbot
     runtime: python
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn chatbot_server:app --bind 0.0.0.0:$CHATBOT_PORT
+    startCommand: gunicorn chatbot_server:app --bind 0.0.0.0:$PORT
     envVars:
       - key: PYTHON_VERSION
         value: 3.10.12
       - key: FLASK_ENV
         value: production
-      - key: CHATBOT_PORT
+      - key: PORT
         value: 10001
       - key: MISTRAL_API_KEY
         sync: false 

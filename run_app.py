@@ -26,10 +26,10 @@ def run_chatbot_server():
     print("Starting Chatbot server...")
     
     # Get port from environment variable or use default for chatbot
-    chatbot_port = int(os.environ.get("CHATBOT_PORT", 5001))
+    chatbot_port = int(os.environ.get("PORT", 5001))
     
     if "RENDER" in os.environ:
-        # This won't be used in production as we'll use a worker in gunicorn
+        # This won't be used in production as we'll use a web service in gunicorn
         subprocess.run(["gunicorn", "chatbot_server:app", "--bind", f"0.0.0.0:{chatbot_port}"])
     else:
         subprocess.run(["python", "chatbot_server.py"])
