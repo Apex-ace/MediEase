@@ -12,6 +12,8 @@ services:
         value: production
       - key: PORT
         value: 10000
+      - key: CHATBOT_URL
+        value: https://mediease-chatbot.onrender.com
 
   # Chatbot worker service
   - type: worker

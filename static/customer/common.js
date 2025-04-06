@@ -399,7 +399,7 @@ function sendChatMessage() {
         showTypingIndicator();
         
         // Send message to AI chatbot server
-        fetch('http://localhost:5001/chat', {
+        fetch('/api/chat', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

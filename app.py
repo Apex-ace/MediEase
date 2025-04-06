@@ -1,5 +1,5 @@
 import requests
-from flask import Flask, request, render_template, redirect
+from flask import Flask, request, render_template, redirect, url_for, session, flash, jsonify
 from flask_jwt_extended import create_access_token, JWTManager, jwt_required, decode_token,get_jwt_identity
 import bcrypt
 from database import connect_to_db, init_db
@@ -494,6 +494,29 @@ def getInventory():
         inventory.append(data)
     
     return {"res": 1, "message": "Inventory fetched successfully", "data": inventory}
+
+# Chatbot proxy route
+@app.route('/api/chat', methods=['POST'])
+def chatbot_proxy():
+    """
+    Proxy route to forward chatbot requests to the chatbot worker service
+    """
+    try:
+        # Get the chatbot service URL from environment or use default for Render
+        chatbot_url = os.environ.get('CHATBOT_URL', 'https://mediease-chatbot.onrender.com')
+        
+        # Forward the request to the chatbot service
+        response = requests.post(
+            f"{chatbot_url}/chat", 
+            json=request.json,
+            headers={'Content-Type': 'application/json'}
+        )
+        
+        # Return the response from the chatbot service
+        return jsonify(response.json())
+    except Exception as e:
+        app.logger.error(f"Chatbot proxy error: {str(e)}")
+        return jsonify({"response": "Sorry, I'm having trouble connecting to my brain right now. Please try again later."})
 
 '''
 MAIN FUNCTION
