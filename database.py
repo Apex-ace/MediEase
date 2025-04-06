@@ -12,7 +12,9 @@ def connect_to_db():
     host=os.getenv("POSTGRES_HOST"),
     database=os.getenv("POSTGRES_DATABASE"),
     user=os.getenv('POSTGRES_USER'),
-    password=os.getenv('POSTGRES_PASSWORD'))
+    password=os.getenv('POSTGRES_PASSWORD'),
+    port=os.getenv('POSTGRES_PORT', '5432'),
+    sslmode='require')
 
     return conn
 

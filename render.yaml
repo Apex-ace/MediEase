@@ -1,0 +1,28 @@
+services:
+  # Main web service
+  - type: web
+    name: mediease-app
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.12
+      - key: FLASK_ENV
+        value: production
+      - key: PORT
+        value: 10000
+
+  # Chatbot worker service
+  - type: worker
+    name: mediease-chatbot
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn chatbot_server:app --bind 0.0.0.0:$CHATBOT_PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.12
+      - key: FLASK_ENV
+        value: production
+      - key: CHATBOT_PORT
+        value: 10001 

@@ -19,7 +19,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
     
     <!-- link to the custom css and javascript files -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='customer/medicine.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='customer/medicine-details.css') }}">
     <script src="{{ url_for('static', filename='customer/common.js') }}"></script>
     <script src="{{ url_for('static', filename='customer/cart.js') }}"></script>
 </head>
@@ -73,8 +73,8 @@
             <!-- Button to add medicine to the cart -->
             <div class="center-button">
                 <center>
-                    <button type="submit" class="btn btn-primary btn-block"
-                        onclick="addToCart({{ medicine['id'] }},'{{ medicine['name'] }}')">Add to Cart</button>
+                    <button type="submit" class="btn btn-primary" 
+                        onclick="addToCart({{ medicine['id'] }}, '{{ medicine['name'] }}')">Add to Cart</button>
                 </center>
             </div>
         </div>

@@ -1,0 +1,357 @@
+/* Video Call Styles */
+.video-call-container {
+    min-height: calc(100vh - 300px);
+    padding-bottom: 50px;
+}
+
+.video-call-header {
+    background: linear-gradient(135deg, var(--primary-600), var(--accent-600));
+    color: white;
+    padding: 40px 0;
+    margin-bottom: 30px;
+    border-radius: 0 0 10px 10px;
+    box-shadow: var(--shadow-md);
+}
+
+.video-call-header h1 {
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.video-call-sidebar {
+    background-color: white;
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: 25px;
+    height: 100%;
+}
+
+.video-call-info {
+    margin-bottom: 30px;
+}
+
+.video-call-info h4 {
+    color: var(--primary-600);
+    margin-bottom: 15px;
+    font-weight: 600;
+}
+
+.video-call-info ul {
+    padding-left: 20px;
+}
+
+.video-call-info li {
+    margin-bottom: 10px;
+    color: var(--neutral-700);
+}
+
+.video-call-controls h4 {
+    color: var(--primary-600);
+    margin-bottom: 15px;
+    font-weight: 600;
+}
+
+.video-call-controls label {
+    font-weight: 500;
+    color: var(--neutral-800);
+    margin-bottom: 5px;
+}
+
+.video-call-controls .btn-primary {
+    margin-top: 10px;
+    padding: 12px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.video-call-controls .btn-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+}
+
+.video-call-area {
+    background-color: white;
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+    height: 100%;
+    min-height: 500px;
+    position: relative;
+}
+
+#waitingScreen {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    padding: 40px;
+}
+
+.waiting-icon {
+    font-size: 64px;
+    color: var(--primary-500);
+    margin-bottom: 20px;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.1);
+        opacity: 0.7;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+#waitingScreen h3 {
+    font-weight: 600;
+    color: var(--neutral-800);
+    margin-bottom: 10px;
+}
+
+#waitingScreen p {
+    color: var(--neutral-600);
+    max-width: 300px;
+    margin: 0 auto;
+}
+
+#meetContainer {
+    height: 100%;
+    width: 100%;
+    border-radius: var(--border-radius-lg);
+    overflow: hidden;
+}
+
+#meetContainer iframe {
+    border-radius: var(--border-radius-lg);
+}
+
+/* Dark Mode */
+.dark-mode .video-call-sidebar,
+.dark-mode .video-call-area {
+    background-color: var(--dark-surface);
+    color: var(--dark-text);
+}
+
+.dark-mode .video-call-info h4,
+.dark-mode .video-call-controls h4 {
+    color: var(--primary-400);
+}
+
+.dark-mode .video-call-info li {
+    color: var(--dark-text-secondary);
+}
+
+.dark-mode .video-call-controls label {
+    color: var(--dark-text);
+}
+
+.dark-mode #waitingScreen h3 {
+    color: var(--dark-text);
+}
+
+.dark-mode #waitingScreen p {
+    color: var(--dark-text-secondary);
+}
+
+.dark-mode .form-control {
+    background-color: var(--dark-surface-2);
+    border-color: var(--dark-neutral-700);
+    color: var(--dark-text);
+}
+
+/* Enhanced Mobile Responsiveness */
+@media (max-width: 992px) {
+    .video-call-container {
+        padding-bottom: 30px;
+    }
+    
+    .video-call-header {
+        padding: 30px 0;
+        margin-bottom: 20px;
+    }
+    
+    .video-call-sidebar {
+        margin-bottom: 20px;
+    }
+    
+    .video-call-area {
+        min-height: 400px;
+    }
+}
+
+@media (max-width: 768px) {
+    .video-call-header h1 {
+        font-size: 1.8rem;
+    }
+    
+    .video-call-header p {
+        font-size: 0.9rem;
+    }
+    
+    .video-call-area {
+        min-height: 350px;
+    }
+    
+    #waitingScreen {
+        padding: 20px;
+    }
+    
+    .waiting-icon {
+        font-size: 48px;
+    }
+    
+    #waitingScreen h3 {
+        font-size: 1.4rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .video-call-container {
+        padding-bottom: 20px;
+    }
+    
+    .video-call-header {
+        padding: 20px 0;
+        margin-bottom: 15px;
+    }
+    
+    .video-call-header h1 {
+        font-size: 1.5rem;
+    }
+    
+    .video-call-sidebar {
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+    
+    .video-call-area {
+        min-height: 300px;
+    }
+    
+    .waiting-icon {
+        font-size: 36px;
+    }
+    
+    #waitingScreen h3 {
+        font-size: 1.2rem;
+    }
+    
+    #waitingScreen p {
+        font-size: 0.9rem;
+    }
+    
+    .video-call-info ul {
+        padding-left: 15px;
+    }
+    
+    .video-call-info li {
+        margin-bottom: 8px;
+    }
+}
+
+/* Mobile Notice */
+.mobile-notice {
+    background-color: var(--primary-100);
+    color: var(--primary-800);
+    padding: 10px 15px;
+    border-radius: var(--border-radius-md);
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    border-left: 4px solid var(--primary-500);
+}
+
+.mobile-notice p {
+    margin: 0;
+}
+
+.mobile-notice i {
+    margin-right: 8px;
+    font-size: 1.1rem;
+}
+
+.mobile-tips {
+    background-color: var(--neutral-100);
+    padding: 8px 12px;
+    border-radius: var(--border-radius-sm);
+    font-size: 0.85rem;
+    border-left: 3px solid var(--neutral-400);
+}
+
+/* Dark mode mobile elements */
+.dark-mode .mobile-notice {
+    background-color: var(--dark-neutral-800);
+    color: var(--primary-300);
+    border-left-color: var(--primary-400);
+}
+
+.dark-mode .mobile-tips {
+    background-color: var(--dark-neutral-800);
+    border-left-color: var(--dark-neutral-600);
+}
+
+/* Additional mobile optimizations */
+@media (max-width: 768px) {
+    .mobile-tips {
+        display: block !important;
+    }
+    
+    /* Ensure buttons are easy to tap on mobile */
+    .video-call-controls .btn-primary {
+        padding: 15px;
+        font-size: 1.1rem;
+    }
+    
+    /* Make form controls easier to use on mobile */
+    .video-call-controls input {
+        font-size: 1rem;
+        padding: 12px 15px;
+        height: auto;
+    }
+    
+    /* Ensure video container is properly sized on mobile */
+    #meetContainer {
+        height: 350px !important;
+    }
+}
+
+@media (max-width: 576px) {
+    /* Optimize for very small screens */
+    .video-call-header {
+        text-align: center;
+    }
+    
+    .video-call-sidebar {
+        padding: 12px;
+    }
+    
+    #meetContainer {
+        height: 300px !important;
+    }
+    
+    /* Help with orientation */
+    @media (orientation: portrait) {
+        .mobile-notice {
+            background-color: var(--warning-100);
+            color: var(--warning-800);
+            border-left-color: var(--warning-500);
+        }
+    }
+}
+
+/* Fix for iOS Safari 100vh issue */
+@supports (-webkit-touch-callout: none) {
+    .video-call-container {
+        min-height: -webkit-fill-available;
+    }
+} 

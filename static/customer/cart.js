@@ -96,56 +96,104 @@ function buyNow() {
     });
 }
 
-// Function to add an item to the cart
-function addToCart(id, name) {
-  var quantitySelector = document.getElementById('quantitySelector');
-
-  // Get the selected value
-  var qty = parseInt(quantitySelector.value, 10);
-  if(localStorage.getItem('cart') === null){
-    var cartData =[];
-  }
-  else{
-    var cartData = JSON.parse(localStorage.getItem('cart'));
-  }
-  // Check if the product already exists in the cart
-  var existingItemIndex = cartData.findIndex(item => item.id === id);
-
-  if (existingItemIndex !== -1) {
-    // If the product exists, update the quantity
-    cartData[existingItemIndex].qty += qty;
-  } else {
-    // If the product doesn't exist, add a new item to the cart
-    cartData.push({ id: id, name: name, qty: qty });
-  }
-  alert("Added to Cart");
-  // alert(JSON.stringify(cartData));
-  // Save the updated cart data back to local storage
-  localStorage.setItem('cart', JSON.stringify(cartData));
+/**
+ * Add an item to the cart
+ * @param {number} id - Product ID
+ * @param {string} name - Product name
+ * @param {number} quantity - Quantity to add (defaults to 1)
+ */
+function addToCart(id, name, quantity = 1) {
+    // Get current cart from localStorage or initialize empty array
+    let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    
+    // Get selected quantity from dropdown if it exists
+    const quantitySelector = document.getElementById('quantitySelector');
+    if (quantitySelector) {
+        quantity = parseInt(quantitySelector.value);
+    }
+    
+    // Check if item is already in cart
+    const existingItem = cart.find(item => item.id === id);
+    
+    if (existingItem) {
+        // Update quantity if item exists
+        existingItem.quantity += quantity;
+    } else {
+        // Add new item if it doesn't exist
+        cart.push({
+            id: id,
+            name: name,
+            quantity: quantity
+        });
+    }
+    
+    // Save updated cart to localStorage
+    localStorage.setItem('cart', JSON.stringify(cart));
+    
+    // Show success message
+    alert(`Added ${quantity} ${name} to cart!`);
+    
+    // Update cart count in navbar if function exists
+    if (typeof updateCartCount === 'function') {
+        updateCartCount();
+    }
 }
 
-// FUnction to remove an item from the cart
-function removeFromCart(id){
-  
-  // get the cart from the localstorafe
-  var cartData = JSON.parse(localStorage.getItem('cart'));
+/**
+ * Remove an item from the cart
+ * @param {number} id - Product ID to remove
+ */
+function removeFromCart(id) {
+    // Get current cart from localStorage
+    let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    
+    // Filter out the item to remove
+    cart = cart.filter(item => item.id !== id);
+    
+    // Save updated cart to localStorage
+    localStorage.setItem('cart', JSON.stringify(cart));
+    
+    // Refresh the cart display if on cart page
+    if (typeof displayCart === 'function') {
+        displayCart();
+    }
+    
+    // Update cart count in navbar if function exists
+    if (typeof updateCartCount === 'function') {
+        updateCartCount();
+    }
+}
 
-  // find the medicine id in the cart
-  var existingItemIndex = cartData.findIndex(item => item.id === id);
-
-  // remove it
-  if (existingItemIndex !== -1) {
-    // If the product exists, remove it
-    cartData.splice(existingItemIndex, 1);
-    alert("Product removed from cart")
-  } else {
-    // If the product doesn't exist, add a new item to the cart
-    alert("Product already removed from cart")
-  }
-
-  // update the cart item in localstorage
-  localStorage.setItem('cart', JSON.stringify(cartData));
-  window.location.href = '/cart';
+/**
+ * Update quantity of an item in the cart
+ * @param {number} id - Product ID to update
+ * @param {number} quantity - New quantity
+ */
+function updateQuantity(id, quantity) {
+    // Get current cart from localStorage
+    let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    
+    // Find the item to update
+    const itemToUpdate = cart.find(item => item.id === id);
+    
+    if (itemToUpdate) {
+        // Update quantity if item exists
+        itemToUpdate.quantity = quantity;
+        
+        // Remove item if quantity is 0 or less
+        if (quantity <= 0) {
+            removeFromCart(id);
+            return;
+        }
+        
+        // Save updated cart to localStorage
+        localStorage.setItem('cart', JSON.stringify(cart));
+        
+        // Refresh the cart display if on cart page
+        if (typeof displayCart === 'function') {
+            displayCart();
+        }
+    }
 }
 
 // Function which calculates the total of the cart

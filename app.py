@@ -4,6 +4,8 @@ from flask_jwt_extended import create_access_token, JWTManager, jwt_required, de
 import bcrypt
 from database import connect_to_db, init_db
 import database, os, json
+import random
+import time
 
 # INIT the Flask APP
 app = Flask(__name__)
@@ -13,7 +15,7 @@ app = Flask(__name__)
 JWT INITIALIZATION
 '''
 # INIT JWT
-app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')  # Replace with a secure secret key
+app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')  
 jwt = JWTManager(app)
 
 
@@ -143,6 +145,13 @@ def createOrderPage():
 @app.route("/cart")
 def cartPage():
     return render_template('customer/cart.html'), 200 
+
+# Video Call Route
+@app.route("/video-call")
+def video_call():
+    # Generate a random room ID using current timestamp and a random number
+    room_id = f"{int(time.time())}-{random.randint(1000, 9999)}"
+    return render_template('customer/video-call.html', room_id=room_id)
 
 '''
 API FUNCTIONS BELOW FOR CUSTOMER
@@ -358,7 +367,7 @@ def getOrder(orderid):
 @jwt_required()
 def getOrderList():
     # Get the user details from accesstoken
-    current_user = decode_token(request.headers['Authorization'][7:])  # Extract the token from the "Bearer" header
+    current_user = decode_token(request.headers['Authorization'][7:])  
     username = current_user['sub']
     print(username)
 
@@ -461,10 +470,35 @@ def calculateTotal(cart):
         total+=float(response["result"][0][0][1:])*int(item['qty'])
     total=round(total,2)
     return {"res": 1, "message": "Selection Success", "total": total}
+
+# Inventory API endpoint
+@app.get("/api/inventory")
+def getInventory():
+    # Get medicines from the database
+    response = database.select(conn, "medicines", columns=["id", "name", "composition", "price", "manufacturer", "category"])
+    
+    if response["res"] == 0:
+        return {"res": 0, "message": "Failed to fetch inventory"}
+    
+    # Format the data for the frontend
+    inventory = []
+    for med in response["result"]:
+        data = {
+            "id": med[0],
+            "name": med[1],
+            "composition": med[2],
+            "price": med[3],
+            "manufacturer": med[4],
+            "category": med[5]
+        }
+        inventory.append(data)
+    
+    return {"res": 1, "message": "Inventory fetched successfully", "data": inventory}
+
 '''
 MAIN FUNCTION
 '''
-if __name__ == '__main__':
-    # Run the Flask app
-    print(initdb())
-    app.run(debug=True, use_reloader=True, port=os.getenv('APP_PORT'))
+if __name__ == "__main__":
+    # Get port from environment variable
+    port = int(os.getenv('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=os.getenv('FLASK_ENV') == 'development')

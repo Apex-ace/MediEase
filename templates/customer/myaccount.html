@@ -8,76 +8,136 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <!-- Title of the page -->
-  <title>My Account Page</title>
+  <title>My Account - MediEase</title>
 
-  <!-- Adding font styles for the webpage -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@300&display=swap" rel="stylesheet">
+  <!-- Stylesheets -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@300;400;500;700&display=swap" rel="stylesheet">
   
-  <!-- Add all the necessary css and javascript files for the webpage -->
-  <link rel="stylesheet" href="{{ url_for('static', filename='customer/myaccount.css') }}" />
-  <script src="{{ url_for('static', filename='customer/myaccount.js') }}"></script>
+  <!-- Scripts -->
   <script src="{{ url_for('static', filename='customer/common.js') }}"></script>
+  <script src="{{ url_for('static', filename='customer/profile.js') }}"></script>
 
   <!-- custom css for styling -->
   <style>
-    body {
-      font-family: 'Arial', sans-serif;
-      margin: 0;
-      padding: 0;
-      background-color: #f4f4f4;
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
+    body, html {
+      height: 100%;
     }
-
-    header {
-      background-color: #37586e;
-      color: #fff;
+    .profile-container {
+      padding: 30px 0;
+    }
+    .profile-card {
+      border-radius: 10px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      background-color: #fff;
+    }
+    .profile-header {
+      background-color: #4e73df;
+      color: white;
       padding: 20px;
-      text-align: center;
-      margin-top: 10px;
-      border-radius: 8px;
-      margin-right: 20px;
-      margin-left: 20px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+      border-radius: 10px 10px 0 0;
     }
-
-    section {
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      padding: 20px;
+    .profile-img {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid white;
     }
-
-    .medicine-container {
-      flex: 1;
-      width: 200px;
-      padding: 20px;
+    .profile-tabs .nav-link {
+      color: #555;
     }
-
-    .medicine-image {
-      width: 110%;
-      height: auto;
-      border-radius: 8px;
-      /* box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); */
+    .profile-tabs .nav-link.active {
+      color: #4e73df;
+      font-weight: 600;
     }
-
-    .order-list {
-      /* flex: 1; */
-      width: 500px;
-      background-color: #eae1e1;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-      padding: 20px;
-      margin-right: 100px;
-      margin-left: 50px;
+    .order-card {
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+      margin-bottom: 20px;
+      transition: transform 0.3s;
     }
-
-    .no-underline {
-      text-decoration: none;
-      /* Remove underline from links with the class "no-underline" */
+    .order-card:hover {
+      transform: translateY(-5px);
+    }
+    .status-badge {
+      padding: 5px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .status-pending {
+      background-color: #ffeeba;
+      color: #856404;
+    }
+    .status-confirmed {
+      background-color: #b8daff;
+      color: #004085;
+    }
+    .status-shipped {
+      background-color: #c3e6cb;
+      color: #155724;
+    }
+    .status-delivered {
+      background-color: #d4edda;
+      color: #155724;
+    }
+    .status-cancelled {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+    .reminder-card {
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+      margin-bottom: 20px;
+      transition: transform 0.3s;
+      border-left: 4px solid #4e73df;
+    }
+    .reminder-card:hover {
+      transform: translateY(-5px);
+    }
+    .medicine-reminder {
+      padding: 15px;
+      margin-bottom: 15px;
+      background-color: #f8f9fa;
+      border-radius: 10px;
+    }
+    .form-control:focus {
+      border-color: #4e73df;
+      box-shadow: 0 0 0 0.25rem rgba(78, 115, 223, 0.25);
+    }
+    .btn-primary {
+      background-color: #4e73df;
+      border-color: #4e73df;
+    }
+    .btn-primary:hover {
+      background-color: #2e59d9;
+      border-color: #2653d4;
+    }
+    /* Dark mode styles */
+    body.dark-mode .profile-card {
+      background-color: #2d2d2d;
+      color: #f8f9fa;
+    }
+    body.dark-mode .nav-tabs {
+      border-bottom-color: #444;
+    }
+    body.dark-mode .nav-link {
+      color: #ddd;
+    }
+    body.dark-mode .nav-link.active {
+      color: #4e73df;
+      background-color: #2d2d2d;
+      border-color: #444 #444 #2d2d2d;
+    }
+    body.dark-mode .form-control {
+      background-color: #1e1e1e;
+      border-color: #444;
+      color: #f8f9fa;
+    }
+    body.dark-mode .medicine-reminder {
+      background-color: #1e1e1e;
     }
   </style>
 </head>
@@ -87,38 +147,396 @@
   <!-- Including the navbar for the webpage -->
   {% include 'customer/navbar.html' %}
 
-  <!-- Header section for the webpage -->
-  <header>
-    <h1>Hello {{username}}!</h1>
-  </header>
-
-  <!-- vertical division for the image and order list -->
-  <div id="vertical_divide" class="container">
-
-    <!-- Div contianer for the image -->
-    <div style="width: 300px; margin-right: 30px; padding: 30px;">
-      <img class="medicine-image" src="../../static/customer/profile.webp" alt="Medicine-image">
-    </div>
-
-    <!-- Div container for the orderlist -->
-    <div class="order-list">
-      <h2>Your Orders</h2>
-      <ul style="list-style-type: none;">
-        {% for i in orderlist %}
-        <div id="medicines" style="font-family: 'Red Hat Display', sans-serif; ">
-          <li>
-            <a href="#" onclick="redirectToOrder({{i[0]}})" class="no-underline">
-              <b>Order id:</b> &nbsp;{{ i[0] }}<br>
-              <b>Time:</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ i[1] }}<br>
-              <b>Amount:</b> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ i[2] }}<br>
-              <b>Status:</b> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ i[3] }}<br>
-            </a>
-          </li>
+  <div class="container profile-container">
+    <div class="row">
+      <div class="col-md-12 mb-4">
+        <div class="profile-card">
+          <div class="profile-header d-flex align-items-center justify-content-between p-4">
+            <div class="d-flex align-items-center">
+              <img src="https://via.placeholder.com/100" alt="Profile" class="profile-img me-4">
+              <div>
+                <h3 id="username-display" class="mb-1">Loading...</h3>
+                <p class="mb-0">Member since <span id="member-since">January 2023</span></p>
+              </div>
+            </div>
+            <div>
+              <button class="btn btn-light" id="editProfileBtn">
+                <i class="fas fa-edit me-2"></i>Edit Profile
+              </button>
+            </div>
+          </div>
+          
+          <div class="p-4">
+            <ul class="nav nav-tabs profile-tabs mb-4" id="profileTabs" role="tablist">
+              <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="orders-tab" data-bs-toggle="tab" data-bs-target="#orders" type="button" role="tab" aria-controls="orders" aria-selected="true">My Orders</button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="reminders-tab" data-bs-toggle="tab" data-bs-target="#reminders" type="button" role="tab" aria-controls="reminders" aria-selected="false">Medication Reminders</button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings" type="button" role="tab" aria-controls="settings" aria-selected="false">Account Settings</button>
+              </li>
+            </ul>
+            
+            <div class="tab-content" id="profileTabsContent">
+              <!-- Orders Tab -->
+              <div class="tab-pane fade show active" id="orders" role="tabpanel" aria-labelledby="orders-tab">
+                <h4 class="mb-4">My Orders</h4>
+                
+                <div id="orders-container">
+                  <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                      <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-3">Loading your orders...</p>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Reminders Tab -->
+              <div class="tab-pane fade" id="reminders" role="tabpanel" aria-labelledby="reminders-tab">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                  <h4>Medication Reminders</h4>
+                  <button class="btn btn-primary" id="addReminderBtn">
+                    <i class="fas fa-plus me-2"></i>Add Reminder
+                  </button>
+                </div>
+                
+                <div id="reminders-container">
+                  <!-- Reminders will be loaded here -->
+                  <div class="reminder-card p-3 mb-3">
+                    <div class="d-flex justify-content-between">
+                      <h5>Paracetamol</h5>
+                      <div>
+                        <button class="btn btn-sm btn-outline-primary me-2">
+                          <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </div>
+                    </div>
+                    <p class="mb-1"><i class="fas fa-clock me-2"></i>8:00 AM, 2:00 PM, 8:00 PM</p>
+                    <p class="mb-1"><i class="fas fa-calendar-alt me-2"></i>Daily</p>
+                    <p class="mb-0"><i class="fas fa-pills me-2"></i>1 tablet with food</p>
+                  </div>
+                  
+                  <div class="reminder-card p-3 mb-3">
+                    <div class="d-flex justify-content-between">
+                      <h5>Vitamin D</h5>
+                      <div>
+                        <button class="btn btn-sm btn-outline-primary me-2">
+                          <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </div>
+                    </div>
+                    <p class="mb-1"><i class="fas fa-clock me-2"></i>10:00 AM</p>
+                    <p class="mb-1"><i class="fas fa-calendar-alt me-2"></i>Every Sunday</p>
+                    <p class="mb-0"><i class="fas fa-pills me-2"></i>1 capsule after breakfast</p>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Settings Tab -->
+              <div class="tab-pane fade" id="settings" role="tabpanel" aria-labelledby="settings-tab">
+                <h4 class="mb-4">Account Settings</h4>
+                
+                <form id="account-settings-form">
+                  <div class="mb-3">
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email" class="form-control" id="email" value="user@example.com">
+                  </div>
+                  
+                  <div class="mb-3">
+                    <label for="phone" class="form-label">Phone Number</label>
+                    <input type="tel" class="form-control" id="phone" value="+1234567890">
+                  </div>
+                  
+                  <div class="mb-3">
+                    <label for="address" class="form-label">Default Delivery Address</label>
+                    <textarea class="form-control" id="address" rows="3">123 Street Name, City, State, ZIP</textarea>
+                  </div>
+                  
+                  <h5 class="mt-4 mb-3">Change Password</h5>
+                  
+                  <div class="mb-3">
+                    <label for="current-password" class="form-label">Current Password</label>
+                    <input type="password" class="form-control" id="current-password">
+                  </div>
+                  
+                  <div class="mb-3">
+                    <label for="new-password" class="form-label">New Password</label>
+                    <input type="password" class="form-control" id="new-password">
+                  </div>
+                  
+                  <div class="mb-3">
+                    <label for="confirm-password" class="form-label">Confirm New Password</label>
+                    <input type="password" class="form-control" id="confirm-password">
+                  </div>
+                  
+                  <div class="mt-4">
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
         </div>
-        {% endfor %}
-      </ul>
+      </div>
     </div>
   </div>
+  
+  <!-- Add Reminder Modal -->
+  <div class="modal fade" id="addReminderModal" tabindex="-1" aria-labelledby="addReminderModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="addReminderModalLabel">Add Medication Reminder</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="add-reminder-form">
+            <div class="mb-3">
+              <label for="medication-name" class="form-label">Medication Name</label>
+              <input type="text" class="form-control" id="medication-name" required>
+            </div>
+            
+            <div class="mb-3">
+              <label for="dosage" class="form-label">Dosage</label>
+              <input type="text" class="form-control" id="dosage" placeholder="e.g., 1 tablet">
+            </div>
+            
+            <div class="mb-3">
+              <label for="time" class="form-label">Time</label>
+              <input type="time" class="form-control" id="time" required>
+            </div>
+            
+            <div class="mb-3">
+              <label class="form-label">Frequency</label>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="frequency" id="frequency-daily" value="daily" checked>
+                <label class="form-check-label" for="frequency-daily">
+                  Daily
+                </label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="frequency" id="frequency-weekly" value="weekly">
+                <label class="form-check-label" for="frequency-weekly">
+                  Weekly
+                </label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="frequency" id="frequency-custom" value="custom">
+                <label class="form-check-label" for="frequency-custom">
+                  Custom
+                </label>
+              </div>
+            </div>
+            
+            <div class="mb-3">
+              <label for="notes" class="form-label">Notes</label>
+              <textarea class="form-control" id="notes" rows="2" placeholder="e.g., Take with food"></textarea>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" id="saveReminderBtn">Save Reminder</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Edit Profile Modal -->
+  <div class="modal fade" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editProfileModalLabel">Edit Profile</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="edit-profile-form">
+            <div class="mb-3 text-center">
+              <img src="https://via.placeholder.com/100" alt="Profile" class="profile-img mb-3">
+              <div>
+                <button type="button" class="btn btn-sm btn-outline-primary">Change Photo</button>
+              </div>
+            </div>
+            
+            <div class="mb-3">
+              <label for="profile-name" class="form-label">Full Name</label>
+              <input type="text" class="form-control" id="profile-name">
+            </div>
+            
+            <div class="mb-3">
+              <label for="profile-email" class="form-label">Email</label>
+              <input type="email" class="form-control" id="profile-email">
+            </div>
+            
+            <div class="mb-3">
+              <label for="profile-phone" class="form-label">Phone Number</label>
+              <input type="tel" class="form-control" id="profile-phone">
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" id="saveProfileBtn">Save Changes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Delete Order Confirmation Modal -->
+  <div class="modal fade" id="deleteOrderModal" tabindex="-1" aria-labelledby="deleteOrderModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="deleteOrderModalLabel">Confirm Cancellation</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p>Are you sure you want to cancel this order? This action cannot be undone.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No, Keep Order</button>
+          <button type="button" class="btn btn-danger" id="confirmCancelOrderBtn">Yes, Cancel Order</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Include Bootstrap JS and other scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Load the username
+      const accessToken = localStorage.getItem('accessToken');
+      if (accessToken) {
+        const username = parseJwt(accessToken).sub;
+        document.getElementById('username-display').textContent = username;
+        loadOrders(username);
+      } else {
+        window.location.href = '/login';
+      }
+      
+      // Handle modal buttons
+      document.getElementById('addReminderBtn').addEventListener('click', function() {
+        const addReminderModal = new bootstrap.Modal(document.getElementById('addReminderModal'));
+        addReminderModal.show();
+      });
+      
+      document.getElementById('editProfileBtn').addEventListener('click', function() {
+        const editProfileModal = new bootstrap.Modal(document.getElementById('editProfileModal'));
+        editProfileModal.show();
+      });
+      
+      // Parse JWT token function
+      function parseJwt(token) {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+        return JSON.parse(jsonPayload);
+      }
+      
+      // Load orders function
+      function loadOrders(username) {
+        const ordersContainer = document.getElementById('orders-container');
+        
+        // In a real application, you would make an API call here
+        // For demonstration purposes, we're creating mock data
+        setTimeout(() => {
+          ordersContainer.innerHTML = `
+            <!-- Order 1 -->
+            <div class="order-card p-3 mb-3">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0">Order #ORD12345</h5>
+                <span class="status-badge status-shipped">Shipped</span>
+              </div>
+              <div class="row">
+                <div class="col-md-4">
+                  <p class="mb-1"><i class="fas fa-calendar-alt me-2"></i>Date: May 15, 2023</p>
+                  <p class="mb-1"><i class="fas fa-money-bill-wave me-2"></i>Total: ₹520</p>
+                </div>
+                <div class="col-md-5">
+                  <p class="mb-1"><i class="fas fa-pills me-2"></i>Items: Paracetamol, Vitamin C</p>
+                  <p class="mb-1"><i class="fas fa-truck me-2"></i>Delivery: Standard</p>
+                </div>
+                <div class="col-md-3 text-md-end mt-3 mt-md-0">
+                  <button class="btn btn-sm btn-outline-primary me-2">
+                    <i class="fas fa-eye me-1"></i>View Details
+                  </button>
+                  <button class="btn btn-sm btn-outline-danger cancel-order-btn" data-order-id="ORD12345" data-bs-toggle="modal" data-bs-target="#deleteOrderModal">
+                    <i class="fas fa-times me-1"></i>Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Order 2 -->
+            <div class="order-card p-3 mb-3">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0">Order #ORD12340</h5>
+                <span class="status-badge status-delivered">Delivered</span>
+              </div>
+              <div class="row">
+                <div class="col-md-4">
+                  <p class="mb-1"><i class="fas fa-calendar-alt me-2"></i>Date: April 30, 2023</p>
+                  <p class="mb-1"><i class="fas fa-money-bill-wave me-2"></i>Total: ₹780</p>
+                </div>
+                <div class="col-md-5">
+                  <p class="mb-1"><i class="fas fa-pills me-2"></i>Items: Crocin, B-Complex, Bandages</p>
+                  <p class="mb-1"><i class="fas fa-truck me-2"></i>Delivery: Express</p>
+                </div>
+                <div class="col-md-3 text-md-end mt-3 mt-md-0">
+                  <button class="btn btn-sm btn-outline-primary me-2">
+                    <i class="fas fa-eye me-1"></i>View Details
+                  </button>
+                  <button class="btn btn-sm btn-outline-secondary" disabled>
+                    <i class="fas fa-times me-1"></i>Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Order 3 -->
+            <div class="order-card p-3 mb-3">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0">Order #ORD12335</h5>
+                <span class="status-badge status-pending">Pending</span>
+              </div>
+              <div class="row">
+                <div class="col-md-4">
+                  <p class="mb-1"><i class="fas fa-calendar-alt me-2"></i>Date: May 20, 2023</p>
+                  <p class="mb-1"><i class="fas fa-money-bill-wave me-2"></i>Total: ₹350</p>
+                </div>
+                <div class="col-md-5">
+                  <p class="mb-1"><i class="fas fa-pills me-2"></i>Items: Antibiotic, Cotton, Gauze</p>
+                  <p class="mb-1"><i class="fas fa-truck me-2"></i>Delivery: Standard</p>
+                </div>
+                <div class="col-md-3 text-md-end mt-3 mt-md-0">
+                  <button class="btn btn-sm btn-outline-primary me-2">
+                    <i class="fas fa-eye me-1"></i>View Details
+                  </button>
+                  <button class="btn btn-sm btn-outline-danger cancel-order-btn" data-order-id="ORD12335" data-bs-toggle="modal" data-bs-target="#deleteOrderModal">
+                    <i class="fas fa-times me-1"></i>Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          `;
+        }, 1500);
+      }
+    });
+  </script>
 </body>
 
 </html>

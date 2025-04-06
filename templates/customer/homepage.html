@@ -1,72 +1,213 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
-
-    <!-- include the font for this page -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Jomolhari&family=Red+Hat+Display:wght@300&display=swap"
-        rel="stylesheet">
-
-    <!-- include the css file and js file -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediEase - Your Online Pharmacy</title>
+    
+    <!-- Stylesheets -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Jomolhari&family=Red+Hat+Display:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='customer/homepage.css')}}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='customer/theme.css')}}">
+    
+    <!-- Scripts -->
     <script src="{{ url_for('static', filename='customer/common.js') }}"></script>
-
-    <!-- Title of the page -->
-    <title>Mediko Homepage</title>
+    <script src="{{ url_for('static', filename='customer/shop-inventory.js') }}"></script>
 </head>
 
 <body>
-
-    <!-- Including the navbar in the webpage -->
+    <!-- Navbar -->
     {% include 'customer/navbar.html' %}
-
-    <!-- creating a custom horizontal divider in the webpage  -->
-    <div id="horizontal_divide" class="container">
-
-        <!-- Add the mediko logo at the webpage -->
-        <div style="width: 250px; margin-bottom: 20px;">
-            <img src="../../static/customer/mediko.png" alt="logo" style="width: 100%; border-radius: 10px;">
-        </div>
-
-        <!-- Include the search bar interface below logo -->
-        <div id="align-bottom">
-            <form class="search_bar" id="search_bar" onsubmit="submitSearchForm(event)">
-                <input type="text" class="form-control" placeholder="search medicine" id="content">
-                <button type="submit">
-                    <img src="../../static/customer/search.png">
-                </button>
-            </form>
-        </div>
-
-        <!-- Creating custom vertical divide with in the horizontal divide to include the offer interface -->
-        <div id="vertical_divide" style="text-align: center;">
-
-            <!-- Offer 1 div -->
-            <div style="width: 200px; margin-right: 55px;">
-                <img src="../../static/customer/discount1.png" alt="Discount Image 1"
-                    style="width: 100%; border-radius: 10px;">
+    
+    <!-- Hero Section with Search -->
+    <div class="hero-section">
+        <div class="container">
+            <div class="hero-content">
+                <h1 class="hero-title">Your Health, <span class="text-accent">Our Priority</span></h1>
+                <p class="hero-subtitle">Find all your medicines at one place with fast delivery and expert advice.</p>
+                <div class="search-wrapper">
+                    <form class="search-form" id="search_bar" onsubmit="submitSearchForm(event)">
+                        <div class="search-input-group">
+                            <input type="text" class="search-input" placeholder="Search medicines..." id="content">
+                            <button class="search-button" type="submit">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
-
-            <!-- Offer 2 div -->
-            <div style="width: 200px; margin-right: 55px;">
-                <img src="../../static/customer/discount2.png" alt="Discount Image 1"
-                    style="width: 100%; border-radius: 10px;">
-            </div>
-
-            <!-- offer 3 div -->
-            <div style="width: 200px;">
-                <img src="../../static/customer/discount3.png" alt="Discount Image 1"
-                    style="width: 100%; border-radius: 10px;">
-            </div>
+            <div class="hero-shape"></div>
         </div>
     </div>
-    <!-- <footer>
-        <p>
-            <h3 style="text-align: center;">Medico 2023</h3>
-        </p>
-    </footer> -->
+    
+    <!-- Categories Section -->
+    <section class="categories-section">
+        <div class="container">
+            <h2 class="section-title">Browse By Categories</h2>
+            <div class="categories-grid">
+                <a href="#" class="category-card">
+                    <div class="category-icon">
+                        <i class="fas fa-pills"></i>
+                    </div>
+                    <h5 class="category-title">Prescription</h5>
+                </a>
+                <a href="#" class="category-card">
+                    <div class="category-icon">
+                        <i class="fas fa-heartbeat"></i>
+                    </div>
+                    <h5 class="category-title">Healthcare</h5>
+                </a>
+                <a href="#" class="category-card">
+                    <div class="category-icon">
+                        <i class="fas fa-briefcase-medical"></i>
+                    </div>
+                    <h5 class="category-title">First Aid</h5>
+                </a>
+                <a href="#" class="category-card">
+                    <div class="category-icon">
+                        <i class="fas fa-tooth"></i>
+                    </div>
+                    <h5 class="category-title">Personal Care</h5>
+                </a>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Offers Section -->
+    <section class="offers-section">
+        <div class="container">
+            <h2 class="section-title">Special Offers</h2>
+            <div class="offers-grid">
+                <div class="offer-card">
+                    <div class="offer-card-content">
+                        <div class="offer-badge">FIRST20</div>
+                        <h5 class="offer-title">20% Off on First Order</h5>
+                        <p class="offer-text">New to MediEase? Get 20% off on your first purchase!</p>
+                        <a href="#" class="offer-button">Shop Now</a>
+                    </div>
+                </div>
+                <div class="offer-card">
+                    <div class="offer-card-content">
+                        <div class="offer-badge">BUY2GET1</div>
+                        <h5 class="offer-title">Buy 2 Get 1 Free</h5>
+                        <p class="offer-text">On all vitamins and supplements</p>
+                        <a href="#" class="offer-button">Shop Now</a>
+                    </div>
+                </div>
+                <div class="offer-card">
+                    <div class="offer-card-content">
+                        <div class="offer-badge">FREE500</div>
+                        <h5 class="offer-title">Free Delivery</h5>
+                        <p class="offer-text">On orders above ₹500</p>
+                        <a href="#" class="offer-button">Shop Now</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Features Section -->
+    <section class="features-section">
+        <div class="container">
+            <h2 class="section-title">Why Choose MediEase</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-truck"></i>
+                    </div>
+                    <h5 class="feature-title">Fast Delivery</h5>
+                    <p class="feature-text">Medicines delivered at your doorstep within 24 hours</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h5 class="feature-title">Genuine Products</h5>
+                    <p class="feature-text">100% authentic medicines with proper verification</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-headset"></i>
+                    </div>
+                    <h5 class="feature-title">24/7 Support</h5>
+                    <p class="feature-text">Expert pharmacists and customer support available round the clock</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-tags"></i>
+                    </div>
+                    <h5 class="feature-title">Best Prices</h5>
+                    <p class="feature-text">Competitive prices and regular discounts on all products</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Newsletter Section -->
+    <section class="newsletter-section">
+        <div class="container">
+            <div class="newsletter-container">
+                <div class="newsletter-content">
+                    <h2 class="newsletter-title">Subscribe to Our Newsletter</h2>
+                    <p class="newsletter-text">Get updates on new products, special offers, and health tips.</p>
+                    <form class="newsletter-form">
+                        <input type="email" class="newsletter-input" placeholder="Enter your email">
+                        <button type="submit" class="newsletter-button">Subscribe</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Chat Bot Button -->
+    <div class="chat-bot-btn">
+        <button class="btn btn-primary rounded-circle" id="chatBotBtn">
+            <i class="fas fa-comment-dots"></i>
+        </button>
+    </div>
+    
+    <!-- Mode Toggle -->
+    <div class="mode-toggle">
+        <button class="btn rounded-circle" id="modeToggleBtn">
+            <i class="fas fa-moon"></i>
+        </button>
+    </div>
+    
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-about">
+                    <h5 class="footer-title">MediEase</h5>
+                    <p class="footer-text">Your trusted online pharmacy for all healthcare needs.</p>
+                </div>
+                <div class="footer-links">
+                    <h5 class="footer-title">Quick Links</h5>
+                    <ul class="footer-menu">
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="#">Contact Us</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms & Conditions</a></li>
+                    </ul>
+                </div>
+                <div class="footer-contact">
+                    <h5 class="footer-title">Contact</h5>
+                    <ul class="footer-contact-list">
+                        <li><i class="fas fa-envelope"></i> ayushmishra.pi@gmail.com</li>
+                        <li><i class="fas fa-phone"></i> 7387812003</li>
+                        <li><i class="fas fa-map-marker-alt"></i> Koradi naka nagpur 441111</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2023 MediEase. All Rights Reserved.</p>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
-
 </html>

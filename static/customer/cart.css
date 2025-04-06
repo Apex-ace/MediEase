@@ -1,42 +1,250 @@
-#cartContainer{
-    margin-top: 20px;
+/* Import theme variables */
+@import url('theme.css');
+
+#cartContainer {
+  max-width: 900px;
+  margin: 50px auto;
+  padding: 2rem;
+  background-color: white;
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-lg);
+  position: relative;
+  overflow: hidden;
+}
+
+body.dark-mode #cartContainer {
+  background-color: var(--dark-surface);
+  color: var(--dark-text);
+}
+
+#cartContainer h2 {
+  color: var(--primary-800);
+  font-weight: 700;
+  margin-bottom: 2rem;
+  text-align: center;
+  position: relative;
+}
+
+body.dark-mode #cartContainer h2 {
+  color: var(--primary-300);
+}
+
+#cartContainer h2::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  width: 50px;
+  height: 3px;
+  background: linear-gradient(to right, var(--primary-500), var(--accent-500));
+  transform: translateX(-50%);
 }
 
 .card {
-    border: 3px solid #ccc;
-    border-radius: 30px;
-    padding: 10px;
-    width: 30%;
-    margin: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    background-color: #fff;
-    display: flex;
-    flex-direction: column; /* Stack children vertically */
+  border: none;
+  border-radius: var(--border-radius-lg);
+  padding: 1.5rem;
+  width: 100%;
+  margin: 1rem 0;
+  box-shadow: var(--shadow-md);
+  background-color: white;
+  display: flex;
+  flex-direction: column;
+  transition: all var(--transition-normal);
+  position: relative;
+  overflow: hidden;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 5px;
+  height: 100%;
+  background: linear-gradient(to bottom, var(--primary-500), var(--accent-500));
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-lg);
+}
+
+body.dark-mode .card {
+  background-color: var(--dark-surface-2);
+  color: var(--dark-text);
 }
 
 .amount-card {
-    border: 5px solid #910b0b;
-    border-radius: 80px;
-    padding: 10px;
-    width: 20%;
-    margin: 10px;
-    box-shadow: 0 4px 8px rgba(88, 219, 17, 0.777);
-    background-color: #fff;
-    display: flex;
-    flex-direction: column; /* Stack children vertically */
+  border: none;
+  border-radius: var(--border-radius-lg);
+  padding: 1.5rem;
+  max-width: 400px;
+  margin: 2rem auto;
+  box-shadow: var(--shadow-lg);
+  background: linear-gradient(135deg, var(--primary-700), var(--accent-700));
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.amount-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 70%);
+  transform: rotate(30deg);
+}
+
+.amount-card h6 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0;
+  position: relative;
+  z-index: 1;
 }
 
 .card-button {
+  width: auto;
+  min-width: 100px;
+  align-self: center;
+  text-align: center;
+  padding: 0.5rem 1rem;
+  background: linear-gradient(to right, #ef4444, #b91c1c);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius-md);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  margin-top: 1rem;
+  font-weight: 600;
+  position: relative;
+  overflow: hidden;
+}
 
-    width: 20%; /* Take the full width of the container */
-    align-self: center; /* Center the button within the container */
-    text-align: center;
-    padding: 8px;
-    background-color: #d45125; /* Button background color */
-    color: #fff; /* Button text color */
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.3s; /* Smooth transition for background color change */
+.card-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.7s;
+}
 
+.card-button:hover::before {
+  left: 100%;
+}
+
+.card-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 8px rgba(239, 68, 68, 0.4);
+}
+
+#buy-now-button {
+  background: linear-gradient(to right, var(--success), var(--accent-600));
+  border: none;
+  padding: 1rem 2.5rem;
+  border-radius: var(--border-radius-md);
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin-top: 1rem;
+  margin-bottom: 2rem;
+  box-shadow: var(--shadow-md);
+  transition: all var(--transition-normal);
+  position: relative;
+  overflow: hidden;
+}
+
+#buy-now-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.7s;
+}
+
+#buy-now-button:hover::before {
+  left: 100%;
+}
+
+#buy-now-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 12px rgba(16, 185, 129, 0.3);
+}
+
+/* Empty cart styles */
+.empty-cart {
+  text-align: center;
+  padding: 3rem 1rem;
+}
+
+.empty-cart i {
+  font-size: 5rem;
+  color: var(--neutral-400);
+  margin-bottom: 1.5rem;
+}
+
+body.dark-mode .empty-cart i {
+  color: var(--neutral-600);
+}
+
+.empty-cart h5 {
+  font-size: 1.5rem;
+  color: var(--neutral-700);
+  margin-bottom: 1rem;
+}
+
+body.dark-mode .empty-cart h5 {
+  color: var(--neutral-400);
+}
+
+.empty-cart p {
+  color: var(--neutral-600);
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+body.dark-mode .empty-cart p {
+  color: var(--neutral-500);
+}
+
+.continue-shopping {
+  display: inline-block;
+  margin-top: 1.5rem;
+  padding: 0.75rem 2rem;
+  background: linear-gradient(135deg, var(--primary-600), var(--accent-600));
+  color: white;
+  border-radius: var(--border-radius-md);
+  text-decoration: none;
+  font-weight: 600;
+  transition: all var(--transition-normal);
+}
+
+.continue-shopping:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  #cartContainer {
+    padding: 1.5rem;
+    margin: 30px auto;
+  }
+  
+  .card, .amount-card {
+    padding: 1rem;
+  }
+  
+  #buy-now-button {
+    padding: 0.75rem 1.5rem;
+  }
 }

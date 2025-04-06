@@ -129,3 +129,382 @@ function redirectToMyAccount(event) {
     // Redirect to the constructed URL
     window.location.href = redirectUrl;
 }
+
+// Dark Mode Toggle functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // Check if dark mode is enabled in localStorage
+    const isDarkMode = localStorage.getItem('darkMode') === 'enabled';
+    
+    // Get the mode toggle button if it exists
+    const modeToggleBtn = document.getElementById('modeToggleBtn');
+    
+    // Initialize dark mode if it was previously enabled
+    if (isDarkMode) {
+        document.body.classList.add('dark-mode');
+        if (modeToggleBtn) {
+            modeToggleBtn.innerHTML = '<i class="fas fa-sun"></i>';
+        }
+    }
+    
+    // Add click event to the mode toggle button if it exists
+    if (modeToggleBtn) {
+        modeToggleBtn.addEventListener('click', function() {
+            if (document.body.classList.contains('dark-mode')) {
+                // Switch to light mode
+                document.body.classList.remove('dark-mode');
+                localStorage.setItem('darkMode', 'disabled');
+                this.innerHTML = '<i class="fas fa-moon"></i>';
+            } else {
+                // Switch to dark mode
+                document.body.classList.add('dark-mode');
+                localStorage.setItem('darkMode', 'enabled');
+                this.innerHTML = '<i class="fas fa-sun"></i>';
+            }
+        });
+    }
+    
+    // Initialize the chat bot button if it exists
+    const chatBotBtn = document.getElementById('chatBotBtn');
+    if (chatBotBtn) {
+        chatBotBtn.addEventListener('click', function() {
+            openChatBot();
+        });
+    }
+
+    // Initialize loader
+    createLoaderElement();
+});
+
+// Function to create the loader element
+function createLoaderElement() {
+    if (!document.querySelector('.loader-overlay')) {
+        const loaderOverlay = document.createElement('div');
+        loaderOverlay.className = 'loader-overlay';
+        
+        const loader = document.createElement('div');
+        loader.className = 'loader';
+        
+        loaderOverlay.appendChild(loader);
+        document.body.appendChild(loaderOverlay);
+    }
+}
+
+// Function to show the loader
+function showLoader() {
+    const loaderOverlay = document.querySelector('.loader-overlay');
+    if (loaderOverlay) {
+        loaderOverlay.classList.add('show');
+    }
+}
+
+// Function to hide the loader
+function hideLoader() {
+    const loaderOverlay = document.querySelector('.loader-overlay');
+    if (loaderOverlay) {
+        loaderOverlay.classList.remove('show');
+    }
+}
+
+// Function to open the chat bot
+function openChatBot() {
+    // Create chat bot modal if it doesn't exist
+    if (!document.getElementById('chatBotModal')) {
+        const modal = document.createElement('div');
+        modal.id = 'chatBotModal';
+        modal.className = 'chat-bot-modal';
+        modal.innerHTML = `
+            <div class="chat-bot-content">
+                <div class="chat-bot-header">
+                    <h4>MediEase Assistant</h4>
+                    <button class="close-btn" id="closeChatBot"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="chat-bot-body" id="chatBotBody">
+                    <div class="bot-message">
+                        <p>Hello! I'm MediEase's AI assistant. How can I help you today?</p>
+                    </div>
+                </div>
+                <div class="chat-bot-footer">
+                    <input type="text" id="chatBotInput" placeholder="Type your message...">
+                    <button type="button" id="sendChatMsg" class="btn btn-primary">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        // Add styles for the chat bot
+        const style = document.createElement('style');
+        style.textContent = `
+            .chat-bot-modal {
+                position: fixed;
+                bottom: 100px;
+                right: 30px;
+                width: 350px;
+                height: 500px;
+                background: white;
+                border-radius: 10px;
+                box-shadow: 0 5px 30px rgba(0, 0, 0, 0.15);
+                z-index: 1100;
+                overflow: hidden;
+                display: flex;
+                flex-direction: column;
+            }
+            body.dark-mode .chat-bot-modal {
+                background: #2d2d2d;
+                color: #f8f9fa;
+            }
+            .chat-bot-content {
+                display: flex;
+                flex-direction: column;
+                height: 100%;
+            }
+            .chat-bot-header {
+                padding: 15px;
+                background-color: #4e73df;
+                color: white;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            .chat-bot-header h4 {
+                margin: 0;
+            }
+            .chat-bot-body {
+                flex: 1;
+                padding: 15px;
+                overflow-y: auto;
+            }
+            .chat-bot-footer {
+                padding: 15px;
+                display: flex;
+                border-top: 1px solid #eee;
+            }
+            body.dark-mode .chat-bot-footer {
+                border-top: 1px solid #444;
+            }
+            .chat-bot-footer input {
+                flex: 1;
+                padding: 10px;
+                border: 1px solid #ddd;
+                border-radius: 30px;
+                margin-right: 10px;
+            }
+            body.dark-mode .chat-bot-footer input {
+                background: #1e1e1e;
+                color: #f8f9fa;
+                border: 1px solid #444;
+            }
+            .btn-close {
+                background: transparent;
+                border: none;
+                color: white;
+                font-size: 1.5rem;
+                cursor: pointer;
+            }
+            .chat-message {
+                margin-bottom: 15px;
+                display: flex;
+            }
+            .chat-message.user {
+                justify-content: flex-end;
+            }
+            .message-content {
+                max-width: 80%;
+                padding: 10px 15px;
+                border-radius: 20px;
+            }
+            .chat-message.bot .message-content {
+                background-color: #f0f2f5;
+                border-bottom-left-radius: 5px;
+            }
+            body.dark-mode .chat-message.bot .message-content {
+                background-color: #3a3a3a;
+            }
+            .chat-message.user .message-content {
+                background-color: #4e73df;
+                color: white;
+                border-bottom-right-radius: 5px;
+            }
+            .typing-indicator .message-content {
+                padding: 12px;
+            }
+            .typing-dots {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 20px;
+            }
+            .typing-dots .dot {
+                width: 8px;
+                height: 8px;
+                background-color: #777;
+                border-radius: 50%;
+                margin: 0 3px;
+                animation: typing-dot 1.4s infinite ease-in-out;
+            }
+            .typing-dots .dot:nth-child(1) {
+                animation-delay: 0s;
+            }
+            .typing-dots .dot:nth-child(2) {
+                animation-delay: 0.2s;
+            }
+            .typing-dots .dot:nth-child(3) {
+                animation-delay: 0.4s;
+            }
+            @keyframes typing-dot {
+                0%, 60%, 100% {
+                    transform: translateY(0);
+                }
+                30% {
+                    transform: translateY(-5px);
+                }
+            }
+            body.dark-mode .typing-dots .dot {
+                background-color: #aaa;
+            }
+        `;
+        
+        document.head.appendChild(style);
+        document.body.appendChild(modal);
+        
+        // Add event listeners for the chat bot
+        document.getElementById('closeChatBot').addEventListener('click', function() {
+            document.getElementById('chatBotModal').style.display = 'none';
+        });
+        
+        document.getElementById('sendChatMsg').addEventListener('click', sendChatMessage);
+        document.getElementById('chatBotInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendChatMessage();
+            }
+        });
+    } else {
+        document.getElementById('chatBotModal').style.display = 'flex';
+    }
+}
+
+// Function to send a chat message
+function sendChatMessage() {
+    const input = document.getElementById('chatBotInput');
+    const message = input.value.trim();
+    
+    if (message) {
+        // Add user message to chat
+        addChatMessage(message, 'user');
+        
+        // Clear input
+        input.value = '';
+        
+        // Show typing indicator
+        showTypingIndicator();
+        
+        // Send message to AI chatbot server
+        fetch('http://localhost:5001/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ message: message })
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Hide typing indicator
+            hideTypingIndicator();
+            
+            // Add AI response to chat
+            addChatMessage(data.response, 'bot');
+        })
+        .catch(error => {
+            // Hide typing indicator
+            hideTypingIndicator();
+            
+            // Add error message to chat
+            addChatMessage("Sorry, I'm having trouble connecting to my brain right now. Please try again later.", 'bot');
+            console.error('Error:', error);
+        });
+    }
+}
+
+// Function to show typing indicator
+function showTypingIndicator() {
+    const chatBody = document.getElementById('chatBotBody');
+    
+    // Check if typing indicator already exists
+    if (!document.getElementById('typingIndicator')) {
+        const typingIndicator = document.createElement('div');
+        typingIndicator.id = 'typingIndicator';
+        typingIndicator.className = 'chat-message bot typing-indicator';
+        typingIndicator.innerHTML = `
+            <div class="message-content">
+                <div class="typing-dots">
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                </div>
+            </div>
+        `;
+        chatBody.appendChild(typingIndicator);
+        chatBody.scrollTop = chatBody.scrollHeight;
+    }
+}
+
+// Function to hide typing indicator
+function hideTypingIndicator() {
+    const typingIndicator = document.getElementById('typingIndicator');
+    if (typingIndicator) {
+        typingIndicator.remove();
+    }
+}
+
+// Function to add a message to the chat
+function addChatMessage(message, sender) {
+    const chatBody = document.getElementById('chatBotBody');
+    
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `chat-message ${sender}`;
+    
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'message-content';
+    
+    const messageP = document.createElement('p');
+    messageP.textContent = message;
+    
+    contentDiv.appendChild(messageP);
+    messageDiv.appendChild(contentDiv);
+    chatBody.appendChild(messageDiv);
+    
+    // Scroll to bottom
+    chatBody.scrollTop = chatBody.scrollHeight;
+}
+
+// Function to process the chat message and generate a response
+function processChatMessage(message) {
+    // Simple responses based on keywords
+    message = message.toLowerCase();
+    let response = "I'm sorry, I don't understand that. Can you please rephrase?";
+    
+    if (message.includes('hello') || message.includes('hi') || message.includes('hey')) {
+        response = "Hello! How can I help you today?";
+    } else if (message.includes('bye') || message.includes('goodbye')) {
+        response = "Goodbye! Feel free to come back if you have more questions.";
+    } else if (message.includes('thank')) {
+        response = "You're welcome! Is there anything else I can help you with?";
+    } else if (message.includes('medicine') || message.includes('drug')) {
+        response = "We have a wide range of medicines available. You can search for specific medicines using the search bar on the homepage.";
+    } else if (message.includes('delivery') || message.includes('shipping')) {
+        response = "We offer free delivery on orders above ₹500. Standard delivery takes 24-48 hours.";
+    } else if (message.includes('payment')) {
+        response = "We accept various payment methods including credit/debit cards, UPI, and cash on delivery.";
+    } else if (message.includes('prescription')) {
+        response = "For prescription medicines, you can upload your prescription during checkout or email it to prescriptions@mediease.com.";
+    } else if (message.includes('return') || message.includes('refund')) {
+        response = "Our return policy allows returns within 7 days of delivery. Please contact customer service for assistance.";
+    } else if (message.includes('contact') || message.includes('support')) {
+        response = "You can contact our customer support at support@mediease.com or call us at +1 234 567 890.";
+    } else if (message.includes('order') && (message.includes('track') || message.includes('status'))) {
+        response = "To track your order, please visit the 'My Account' section and go to 'My Orders'.";
+    }
+    
+    // Add bot response to chat
+    addChatMessage(response, 'bot');
+}

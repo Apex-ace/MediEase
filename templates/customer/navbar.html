@@ -3,6 +3,9 @@
     href="https://fonts.googleapis.com/css2?family=Pacifico&family=Playfair+Display&family=Red+Hat+Display&display=swap"
     rel="stylesheet">
 
+<!-- Including font awesome for icons -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+
 <!-- Including the CSS file for better styling -->
 <link rel="stylesheet" href="{{ url_for('static', filename='customer/navbar.css') }}">
 
@@ -10,45 +13,75 @@
 <script src="{{ url_for('static', filename='customer/navbar.js') }}"></script>
 
 <!-- Navigation bar section -->
-<nav class=navbar>
+<nav class="navbar">
     <!-- Logo section, linking to the home page -->
-    <div>
-        <a href="/">
-            <!-- Logo image -->
-            <img id="logo" src="../../static/customer/mediko_logo.png">
+    <div class="logo-container">
+        <a href="/" class="logo-link">
+            <!-- Text logo with icon instead of image -->
+            <i class="fas fa-capsules logo-icon"></i>
+            <span class="logo-text">MediEase</span>
         </a>
     </div>
+    
+    <!-- Hamburger menu icon for mobile -->
+    <div class="hamburger-menu">
+        <button id="hamburger-btn" aria-label="Toggle navigation menu">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+    </div>
+    
     <!-- Index section containing navigation buttons -->
-    <div id="index">
+    <div id="index" class="nav-menu">
         <!-- Unordered list of navigation buttons -->
         <ul>
             <!-- Button 1: My Account -->
             <li id="button1">
                 <a href="#" onclick="redirectToMyAccount(event)">
+                    <i class="fas fa-user-circle nav-icon"></i>
                     My Account
                 </a>
             </li>
             <!-- Button 2: Cart -->
             <li id="button2">
                 <a href="/cart">
+                    <i class="fas fa-shopping-cart nav-icon"></i>
                     Cart
+                </a>
+            </li>
+            <!-- Button for Shop Inventory -->
+            <li id="shop-inventory-btn">
+                <a href="#" onclick="showShopInventory(event)">
+                    <i class="fas fa-store nav-icon"></i>
+                    Shop
+                </a>
+            </li>
+            <!-- Button for Video Call -->
+            <li id="video-call-btn">
+                <a href="/video-call">
+                    <i class="fas fa-video nav-icon"></i>
+                    Consult
                 </a>
             </li>
             <!-- Button 3: Login -->
             <li id="button3">
                 <a href="/login">
+                    <i class="fas fa-sign-in-alt nav-icon"></i>
                     Login
                 </a>
             </li>
             <!-- Button 4: Sign Up -->
             <li id="button4">
                 <a href="/signup">
+                    <i class="fas fa-user-plus nav-icon"></i>
                     Sign Up
                 </a>
             </li>
             <!-- Button 5: Log Out -->
             <li id="button5">
                 <a href="#" id="logout-button" onclick="logout(event)">
+                    <i class="fas fa-sign-out-alt nav-icon"></i>
                     Log Out
                 </a>
             </li>
