@@ -110,8 +110,8 @@ def myAccountPage(accessToken):
     headers = {
     'Authorization': f'Bearer {accessToken}'
     }
-    # Request to get all the orders for that user
-    response = requests.get("http://127.0.0.1:"+os.getenv('APP_PORT')+"/api/getOrderList", headers=headers)
+    # Use relative URL instead of hard-coded localhost
+    response = requests.get(request.host_url.rstrip('/') + "/api/getOrderList", headers=headers)
     if response.status_code == 200:
         # Return page with orderlist and username
         orderlist=response.json()['data']
@@ -127,8 +127,8 @@ def myOrderPage(accessToken,id):
     headers = {
     'Authorization': f'Bearer {accessToken}'
     }
-    # Request to get the orders for the orderid
-    response = requests.get("http://127.0.0.1:"+os.getenv('APP_PORT')+"/api/getOrder/"+id, headers=headers)
+    # Use relative URL instead of hard-coded localhost
+    response = requests.get(request.host_url.rstrip('/') + f"/api/getOrder/{id}", headers=headers)
     if response.status_code == 200:
         # Return the order as dict
         order=response.json()['data']
@@ -321,10 +321,18 @@ def createOrder():
     data["time"]="CURRENT_TIMESTAMP(2)"
     data["cart"]=json.dumps(data["cart"])
     data["status"]="Order Received"
+    
+    # Get payment details
+    payment_method = data.get("payment_method", "cod")
+    upi_id = data.get("upi_id", None)
+    
+    # Include payment information in the DB query
     query = f'''INSERT INTO orders 
-    (username,time,name,address,contact,cart,status,total) VALUES (
-    '{username}',{data["time"]},'{data["name"]}','{data["address"]}',
-    '{data["contact"]}', '{data["cart"]}', '{data["status"]}',{total})'''
+    (username, time, name, address, contact, cart, status, total, payment_method, upi_id) VALUES (
+    '{username}', {data["time"]}, '{data["name"]}', '{data["address"]}',
+    '{data["contact"]}', '{data["cart"]}', '{data["status"]}', {total},
+    '{payment_method}', '{upi_id if upi_id else ""}')'''
+    
     try:
         with conn:
             with conn.cursor() as cursor:

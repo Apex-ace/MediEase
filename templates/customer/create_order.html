@@ -53,6 +53,29 @@
                         </div>
                     </center>
                     <center>
+                        <div class="mb-3" style="width: 50%;">
+                            <label style="text-align: left; margin-right: 300px;" class="form-label">Payment Method</label>
+                            <div class="payment-methods">
+                                <div class="payment-option">
+                                    <input type="radio" id="upi" name="payment_method" value="upi" checked>
+                                    <label for="upi">UPI Payment</label>
+                                </div>
+                                <div class="payment-option">
+                                    <input type="radio" id="cod" name="payment_method" value="cod">
+                                    <label for="cod">Cash on Delivery</label>
+                                </div>
+                            </div>
+                        </div>
+                    </center>
+                    
+                    <!-- UPI Payment Details (shown only when UPI is selected) -->
+                    <center>
+                        <div id="upi-details" class="mb-3" style="width: 50%;">
+                            <label style="text-align: left; margin-right: 300px;" for="upi_id" class="form-label">UPI ID</label>
+                            <input type="text" class="form-control" id="upi_id" name="upi_id" placeholder="Enter your UPI ID (e.g., name@upi)">
+                        </div>
+                    </center>
+                    <center>
                         
                         <!-- Submit button for confirming the order -->
                         <button type="submit" class="btn btn-primary btn-block">Confirm Order</button>

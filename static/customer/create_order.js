@@ -1,3 +1,27 @@
+// Function to toggle UPI details based on payment method selection
+document.addEventListener('DOMContentLoaded', function() {
+  // Get the payment method radio buttons and UPI details div
+  const upiRadio = document.getElementById('upi');
+  const codRadio = document.getElementById('cod');
+  const upiDetails = document.getElementById('upi-details');
+  
+  // Add event listeners to the radio buttons
+  upiRadio.addEventListener('change', toggleUpiDetails);
+  codRadio.addEventListener('change', toggleUpiDetails);
+  
+  // Initial toggle based on default selection
+  toggleUpiDetails();
+  
+  // Toggle function
+  function toggleUpiDetails() {
+    if (upiRadio.checked) {
+      upiDetails.style.display = 'block';
+    } else {
+      upiDetails.style.display = 'none';
+    }
+  }
+});
+
 // Function to submit the order form
 function submitOrder(event) {
   event.preventDefault();
@@ -9,6 +33,19 @@ function submitOrder(event) {
   const name = form.querySelector('#name').value;
   const address = form.querySelector('#address').value;
   const contact = form.querySelector('#contact').value;
+  
+  // Get payment method
+  const paymentMethod = document.querySelector('input[name="payment_method"]:checked').value;
+  
+  // Get UPI ID if UPI payment is selected
+  let upiId = null;
+  if (paymentMethod === 'upi') {
+    upiId = form.querySelector('#upi_id').value;
+    if (!upiId) {
+      alert('Please enter your UPI ID');
+      return;
+    }
+  }
 
   // Get the access token
   const accessToken = localStorage.getItem('accessToken');
@@ -38,7 +75,14 @@ function submitOrder(event) {
         // Call create order post api
         fetch('/api/createOrder', {
           method: 'POST',
-          body: JSON.stringify({ "name": name, "address": address, "contact": contact, "cart": cartData }),
+          body: JSON.stringify({ 
+            "name": name, 
+            "address": address, 
+            "contact": contact, 
+            "cart": cartData,
+            "payment_method": paymentMethod,
+            "upi_id": upiId
+          }),
           headers: {
             'Authorization': `Bearer ${accessToken}`,
             "Content-type": "application/json; charset=UTF-8"

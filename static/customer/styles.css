@@ -34,3 +34,36 @@ body {
     margin-right: 20px;
     border-radius: 5px;
 }
+
+/* Payment method styles */
+.payment-methods {
+  margin-bottom: 20px;
+}
+
+.payment-option {
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+}
+
+.payment-option input[type="radio"] {
+  margin-right: 10px;
+}
+
+.payment-option label {
+  font-weight: 500;
+  cursor: pointer;
+}
+
+#upi-details {
+  padding-top: 10px;
+  border-top: 1px dashed #e2e8f0;
+  margin-top: 10px;
+  transition: all 0.3s ease;
+}
+
+/* UPI highlight effect */
+.payment-option input[type="radio"]:checked + label {
+  color: #0284c7;
+  font-weight: 600;
+}
