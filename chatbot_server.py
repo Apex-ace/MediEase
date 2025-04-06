@@ -2,11 +2,17 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import requests
 import os
+import logging
 
 app = Flask(__name__)
 CORS(app)
 
-MISTRAL_API_KEY = "CkPijiIRkHPREUdjVh4xQ2ORIQV7r1r0"
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Get API key from environment variable or use default (not recommended for production)
+MISTRAL_API_KEY = os.environ.get("MISTRAL_API_KEY", "CkPijiIRkHPREUdjVh4xQ2ORIQV7r1r0")
 
 @app.route('/chat', methods=['POST'])
 def chat_with_mistral():
@@ -16,6 +22,8 @@ def chat_with_mistral():
     try:
         data = request.json
         user_message = data.get('message', '')
+        
+        logger.info(f"Received chat request: {user_message[:30]}...")
         
         # Add context about being a pharmacy chatbot
         context = """You are MediEase, a helpful assistant for an online pharmacy website. 
@@ -36,21 +44,34 @@ def chat_with_mistral():
             "messages": [{"role": "user", "content": full_message}]
         }
 
+        logger.info("Sending request to Mistral API")
         response = requests.post(url, headers=headers, json=payload)
+        
+        # Log the API response status
+        logger.info(f"Mistral API response status: {response.status_code}")
+        
+        if response.status_code != 200:
+            logger.error(f"API Error: {response.text}")
+            return jsonify({"response": "I encountered an issue processing your request. Please try again later."})
+            
         result = response.json()
-
+        
         if "choices" in result:
+            logger.info("Successfully processed chat response")
             return jsonify({"response": result["choices"][0]["message"]["content"]})
         else:
-            return jsonify({"response": "AI Error: Could not fetch response."})
+            logger.error(f"Unexpected API response: {result}")
+            return jsonify({"response": "AI Error: Could not fetch response. Please check your API key."})
 
     except Exception as e:
+        logger.error(f"Exception in chat endpoint: {str(e)}")
         return jsonify({"response": f"Error: {str(e)}"})
 
 # This route is for testing if the server is running
 @app.route('/ping', methods=['GET'])
 def ping():
-    return jsonify({"status": "ok", "message": "Chatbot server is running"})
+    logger.info("Ping request received")
+    return jsonify({"status": "ok", "message": "Chatbot server is running", "api_key_present": bool(MISTRAL_API_KEY)})
 
 # Only run the app directly if this file is run, not when imported
 if __name__ == "__main__":

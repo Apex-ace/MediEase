@@ -505,15 +505,31 @@ def chatbot_proxy():
         # Get the chatbot service URL from environment or use default for Render
         chatbot_url = os.environ.get('CHATBOT_URL', 'https://mediease-chatbot.onrender.com')
         
+        app.logger.info(f"Chatbot proxy: Forwarding request to {chatbot_url}/chat")
+        
         # Forward the request to the chatbot service
         response = requests.post(
             f"{chatbot_url}/chat", 
             json=request.json,
-            headers={'Content-Type': 'application/json'}
+            headers={'Content-Type': 'application/json'},
+            timeout=10  # Add timeout to prevent hanging
         )
+        
+        app.logger.info(f"Chatbot proxy: Received response with status {response.status_code}")
+        
+        # Check for non-200 status code
+        if response.status_code != 200:
+            app.logger.error(f"Chatbot service error: {response.status_code} - {response.text}")
+            return jsonify({"response": f"Chatbot service error (HTTP {response.status_code}). Please try again later."})
         
         # Return the response from the chatbot service
         return jsonify(response.json())
+    except requests.exceptions.ConnectionError as e:
+        app.logger.error(f"Chatbot connection error: {str(e)}")
+        return jsonify({"response": "Cannot connect to the chatbot service. Please check if the chatbot worker is running."})
+    except requests.exceptions.Timeout as e:
+        app.logger.error(f"Chatbot timeout error: {str(e)}")
+        return jsonify({"response": "The chatbot service timed out. Please try again later."})
     except Exception as e:
         app.logger.error(f"Chatbot proxy error: {str(e)}")
         return jsonify({"response": "Sorry, I'm having trouble connecting to my brain right now. Please try again later."})

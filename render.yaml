@@ -27,4 +27,6 @@ services:
       - key: FLASK_ENV
         value: production
       - key: CHATBOT_PORT
-        value: 10001 
+        value: 10001
+      - key: MISTRAL_API_KEY
+        sync: false 
