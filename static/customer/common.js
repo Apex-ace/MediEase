@@ -278,10 +278,20 @@ function redirectToMyAccount(event) {
     // Get the accesstoken
     const accessToken = localStorage.getItem('accessToken');
     
-    var redirectUrl = '/myaccount/' + accessToken;
-
-    // Redirect to the constructed URL
-    window.location.href = redirectUrl;
+    if (!accessToken) {
+        alert('Please log in to access your account.');
+        window.location.href = '/login';
+        return;
+    }
+    
+    try {
+        // Redirect to my account page
+        window.location.href = '/myaccount/' + accessToken;
+    } catch (error) {
+        console.error('Error redirecting to account page:', error);
+        alert('There was an error accessing your account. Please try logging in again.');
+        window.location.href = '/login';
+    }
 }
 
 // Function to show shop inventory

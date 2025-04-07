@@ -32,6 +32,9 @@ def init_db(conn):
     response=initUserProfileTable(conn)
     if(response["res"]==0):
         return {"res": 0, "message": "INIT user_profiles Table Failure"}
+    response=initRemindersTable(conn)
+    if(response["res"]==0):
+        return {"res": 0, "message": "INIT medication_reminders Table Failure"}
     return {"res": 1, "message": "INIT Success"}
 
 # Standard Insert Query
@@ -218,11 +221,11 @@ def initRemindersTable(conn):
         cursor = conn.cursor()
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS medication_reminders (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id SERIAL PRIMARY KEY,
                 username VARCHAR(50),
                 medication_name VARCHAR(100),
                 dosage VARCHAR(50),
-                time TIME,
+                time VARCHAR(20),
                 frequency VARCHAR(20),
                 notes TEXT,
                 FOREIGN KEY (username) REFERENCES customerAuth(username)
@@ -233,38 +236,3 @@ def initRemindersTable(conn):
     except Exception as e:
         print(f"Error initializing medication_reminders table: {str(e)}")
         return {"res": 0, "message": f"INIT medication_reminders Table Failure: {str(e)}"}
-
-def init_db():
-    try:
-        conn = connect_to_db()
-        if conn is None:
-            return {"res": 0, "message": "Database connection failed"}
-            
-        # Initialize tables
-        response = initCustomerAuthTable(conn)
-        if response["res"] == 0:
-            return response
-            
-        response = initMedicineDatabase(conn)
-        if response["res"] == 0:
-            return response
-            
-        response = initOrdersDatabase(conn)
-        if response["res"] == 0:
-            return response
-            
-        response = initUserProfileTable(conn)
-        if response["res"] == 0:
-            return response
-            
-        response = initRemindersTable(conn)
-        if response["res"] == 0:
-            return response
-            
-        return {"res": 1, "message": "Database initialization successful"}
-    except Exception as e:
-        print(f"Error initializing database: {str(e)}")
-        return {"res": 0, "message": f"Database initialization failed: {str(e)}"}
-    finally:
-        if conn:
-            conn.close()

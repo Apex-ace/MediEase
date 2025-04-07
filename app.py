@@ -106,19 +106,18 @@ def medicinePage(id):
 # Account Page Route
 @app.route("/myaccount/<accessToken>")
 def myAccountPage(accessToken):
-    # Add AccessToken as header
-    headers = {
-    'Authorization': f'Bearer {accessToken}'
-    }
-    # Use relative URL instead of hard-coded localhost
-    response = requests.get(request.host_url.rstrip('/') + "/api/getOrderList", headers=headers)
-    if response.status_code == 200:
-        # Return page with orderlist and username
-        orderlist=response.json()['data']
-        username=response.json()['username']
-        return render_template('customer/myaccount.html', username=username, orderlist=orderlist), 200
-    else:
-        return render_template('customer/myaccount.html'), 422
+    try:
+        # Decode token to get username
+        payload = decode_token(accessToken)
+        username = payload['sub']
+        
+        # Just render the page - API calls will happen from client side JavaScript
+        return render_template('customer/myaccount.html', username=username), 200
+    except Exception as e:
+        print(f"Error in myAccountPage: {str(e)}")
+        # In case of any error, still render the page
+        # The client-side JavaScript will handle showing error messages
+        return render_template('customer/myaccount.html'), 200
 
 # Order Page Route
 @app.route("/myorder/<accessToken>/<id>")
@@ -548,18 +547,28 @@ def chatbot_proxy():
 def getUserProfile():
     try:
         current_user = get_jwt_identity()
+        print(f"Loading profile for user: {current_user}")
         conn = connect_to_db()
         cursor = conn.cursor()
         
+        # Check if user profile table exists
+        cursor.execute("SELECT to_regclass('public.user_profiles')")
+        table_exists = cursor.fetchone()[0]
+        
+        if not table_exists:
+            print("Table user_profiles does not exist, initializing...")
+            initUserProfileTable(conn)
+        
         # Get user profile
-        cursor.execute('SELECT * FROM user_profiles WHERE username = ?', (current_user,))
+        cursor.execute('SELECT * FROM user_profiles WHERE username = %s', (current_user,))
         profile = cursor.fetchone()
         
         if profile is None:
+            print(f"No profile found for {current_user}, creating a new one")
             # Create a new profile if it doesn't exist
             cursor.execute('''
                 INSERT INTO user_profiles (username)
-                VALUES (?)
+                VALUES (%s)
             ''', (current_user,))
             conn.commit()
             
@@ -571,6 +580,7 @@ def getUserProfile():
                 "address": None
             })
         
+        print(f"Profile found for {current_user}: {profile}")
         return jsonify({
             "username": profile[0],
             "full_name": profile[1],
@@ -581,6 +591,8 @@ def getUserProfile():
         
     except Exception as e:
         print(f"Error getting user profile: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return jsonify({"error": "Internal server error"}), 500
     finally:
         if conn:
@@ -602,11 +614,11 @@ def updateUserProfile():
         # Update user profile
         cursor.execute('''
             UPDATE user_profiles
-            SET full_name = ?,
-                email = ?,
-                phone = ?,
-                address = ?
-            WHERE username = ?
+            SET full_name = %s,
+                email = %s,
+                phone = %s,
+                address = %s
+            WHERE username = %s
         ''', (
             data.get('full_name'),
             data.get('email'),
@@ -620,6 +632,8 @@ def updateUserProfile():
         
     except Exception as e:
         print(f"Error updating user profile: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return jsonify({"error": "Internal server error"}), 500
     finally:
         if conn:
@@ -637,7 +651,7 @@ def getUserOrders():
         cursor.execute('''
             SELECT orderid, time, cart, status, total, delivery_method
             FROM orders
-            WHERE username = ?
+            WHERE username = %s
             ORDER BY time DESC
         ''', (current_user,))
         
@@ -657,6 +671,8 @@ def getUserOrders():
         
     except Exception as e:
         print(f"Error getting user orders: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return jsonify({"error": "Internal server error"}), 500
     finally:
         if conn:
@@ -674,7 +690,7 @@ def getOrderDetails(order_id):
         cursor.execute('''
             SELECT orderid, time, cart, status, total, delivery_method, address, contact
             FROM orders
-            WHERE orderid = ? AND username = ?
+            WHERE orderid = %s AND username = %s
         ''', (order_id, current_user))
         
         order = cursor.fetchone()
@@ -695,6 +711,8 @@ def getOrderDetails(order_id):
         
     except Exception as e:
         print(f"Error getting order details: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return jsonify({"error": "Internal server error"}), 500
     finally:
         if conn:
@@ -712,7 +730,7 @@ def cancelOrder(order_id):
         cursor.execute('''
             SELECT status
             FROM orders
-            WHERE orderid = ? AND username = ?
+            WHERE orderid = %s AND username = %s
         ''', (order_id, current_user))
         
         order = cursor.fetchone()
@@ -727,7 +745,7 @@ def cancelOrder(order_id):
         cursor.execute('''
             UPDATE orders
             SET status = 'cancelled'
-            WHERE orderid = ? AND username = ?
+            WHERE orderid = %s AND username = %s
         ''', (order_id, current_user))
         
         conn.commit()
@@ -735,6 +753,8 @@ def cancelOrder(order_id):
         
     except Exception as e:
         print(f"Error cancelling order: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return jsonify({"error": "Internal server error"}), 500
     finally:
         if conn:
@@ -748,11 +768,19 @@ def getUserReminders():
         conn = connect_to_db()
         cursor = conn.cursor()
         
+        # Check if reminders table exists
+        cursor.execute("SELECT to_regclass('public.medication_reminders')")
+        table_exists = cursor.fetchone()[0]
+        
+        if not table_exists:
+            print("Table medication_reminders does not exist, initializing...")
+            initRemindersTable(conn)
+        
         # Get user reminders
         cursor.execute('''
             SELECT id, medication_name, dosage, time, frequency, notes
             FROM medication_reminders
-            WHERE username = ?
+            WHERE username = %s
             ORDER BY time
         ''', (current_user,))
         
@@ -772,6 +800,8 @@ def getUserReminders():
         
     except Exception as e:
         print(f"Error getting user reminders: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return jsonify({"error": "Internal server error"}), 500
     finally:
         if conn:
@@ -798,7 +828,7 @@ def createReminder():
         # Create reminder
         cursor.execute('''
             INSERT INTO medication_reminders (username, medication_name, dosage, time, frequency, notes)
-            VALUES (?, ?, ?, ?, ?, ?)
+            VALUES (%s, %s, %s, %s, %s, %s)
         ''', (
             current_user,
             data['medication_name'],
@@ -813,6 +843,8 @@ def createReminder():
         
     except Exception as e:
         print(f"Error creating reminder: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return jsonify({"error": "Internal server error"}), 500
     finally:
         if conn:
@@ -829,7 +861,7 @@ def deleteReminder(reminder_id):
         # Delete reminder
         cursor.execute('''
             DELETE FROM medication_reminders
-            WHERE id = ? AND username = ?
+            WHERE id = %s AND username = %s
         ''', (reminder_id, current_user))
         
         conn.commit()
@@ -837,6 +869,8 @@ def deleteReminder(reminder_id):
         
     except Exception as e:
         print(f"Error deleting reminder: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return jsonify({"error": "Internal server error"}), 500
     finally:
         if conn:
@@ -861,7 +895,7 @@ def changePassword():
         cursor = conn.cursor()
         
         # Verify current password
-        cursor.execute('SELECT password FROM customerAuth WHERE username = ?', (current_user,))
+        cursor.execute('SELECT password FROM customerAuth WHERE username = %s', (current_user,))
         user = cursor.fetchone()
         
         if not user or not bcrypt.check_password_hash(user[0], data['current_password']):
@@ -871,8 +905,8 @@ def changePassword():
         hashed_password = bcrypt.generate_password_hash(data['new_password']).decode('utf-8')
         cursor.execute('''
             UPDATE customerAuth
-            SET password = ?
-            WHERE username = ?
+            SET password = %s
+            WHERE username = %s
         ''', (hashed_password, current_user))
         
         conn.commit()
@@ -880,6 +914,8 @@ def changePassword():
         
     except Exception as e:
         print(f"Error changing password: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return jsonify({"error": "Internal server error"}), 500
     finally:
         if conn:
