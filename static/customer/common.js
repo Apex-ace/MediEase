@@ -284,7 +284,18 @@ function redirectToMyAccount(event) {
         return;
     }
     
+    // Check if token is valid before redirecting
     try {
+        // Check token format first
+        const parts = accessToken.split('.');
+        if (parts.length !== 3) {
+            console.error('Invalid token format');
+            alert('Your login session appears to be invalid. Please log in again.');
+            localStorage.removeItem('accessToken');
+            window.location.href = '/login';
+            return;
+        }
+        
         // Redirect to my account page
         window.location.href = '/myaccount/' + accessToken;
     } catch (error) {

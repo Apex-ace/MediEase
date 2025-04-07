@@ -107,17 +107,27 @@ def medicinePage(id):
 @app.route("/myaccount/<accessToken>")
 def myAccountPage(accessToken):
     try:
+        # Check if token has proper structure first
+        if not accessToken or accessToken.count('.') != 2:
+            print(f"Invalid token format: {accessToken}")
+            # Render template with error flag
+            return render_template('customer/myaccount.html', invalid_token=True), 200
+            
         # Decode token to get username
         payload = decode_token(accessToken)
         username = payload['sub']
+        
+        print(f"Successfully decoded token for user: {username}")
         
         # Just render the page - API calls will happen from client side JavaScript
         return render_template('customer/myaccount.html', username=username), 200
     except Exception as e:
         print(f"Error in myAccountPage: {str(e)}")
-        # In case of any error, still render the page
+        import traceback
+        traceback.print_exc()
+        # In case of any error, still render the page with error flag
         # The client-side JavaScript will handle showing error messages
-        return render_template('customer/myaccount.html'), 200
+        return render_template('customer/myaccount.html', error_message="Invalid or expired session"), 200
 
 # Order Page Route
 @app.route("/myorder/<accessToken>/<id>")

@@ -2,8 +2,23 @@
 
 {% block content %}
 <div class="container mt-5">
-    <div id="alert-container"></div>
+    <div id="alert-container">
+        {% if error_message %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            {{ error_message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endif %}
+        
+        {% if invalid_token %}
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            Your session has expired or is invalid. Please <a href="/login" class="alert-link">log in again</a>.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endif %}
+    </div>
     
+    {% if invalid_token != True %}
     <div class="row">
         <div class="col-md-4">
             <div class="card profile-card">
@@ -17,7 +32,7 @@
                         <p><strong>Phone:</strong> <span id="profile-phone">Loading...</span></p>
                         <p><strong>Address:</strong> <span id="profile-address">Loading...</span></p>
                     </div>
-                    <button class="btn btn-primary mt-3" data-toggle="modal" data-target="#editProfileModal">
+                    <button class="btn btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#editProfileModal">
                         <i class="fas fa-edit"></i> Edit Profile
                     </button>
                 </div>
@@ -28,62 +43,66 @@
             <div class="card">
                 <div class="card-header">
                     <ul class="nav nav-tabs card-header-tabs" role="tablist">
-                        <li class="nav-item">
-                            <a class="nav-link active" id="orders-tab" data-toggle="tab" href="#orders" role="tab">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="orders-tab" data-bs-toggle="tab" data-bs-target="#orders" type="button" role="tab" aria-controls="orders" aria-selected="true">
                                 <i class="fas fa-shopping-bag"></i> My Orders
-                            </a>
+                            </button>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" id="reminders-tab" data-toggle="tab" href="#reminders" role="tab">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="reminders-tab" data-bs-toggle="tab" data-bs-target="#reminders" type="button" role="tab" aria-controls="reminders" aria-selected="false">
                                 <i class="fas fa-bell"></i> Medication Reminders
-                            </a>
+                            </button>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" id="settings-tab" data-toggle="tab" href="#settings" role="tab">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings" type="button" role="tab" aria-controls="settings" aria-selected="false">
                                 <i class="fas fa-cog"></i> Account Settings
-                            </a>
+                            </button>
                         </li>
                     </ul>
                 </div>
                 
                 <div class="card-body">
                     <div class="tab-content">
-                        <div class="tab-pane fade show active" id="orders" role="tabpanel">
+                        <div class="tab-pane fade show active" id="orders" role="tabpanel" aria-labelledby="orders-tab">
+                            <h4 class="mb-4">My Orders</h4>
                             <div id="orders-container">
-                                <div class="text-center py-4">
+                                <div class="d-flex justify-content-center">
                                     <div class="spinner-border text-primary" role="status">
-                                        <span class="sr-only">Loading...</span>
+                                        <span class="visually-hidden">Loading...</span>
                                     </div>
-                                    <p class="mt-2">Loading your orders...</p>
                                 </div>
                             </div>
                         </div>
                         
-                        <div class="tab-pane fade" id="reminders" role="tabpanel">
+                        <div class="tab-pane fade" id="reminders" role="tabpanel" aria-labelledby="reminders-tab">
                             <div class="d-flex justify-content-between align-items-center mb-4">
-                                <h4>Medication Reminders</h4>
-                                <button class="btn btn-primary" data-toggle="modal" data-target="#addReminderModal">
+                                <h4 class="mb-0">Medication Reminders</h4>
+                                <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addReminderModal">
                                     <i class="fas fa-plus"></i> Add Reminder
                                 </button>
                             </div>
                             <div id="reminders-container">
-                                <!-- Reminders will be loaded dynamically -->
+                                <div class="d-flex justify-content-center">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         
-                        <div class="tab-pane fade" id="settings" role="tabpanel">
+                        <div class="tab-pane fade" id="settings" role="tabpanel" aria-labelledby="settings-tab">
                             <h4 class="mb-4">Account Settings</h4>
                             <form id="change-password-form">
-                                <div class="form-group">
-                                    <label for="current-password">Current Password</label>
+                                <div class="mb-3">
+                                    <label for="current-password" class="form-label">Current Password</label>
                                     <input type="password" class="form-control" id="current-password" required>
                                 </div>
-                                <div class="form-group">
-                                    <label for="new-password">New Password</label>
+                                <div class="mb-3">
+                                    <label for="new-password" class="form-label">New Password</label>
                                     <input type="password" class="form-control" id="new-password" required>
                                 </div>
-                                <div class="form-group">
-                                    <label for="confirm-password">Confirm New Password</label>
+                                <div class="mb-3">
+                                    <label for="confirm-password" class="form-label">Confirm New Password</label>
                                     <input type="password" class="form-control" id="confirm-password" required>
                                 </div>
                                 <button type="submit" class="btn btn-primary">Change Password</button>
@@ -94,40 +113,53 @@
             </div>
         </div>
     </div>
+    {% else %}
+    <div class="row">
+        <div class="col-md-12 text-center py-5">
+            <div class="card">
+                <div class="card-body">
+                    <i class="fas fa-exclamation-triangle fa-4x text-warning mb-3"></i>
+                    <h3>Session Expired</h3>
+                    <p class="lead">Your login session has expired or is invalid.</p>
+                    <a href="/login" class="btn btn-primary mt-3">Log In Again</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 </div>
 
+{% if invalid_token != True %}
 <!-- Edit Profile Modal -->
-<div class="modal fade" id="editProfileModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
+<div class="modal fade" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Edit Profile</h5>
-                <button type="button" class="close" data-dismiss="modal">
-                    <span>&times;</span>
-                </button>
+                <h5 class="modal-title" id="editProfileModalLabel">Edit Profile</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <form id="edit-profile-form">
-                    <div class="form-group">
-                        <label for="edit-full-name">Full Name</label>
+                    <div class="mb-3">
+                        <label for="edit-full-name" class="form-label">Full Name</label>
                         <input type="text" class="form-control" id="edit-full-name" required>
                     </div>
-                    <div class="form-group">
-                        <label for="edit-email">Email</label>
+                    <div class="mb-3">
+                        <label for="edit-email" class="form-label">Email</label>
                         <input type="email" class="form-control" id="edit-email" required>
                     </div>
-                    <div class="form-group">
-                        <label for="edit-phone">Phone</label>
+                    <div class="mb-3">
+                        <label for="edit-phone" class="form-label">Phone</label>
                         <input type="tel" class="form-control" id="edit-phone">
                     </div>
-                    <div class="form-group">
-                        <label for="edit-address">Address</label>
+                    <div class="mb-3">
+                        <label for="edit-address" class="form-label">Address</label>
                         <textarea class="form-control" id="edit-address" rows="3"></textarea>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 <button type="button" class="btn btn-primary" onclick="saveProfileInfo()">Save Changes</button>
             </div>
         </div>
@@ -135,60 +167,69 @@
 </div>
 
 <!-- Add Reminder Modal -->
-<div class="modal fade" id="addReminderModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
+<div class="modal fade" id="addReminderModal" tabindex="-1" aria-labelledby="addReminderModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Add Medication Reminder</h5>
-                <button type="button" class="close" data-dismiss="modal">
-                    <span>&times;</span>
-                </button>
+                <h5 class="modal-title" id="addReminderModalLabel">Add Medication Reminder</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <form id="add-reminder-form">
-                    <div class="form-group">
-                        <label for="medication-name">Medication Name</label>
+                    <div class="mb-3">
+                        <label for="medication-name" class="form-label">Medication Name</label>
                         <input type="text" class="form-control" id="medication-name" required>
                     </div>
-                    <div class="form-group">
-                        <label for="dosage">Dosage</label>
-                        <input type="text" class="form-control" id="dosage" required>
+                    <div class="mb-3">
+                        <label for="dosage" class="form-label">Dosage</label>
+                        <input type="text" class="form-control" id="dosage" placeholder="e.g. 1 tablet">
                     </div>
-                    <div class="form-group">
-                        <label for="time">Time</label>
+                    <div class="mb-3">
+                        <label for="time" class="form-label">Time</label>
                         <input type="time" class="form-control" id="time" required>
                     </div>
-                    <div class="form-group">
-                        <label for="frequency">Frequency</label>
-                        <select class="form-control" id="frequency" required>
-                            <option value="daily">Daily</option>
-                            <option value="weekly">Weekly</option>
-                            <option value="monthly">Monthly</option>
-                        </select>
+                    <div class="mb-3">
+                        <label class="form-label">Frequency</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="frequency" id="frequency-daily" value="daily" checked>
+                            <label class="form-check-label" for="frequency-daily">
+                                Daily
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="frequency" id="frequency-weekly" value="weekly">
+                            <label class="form-check-label" for="frequency-weekly">
+                                Weekly
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="frequency" id="frequency-custom" value="custom">
+                            <label class="form-check-label" for="frequency-custom">
+                                Custom
+                            </label>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="notes">Notes</label>
-                        <textarea class="form-control" id="notes" rows="3"></textarea>
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="notes" rows="2"></textarea>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" onclick="saveReminder()">Add Reminder</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="saveReminderBtn">Save Reminder</button>
             </div>
         </div>
     </div>
 </div>
 
 <!-- Order Details Modal -->
-<div class="modal fade" id="orderDetailsModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-lg" role="document">
+<div class="modal fade" id="orderDetailsModal" tabindex="-1" aria-labelledby="orderDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Order Details</h5>
-                <button type="button" class="close" data-dismiss="modal">
-                    <span>&times;</span>
-                </button>
+                <h5 class="modal-title" id="orderDetailsModalLabel">Order Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body" id="order-details-content">
                 <!-- Order details will be loaded dynamically -->
@@ -198,25 +239,24 @@
 </div>
 
 <!-- Cancel Order Confirmation Modal -->
-<div class="modal fade" id="cancelOrderModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
+<div class="modal fade" id="cancelOrderModal" tabindex="-1" aria-labelledby="cancelOrderModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Cancel Order</h5>
-                <button type="button" class="close" data-dismiss="modal">
-                    <span>&times;</span>
-                </button>
+                <h5 class="modal-title" id="cancelOrderModalLabel">Cancel Order</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <p>Are you sure you want to cancel this order?</p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Keep Order</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Keep Order</button>
                 <button type="button" class="btn btn-danger" id="confirm-cancel-btn">Cancel Order</button>
             </div>
         </div>
     </div>
 </div>
+{% endif %}
 {% endblock %}
 
 {% block scripts %}
