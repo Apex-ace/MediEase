@@ -585,6 +585,11 @@ body.dark-mode .newsletter-input {
     transform: translateY(-5px);
 }
 
+/* Hide chatbot button when modal is open */
+.chat-bot-modal-open .chat-bot-btn {
+    display: none;
+}
+
 .mode-toggle {
     position: fixed;
     bottom: 30px;

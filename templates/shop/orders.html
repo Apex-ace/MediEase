@@ -3,47 +3,407 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Shop Home Page</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@300&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='shop/orders.css') }}"
-    />
-    <script src="{{ url_for('static', filename='shop/common.js') }}"></script>
+    <title>Manage Orders - MediEase</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <style>
+        body {
+            background-color: #f4f7fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .orders-header {
+            background-color: #37586e;
+            color: white;
+            padding: 20px 0;
+            margin-bottom: 30px;
+        }
+        
+        .table-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .filter-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .navbar {
+            background-color: #37586e;
+        }
+        
+        .navbar-brand {
+            font-weight: bold;
+            color: white;
+        }
+        
+        .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .nav-link:hover {
+            color: white;
+        }
+        
+        .status-badge {
+            font-weight: normal;
+            padding: 5px 10px;
+            border-radius: 20px;
+        }
+    </style>
   </head>
 
   <body>
-    <div class="order-list">
-      <div>
-        <h2>Your Orders</h2>
-      </div>
-      <ul>
-        {% for i in orderlist %}
-        <div id="medicines" style="font-family: 'Red Hat Display', sans-serif">
-          <li class="card">
-            <button
-              class="btn btn-light"
-              onclick="redirectToOrder({{i[0]}})"
-            >
-              <b>Order id:</b>{{ i[0] }}<br />
-              <b>Time:</b> {{ i[2] }}<br />
-              <b>Username:</b>{{ i[1] }}<br />
-              <b>Amount:</b> {{ i[3] }}<br />
-              <b>Status: </b> {{ i[4] }}
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/shop">MediEase Shop</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
             </button>
-          </li>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/shop"><i class="fas fa-tachometer-alt me-1"></i> Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/shop/orders"><i class="fas fa-shopping-cart me-1"></i> Orders</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/shop/inventory"><i class="fas fa-boxes me-1"></i> Inventory</a>
+                    </li>
+                </ul>
+                <div class="d-flex">
+                    <a href="/shop/login" class="btn btn-outline-light btn-sm"><i class="fas fa-sign-out-alt me-1"></i> Logout</a>
+                </div>
+            </div>
         </div>
-        {% endfor %}
-      </ul>
+    </nav>
+
+    <!-- Orders Header -->
+    <header class="orders-header">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1><i class="fas fa-shopping-cart me-2"></i>Manage Orders</h1>
+                    <p class="mb-0">View and manage customer orders</p>
+                </div>
+                <div class="d-none d-md-block">
+                    <span class="badge bg-primary me-2">Total: <span id="total-count">{{ orderlist|length }}</span></span>
+                    <span class="badge bg-warning text-dark me-2">Pending: <span id="pending-count">0</span></span>
+                    <span class="badge bg-success">Delivered: <span id="delivered-count">0</span></span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="row">
+            <!-- Filters -->
+            <div class="col-md-3 mb-4">
+                <div class="filter-card">
+                    <h5 class="mb-3"><i class="fas fa-filter me-2"></i>Filters</h5>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Order Status</label>
+                        <div class="form-check">
+                            <input class="form-check-input filter-status" type="checkbox" id="status-all" checked data-status="all">
+                            <label class="form-check-label" for="status-all">All</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input filter-status" type="checkbox" id="status-pending" data-status="pending">
+                            <label class="form-check-label" for="status-pending">Pending</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input filter-status" type="checkbox" id="status-received" data-status="received">
+                            <label class="form-check-label" for="status-received">Received</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input filter-status" type="checkbox" id="status-packed" data-status="packed">
+                            <label class="form-check-label" for="status-packed">Packed</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input filter-status" type="checkbox" id="status-shipped" data-status="shipped">
+                            <label class="form-check-label" for="status-shipped">Shipped</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input filter-status" type="checkbox" id="status-delivered" data-status="delivered">
+                            <label class="form-check-label" for="status-delivered">Delivered</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input filter-status" type="checkbox" id="status-cancelled" data-status="cancelled">
+                            <label class="form-check-label" for="status-cancelled">Cancelled</label>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="date-filter" class="form-label">Date Range</label>
+                        <select class="form-select" id="date-filter">
+                            <option value="all">All Time</option>
+                            <option value="today">Today</option>
+                            <option value="week">This Week</option>
+                            <option value="month">This Month</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="order-search" class="form-label">Search Orders</label>
+                        <input type="text" class="form-control" id="order-search" placeholder="Order ID, Customer...">
+                    </div>
+                    
+                    <button id="apply-filters" class="btn btn-primary w-100">Apply Filters</button>
+                </div>
+            </div>
+            
+            <!-- Orders Table -->
+            <div class="col-md-9">
+                <div class="table-container">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0">Order List</h5>
+                        <div class="d-flex">
+                            <button id="refresh-orders" class="btn btn-sm btn-outline-secondary me-2">
+                                <i class="fas fa-sync-alt me-1"></i>Refresh
+                            </button>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-download me-1"></i>Export
+                                </button>
+                                <ul class="dropdown-menu" aria-labelledby="exportDropdown">
+                                    <li><a class="dropdown-item" href="#">CSV</a></li>
+                                    <li><a class="dropdown-item" href="#">Excel</a></li>
+                                    <li><a class="dropdown-item" href="#">PDF</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="orders-table">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Customer</th>
+                                    <th>Date</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if orderlist %}
+                                    {% for order in orderlist %}
+                                    <tr class="order-row" 
+                                        data-order-id="{{ order[0] }}"
+                                        data-customer="{{ order[1] }}" 
+                                        data-date="{{ order[2] }}"
+                                        data-amount="{{ order[3] }}"
+                                        data-status="{{ order[4]|lower }}">
+                                        <td>#{{ order[0] }}</td>
+                                        <td>{{ order[1] }}</td>
+                                        <td>{{ order[2] }}</td>
+                                        <td>₹{{ order[3] }}</td>
+                                        <td>
+                                            <span class="badge 
+                                                {% if 'cancel' in order[4]|lower %}bg-danger
+                                                {% elif 'deliver' in order[4]|lower %}bg-success
+                                                {% elif 'ship' in order[4]|lower %}bg-info
+                                                {% elif 'pack' in order[4]|lower %}bg-warning text-dark
+                                                {% elif 'receiv' in order[4]|lower or 'pending' in order[4]|lower %}bg-secondary
+                                                {% else %}bg-primary{% endif %}
+                                                status-badge">
+                                                {{ order[4] }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <a href="/shop/order/{{ order[0] }}" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="6" class="text-center py-4">No orders found</td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    <nav aria-label="Orders pagination" class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
+                            </li>
+                            <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                            <li class="page-item"><a class="page-link" href="#">2</a></li>
+                            <li class="page-item"><a class="page-link" href="#">3</a></li>
+                            <li class="page-item">
+                                <a class="page-link" href="#">Next</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
     </div>
+
+    <!-- Bootstrap JS with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            updateStatusCounts();
+            
+            // Refresh button
+            document.getElementById('refresh-orders').addEventListener('click', function() {
+                window.location.reload();
+            });
+            
+            // Filter event listeners
+            document.getElementById('apply-filters').addEventListener('click', applyFilters);
+            document.getElementById('order-search').addEventListener('keyup', applyFilters);
+            
+            // Status checkbox handling
+            const statusAll = document.getElementById('status-all');
+            const statusCheckboxes = document.querySelectorAll('.filter-status:not(#status-all)');
+            
+            statusAll.addEventListener('change', function() {
+                statusCheckboxes.forEach(checkbox => {
+                    checkbox.checked = false;
+                    checkbox.disabled = this.checked;
+                });
+                
+                applyFilters();
+            });
+            
+            statusCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    // If any individual status is checked, uncheck "All"
+                    if (this.checked) {
+                        statusAll.checked = false;
+                    }
+                    
+                    // If no individual status is checked, check "All"
+                    const anyChecked = Array.from(statusCheckboxes).some(cb => cb.checked);
+                    if (!anyChecked) {
+                        statusAll.checked = true;
+                        statusCheckboxes.forEach(cb => cb.disabled = true);
+                    }
+                    
+                    applyFilters();
+                });
+            });
+            
+            // Date filter
+            document.getElementById('date-filter').addEventListener('change', applyFilters);
+        });
+        
+        function applyFilters() {
+            const searchTerm = document.getElementById('order-search').value.trim().toLowerCase();
+            const dateFilter = document.getElementById('date-filter').value;
+            const statusAll = document.getElementById('status-all').checked;
+            
+            let selectedStatuses = [];
+            if (!statusAll) {
+                document.querySelectorAll('.filter-status:checked').forEach(checkbox => {
+                    selectedStatuses.push(checkbox.dataset.status);
+                });
+            }
+            
+            const orderRows = document.querySelectorAll('.order-row');
+            let visibleCount = 0;
+            
+            orderRows.forEach(row => {
+                const orderId = row.dataset.orderId;
+                const customer = row.dataset.customer.toLowerCase();
+                const date = new Date(row.dataset.date);
+                const status = row.dataset.status.toLowerCase();
+                
+                // Search filter
+                const matchesSearch = !searchTerm || 
+                    orderId.includes(searchTerm) || 
+                    customer.includes(searchTerm);
+                
+                // Status filter
+                const matchesStatus = statusAll || selectedStatuses.some(s => status.includes(s));
+                
+                // Date filter
+                let matchesDate = true;
+                const today = new Date();
+                const todayStart = new Date(today.setHours(0, 0, 0, 0));
+                
+                if (dateFilter === 'today') {
+                    matchesDate = date >= todayStart;
+                } else if (dateFilter === 'week') {
+                    const weekStart = new Date(today);
+                    weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+                    weekStart.setHours(0, 0, 0, 0);
+                    matchesDate = date >= weekStart;
+                } else if (dateFilter === 'month') {
+                    const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+                    matchesDate = date >= monthStart;
+                }
+                
+                // Show/hide row based on all filters
+                if (matchesSearch && matchesStatus && matchesDate) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            
+            // Update "no results" message
+            const tableBody = document.querySelector('#orders-table tbody');
+            let noResultsRow = tableBody.querySelector('.no-results-row');
+            
+            if (visibleCount === 0) {
+                if (!noResultsRow) {
+                    noResultsRow = document.createElement('tr');
+                    noResultsRow.className = 'no-results-row';
+                    noResultsRow.innerHTML = '<td colspan="6" class="text-center py-4">No orders match your filters</td>';
+                    tableBody.appendChild(noResultsRow);
+                }
+            } else if (noResultsRow) {
+                noResultsRow.remove();
+            }
+        }
+        
+        function updateStatusCounts() {
+            // Calculate counts for each status
+            const rows = document.querySelectorAll('.order-row');
+            let totalCount = rows.length;
+            let pendingCount = 0;
+            let deliveredCount = 0;
+            
+            rows.forEach(row => {
+                const status = row.dataset.status.toLowerCase();
+                if (status.includes('pending') || status.includes('receiv') || status.includes('pack') || status.includes('ship')) {
+                    pendingCount++;
+                } else if (status.includes('deliver')) {
+                    deliveredCount++;
+                }
+            });
+            
+            // Update count badges
+            document.getElementById('total-count').textContent = totalCount;
+            document.getElementById('pending-count').textContent = pendingCount;
+            document.getElementById('delivered-count').textContent = deliveredCount;
+        }
+    </script>
   </body>
 </html>

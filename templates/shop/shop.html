@@ -3,35 +3,499 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Shop Home Page</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@300&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-    <!-- <link rel="stylesheet" href="{{ url_for('static', filename='customer/medicine.css') }}"> -->
-    <script src="{{ url_for('static', filename='shop/common.js') }}"></script>
+    <title>MediEase Shop Dashboard</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <style>
+        body {
+            background-color: #f4f7fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .dashboard-header {
+            background-color: #37586e;
+            color: white;
+            padding: 20px 0;
+            margin-bottom: 30px;
+        }
+        
+        .stats-card {
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s;
+        }
+        
+        .stats-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stats-card .card-icon {
+            font-size: 2rem;
+            margin-bottom: 15px;
+            display: inline-block;
+            padding: 15px;
+            border-radius: 50%;
+            color: white;
+        }
+        
+        .stats-card .card-title {
+            font-size: 0.9rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: #6c757d;
+            margin-bottom: 5px;
+        }
+        
+        .stats-card .card-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0;
+        }
+        
+        .card-orders .card-icon {
+            background-color: #4b94e5;
+        }
+        
+        .card-pending .card-icon {
+            background-color: #ffa755;
+        }
+        
+        .card-completed .card-icon {
+            background-color: #59d499;
+        }
+        
+        .card-medicines .card-icon {
+            background-color: #b558f6;
+        }
+        
+        .table-container, .quick-actions, .search-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .recent-orders-title {
+            font-size: 1.25rem;
+            margin-bottom: 20px;
+            color: #37586e;
+        }
+        
+        .status-badge {
+            font-weight: normal;
+            padding: 5px 10px;
+            border-radius: 20px;
+        }
+        
+        .status-pending {
+            background-color: #fff3e0;
+            color: #ff9800;
+        }
+        
+        .status-received {
+            background-color: #e1f5fe;
+            color: #03a9f4;
+        }
+        
+        .status-packed {
+            background-color: #e8f5e9;
+            color: #4caf50;
+        }
+        
+        .status-shipped {
+            background-color: #ede7f6;
+            color: #673ab7;
+        }
+        
+        .status-delivered {
+            background-color: #e8f5e9;
+            color: #388e3c;
+        }
+        
+        .status-cancelled {
+            background-color: #ffebee;
+            color: #f44336;
+        }
+        
+        .quick-action-btn {
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            margin-bottom: 15px;
+            display: block;
+            color: #37586e;
+            background-color: #f8f9fa;
+            border: 1px solid #eaecef;
+            transition: all 0.3s;
+        }
+        
+        .quick-action-btn:hover {
+            background-color: #eaecef;
+            color: #37586e;
+            text-decoration: none;
+        }
+        
+        .quick-action-btn i {
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+            display: block;
+        }
+        
+        .navbar {
+            background-color: #37586e;
+        }
+        
+        .navbar-brand {
+            font-weight: bold;
+            color: white;
+        }
+        
+        .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .nav-link:hover {
+            color: white;
+        }
+    </style>
   </head>
 
   <body>
-    <center>
-      <div>
-        <h1>Welcome to Shop Interface</h1>
-      </div>
-      <div>
-        <a href="/shop/medicines">
-          <button class="btn btn-success btn-block">Medicine Stock</button>
-        </a>
-        <br><br>
-        <a href="/shop/orders">
-          <button class="btn btn-success btn-block">Orders</button>
-        </a>
-      </div>
-    </center>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/shop">MediEase Shop</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/shop"><i class="fas fa-tachometer-alt me-1"></i> Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/shop/orders"><i class="fas fa-shopping-cart me-1"></i> Orders</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/shop/inventory"><i class="fas fa-boxes me-1"></i> Inventory</a>
+                    </li>
+                </ul>
+                <div class="d-flex">
+                    <a href="/shop/login" class="btn btn-outline-light btn-sm"><i class="fas fa-sign-out-alt me-1"></i> Logout</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Dashboard Header -->
+    <header class="dashboard-header">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1><i class="fas fa-tachometer-alt me-2"></i>Shop Dashboard</h1>
+                <button id="refresh-dashboard" class="btn btn-light btn-sm">
+                    <i class="fas fa-sync-alt me-1"></i> Refresh Data
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="row">
+            <!-- Statistics Cards -->
+            <div class="col-md-3">
+                <div class="stats-card card-orders">
+                    <div class="card-icon">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <div class="card-title">Total Orders</div>
+                    <div class="card-value" id="total-orders">0</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card card-pending">
+                    <div class="card-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="card-title">Pending Orders</div>
+                    <div class="card-value" id="pending-orders">0</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card card-completed">
+                    <div class="card-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="card-title">Completed Orders</div>
+                    <div class="card-value" id="completed-orders">0</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card card-medicines">
+                    <div class="card-icon">
+                        <i class="fas fa-pills"></i>
+                    </div>
+                    <div class="card-title">Total Medicines</div>
+                    <div class="card-value" id="total-medicines">0</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-8">
+                <!-- Recent Orders Table -->
+                <div class="table-container">
+                    <h5 class="recent-orders-title">Recent Orders</h5>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Customer</th>
+                                    <th>Date</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recent-orders">
+                                <tr>
+                                    <td colspan="6" class="text-center">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                        <p class="mt-2">Loading orders...</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="text-end">
+                        <a href="/shop/orders" class="btn btn-outline-primary btn-sm">View All Orders</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <!-- Quick Search -->
+                <div class="search-container mb-4">
+                    <h5 class="mb-3">Quick Search</h5>
+                    <form id="quick-search-form">
+                        <div class="input-group mb-3">
+                            <input type="text" class="form-control" id="search-input" placeholder="Order ID, Medicine, Customer...">
+                            <button class="btn btn-primary" type="submit" id="search-button">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Quick Actions -->
+                <div class="quick-actions">
+                    <h5 class="mb-3">Quick Actions</h5>
+                    <div class="row">
+                        <div class="col-6">
+                            <a href="/shop/orders" class="quick-action-btn">
+                                <i class="fas fa-clipboard-list"></i>
+                                Manage Orders
+                            </a>
+                        </div>
+                        <div class="col-6">
+                            <a href="/shop/inventory" class="quick-action-btn">
+                                <i class="fas fa-boxes"></i>
+                                Update Inventory
+                            </a>
+                        </div>
+                        <div class="col-6">
+                            <a href="javascript:void(0)" class="quick-action-btn" data-bs-toggle="modal" data-bs-target="#reportModal">
+                                <i class="fas fa-chart-bar"></i>
+                                Generate Report
+                            </a>
+                        </div>
+                        <div class="col-6">
+                            <a href="/shop/orders?status=pending" class="quick-action-btn">
+                                <i class="fas fa-shipping-fast"></i>
+                                Process Shipments
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Report Modal -->
+    <div class="modal fade" id="reportModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Generate Report</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="mb-3">
+                            <label for="report-type" class="form-label">Report Type</label>
+                            <select class="form-select" id="report-type">
+                                <option value="sales">Sales Report</option>
+                                <option value="inventory">Inventory Report</option>
+                                <option value="orders">Orders Report</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="date-range" class="form-label">Date Range</label>
+                            <select class="form-select" id="date-range">
+                                <option value="today">Today</option>
+                                <option value="yesterday">Yesterday</option>
+                                <option value="thisWeek">This Week</option>
+                                <option value="thisMonth">This Month</option>
+                                <option value="lastMonth">Last Month</option>
+                                <option value="custom">Custom Range</option>
+                            </select>
+                        </div>
+                        <div class="row mb-3" id="custom-date-range" style="display: none;">
+                            <div class="col-md-6">
+                                <label for="start-date" class="form-label">Start Date</label>
+                                <input type="date" class="form-control" id="start-date">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="end-date" class="form-label">End Date</label>
+                                <input type="date" class="form-control" id="end-date">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="report-format" class="form-label">Format</label>
+                            <select class="form-select" id="report-format">
+                                <option value="pdf">PDF</option>
+                                <option value="excel">Excel</option>
+                                <option value="csv">CSV</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary">Generate</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load dashboard data
+            loadDashboardData();
+            
+            // Set up event listeners
+            document.getElementById('refresh-dashboard').addEventListener('click', loadDashboardData);
+            
+            document.getElementById('date-range').addEventListener('change', function() {
+                if (this.value === 'custom') {
+                    document.getElementById('custom-date-range').style.display = 'flex';
+                } else {
+                    document.getElementById('custom-date-range').style.display = 'none';
+                }
+            });
+            
+            document.getElementById('quick-search-form').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const query = document.getElementById('search-input').value.trim();
+                if (query) {
+                    window.location.href = `/shop/search?q=${encodeURIComponent(query)}`;
+                }
+            });
+            
+            // Auto-refresh dashboard every 30 seconds
+            setInterval(loadDashboardData, 30000);
+        });
+        
+        function loadDashboardData() {
+            fetch('/api/shop/dashboard-stats')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        updateDashboardStats(data.stats);
+                    } else {
+                        console.error('Error loading dashboard data:', data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching dashboard data:', error);
+                });
+        }
+        
+        function updateDashboardStats(stats) {
+            // Update statistics cards
+            document.getElementById('total-orders').textContent = stats.total_orders || 0;
+            document.getElementById('pending-orders').textContent = stats.pending_orders || 0;
+            document.getElementById('completed-orders').textContent = stats.completed_orders || 0;
+            document.getElementById('total-medicines').textContent = stats.total_medicines || 0;
+            
+            // Update recent orders table
+            const recentOrdersContainer = document.getElementById('recent-orders');
+            
+            if (stats.recent_orders && stats.recent_orders.length > 0) {
+                let html = '';
+                
+                stats.recent_orders.forEach(order => {
+                    const statusClass = `status-${order.status.toLowerCase()}`;
+                    
+                    html += `
+                        <tr>
+                            <td>#${order.id}</td>
+                            <td>${order.customer}</td>
+                            <td>${formatDate(order.date)}</td>
+                            <td>${order.amount}</td>
+                            <td>
+                                <span class="status-badge ${statusClass}">
+                                    ${capitalizeFirstLetter(order.status)}
+                                </span>
+                            </td>
+                            <td>
+                                <a href="/shop/order/${order.id}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                recentOrdersContainer.innerHTML = html;
+            } else {
+                recentOrdersContainer.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center">
+                            No recent orders found
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+        
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric' 
+            });
+        }
+        
+        function capitalizeFirstLetter(string) {
+            return string.charAt(0).toUpperCase() + string.slice(1);
+        }
+    </script>
   </body>
 </html>

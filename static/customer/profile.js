@@ -363,11 +363,26 @@ function showAlert(message, type = 'success') {
     }, 5000);
 }
 
+// Function to get access token, first from cookies, then localStorage as fallback
+function getAccessToken() {
+    // Try to get from cookie first
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.startsWith('access_token=')) {
+            return cookie.substring('access_token='.length, cookie.length);
+        }
+    }
+    
+    // Fallback to localStorage
+    return localStorage.getItem('accessToken');
+}
+
 // Load user profile data
 async function loadUserProfile() {
     try {
         console.log('Loading user profile...');
-        const accessToken = localStorage.getItem('accessToken');
+        const accessToken = getAccessToken();
         if (!accessToken) {
             console.error('No access token found');
             showAlert('Please log in to view your profile', 'warning');
@@ -445,7 +460,7 @@ async function saveProfileInfo() {
             return;
         }
         
-        const accessToken = localStorage.getItem('accessToken');
+        const accessToken = getAccessToken();
         if (!accessToken) {
             console.error('No access token found');
             showAlert('Please log in to update your profile', 'warning');
@@ -489,258 +504,244 @@ async function saveProfileInfo() {
 async function loadUserOrders() {
     try {
         console.log('Loading user orders...');
-        const accessToken = localStorage.getItem('accessToken');
+        const accessToken = getAccessToken();
         if (!accessToken) {
             console.error('No access token found');
             showAlert('Please log in to view your orders', 'warning');
             return;
         }
         
-        const response = await fetch('/api/user/orders', {
-            headers: {
-                'Authorization': `Bearer ${accessToken}`
-            }
-        });
-        
-        if (!response.ok) {
-            console.error(`HTTP error! status: ${response.status}, statusText: ${response.statusText}`);
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-            console.error('Response is not JSON:', contentType);
-            throw new Error('Response is not valid JSON');
-        }
-        
-        const orders = await response.json();
-        console.log('Orders received:', orders);
-        
+        // First show loading indicator
         const ordersContainer = document.getElementById('orders-container');
         if (!ordersContainer) {
             console.error('Orders container not found in DOM');
             return;
         }
         
-        if (!orders || orders.length === 0) {
-            ordersContainer.innerHTML = `
-                <div class="text-center py-5">
-                    <i class="fas fa-shopping-bag fa-3x mb-3 text-muted"></i>
-                    <p>You don't have any orders yet.</p>
-                    <p>Start shopping to place your first order!</p>
+        ordersContainer.innerHTML = `
+            <div class="d-flex justify-content-center p-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
                 </div>
-            `;
-            return;
+            </div>
+        `;
+        
+        // Make API call with timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+        
+        try {
+            const response = await fetch('/api/user/orders', {
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`
+                },
+                signal: controller.signal
+            });
+            
+            clearTimeout(timeoutId);
+            
+            if (response.status === 401) {
+                showAlert('Your session has expired. Please log in again.', 'warning');
+                ordersContainer.innerHTML = `
+                    <div class="alert alert-warning">
+                        <p>Your session has expired. Please log in again.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                console.error('Response is not JSON:', contentType);
+                throw new Error('Response is not valid JSON');
+            }
+            
+            const data = await response.json();
+            console.log('Orders received:', data);
+            
+            if (!Array.isArray(data)) {
+                console.error('Expected orders to be an array but got:', typeof data);
+                ordersContainer.innerHTML = `
+                    <div class="alert alert-danger">
+                        <p>Invalid order data received. Please try again later.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            if (data.length === 0) {
+                ordersContainer.innerHTML = `
+                    <div class="text-center py-5">
+                        <i class="fas fa-shopping-bag fa-3x mb-3 text-muted"></i>
+                        <p>You don't have any orders yet.</p>
+                        <p>Start shopping to place your first order!</p>
+                        <a href="/" class="btn btn-primary mt-3">Shop Now</a>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Clear container
+            ordersContainer.innerHTML = '';
+            
+            // Add each order to the container
+            data.forEach(order => {
+                try {
+                    const orderCard = createOrderCard(order);
+                    if (orderCard) {
+                        ordersContainer.appendChild(orderCard);
+                    }
+                } catch (error) {
+                    console.error('Error creating order card:', error, order);
+                    // Continue with next order
+                }
+            });
+            
+            // Setup event listeners for the order cards
+            setupOrderCardListeners();
+            
+        } catch (error) {
+            clearTimeout(timeoutId);
+            
+            if (error.name === 'AbortError') {
+                console.error('Request timed out');
+                ordersContainer.innerHTML = `
+                    <div class="alert alert-warning">
+                        <p>Request timed out. The server is taking too long to respond.</p>
+                        <button class="btn btn-outline-primary btn-sm mt-2" onclick="loadUserOrders()">
+                            <i class="fas fa-sync-alt"></i> Try Again
+                        </button>
+                    </div>
+                `;
+            } else {
+                throw error; // Re-throw for the outer catch block
+            }
         }
         
-        // Clear container
-        ordersContainer.innerHTML = '';
-        
-        // Add each order to the container
-        orders.forEach(order => {
-            const orderCard = createOrderCard(order);
-            ordersContainer.appendChild(orderCard);
-        });
     } catch (error) {
         console.error('Error loading orders:', error);
-        showAlert('Error loading orders: ' + error.message, 'danger');
         
         const ordersContainer = document.getElementById('orders-container');
         if (ordersContainer) {
             ordersContainer.innerHTML = `
                 <div class="alert alert-danger">
-                    Failed to load orders. Please try again later.
+                    <p><strong>Failed to load orders.</strong> Please try again later.</p>
+                    <p class="small text-muted">Error details: ${error.message}</p>
+                    <button class="btn btn-outline-primary btn-sm mt-2" onclick="loadUserOrders()">
+                        <i class="fas fa-sync-alt"></i> Try Again
+                    </button>
                 </div>
             `;
         }
-    }
-}
-
-// Function to create an order card
-function createOrderCard(order) {
-    console.log('Creating order card for:', order);
-    
-    const orderDate = new Date(order.time).toLocaleDateString();
-    const orderTime = new Date(order.time).toLocaleTimeString();
-    
-    // Create a div element for the order card
-    const orderCard = document.createElement('div');
-    orderCard.className = 'card mb-3 order-card';
-    
-    // Create status badge with appropriate color
-    let statusBadgeClass = 'bg-primary';
-    if (order.status === 'cancelled' || order.status === 'Order Cancelled') {
-        statusBadgeClass = 'bg-danger';
-    } else if (order.status === 'delivered' || order.status === 'Order Delivered') {
-        statusBadgeClass = 'bg-success';
-    } else if (order.status === 'shipped' || order.status === 'Order Shipped') {
-        statusBadgeClass = 'bg-info';
-    } else if (order.status === 'packed' || order.status === 'Order Packed') {
-        statusBadgeClass = 'bg-warning text-dark';
-    }
-    
-    // Generate cart items summary
-    let cartSummary = '';
-    if (order.cart && order.cart.length > 0) {
-        cartSummary = order.cart.map(item => `${item.name} (${item.qty})`).join(', ');
-    } else {
-        cartSummary = 'No items';
-    }
-    
-    // Set card content
-    orderCard.innerHTML = `
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">Order #${order.orderid}</h5>
-            <span class="badge ${statusBadgeClass}">${order.status}</span>
-        </div>
-        <div class="card-body">
-            <p class="card-text"><strong>Date:</strong> ${orderDate} at ${orderTime}</p>
-            <p class="card-text"><strong>Items:</strong> ${cartSummary}</p>
-            <p class="card-text"><strong>Total:</strong> ₹${order.total}</p>
-            <div class="d-flex justify-content-end mt-3">
-                <button class="btn btn-outline-primary btn-sm me-2 view-order-btn" data-order-id="${order.orderid}">
-                    <i class="fas fa-eye"></i> View Details
-                </button>
-                ${order.status === 'pending' || order.status === 'Order Received' ? 
-                    `<button class="btn btn-outline-danger btn-sm cancel-order-btn" data-order-id="${order.orderid}">
-                        <i class="fas fa-times"></i> Cancel Order
-                    </button>` : ''}
-            </div>
-        </div>
-    `;
-    
-    // Add event listeners for buttons
-    setTimeout(() => {
-        const viewBtn = orderCard.querySelector('.view-order-btn');
-        if (viewBtn) {
-            viewBtn.addEventListener('click', () => viewOrderDetails(order.orderid));
-        }
         
-        const cancelBtn = orderCard.querySelector('.cancel-order-btn');
-        if (cancelBtn) {
-            cancelBtn.addEventListener('click', () => confirmCancelOrder(order.orderid));
-        }
-    }, 0);
-    
-    return orderCard;
-}
-
-// Function to view order details
-async function viewOrderDetails(orderId) {
-    try {
-        const response = await fetch(`/api/user/orders/${orderId}`, {
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
-            }
-        });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const order = await response.json();
-        
-        // Display order details in modal
-        const modalContent = document.getElementById('order-details-content');
-        
-        // Create the HTML for the order details
-        // This will vary based on your data structure
-        modalContent.innerHTML = `
-            <div class="order-details">
-                <div class="order-header mb-3">
-                    <h6>Order #${order.orderid}</h6>
-                    <p class="text-muted">Placed on: ${new Date(order.time).toLocaleString()}</p>
-                    <span class="badge ${getStatusBadgeClass(order.status)}">${order.status}</span>
-                </div>
-                
-                <div class="order-items mb-3">
-                    <h6 class="mb-2">Items</h6>
-                    <div class="table-responsive">
-                        <table class="table table-sm">
-                            <thead>
-                                <tr>
-                                    <th>Item</th>
-                                    <th>Quantity</th>
-                                    <th>Price</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${order.cart.map(item => `
-                                    <tr>
-                                        <td>${item.name}</td>
-                                        <td>${item.quantity}</td>
-                                        <td>₹${item.price}</td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <h6 class="mb-2">Shipping Information</h6>
-                        <p class="mb-1"><strong>Delivery Method:</strong> ${order.delivery_method || 'Standard Delivery'}</p>
-                        <p class="mb-1"><strong>Address:</strong> ${order.address}</p>
-                        <p class="mb-1"><strong>Contact:</strong> ${order.contact}</p>
-                    </div>
-                    <div class="col-md-6">
-                        <h6 class="mb-2">Order Summary</h6>
-                        <p class="mb-1"><strong>Total:</strong> ₹${order.total}</p>
-                        <p class="mb-1"><strong>Status:</strong> ${order.status}</p>
-                    </div>
-                </div>
-                
-                ${order.status === 'pending' ? `
-                    <div class="text-end">
-                        <button class="btn btn-danger" onclick="confirmCancelOrder('${order.orderid}')">
-                            <i class="fas fa-times"></i> Cancel Order
-                        </button>
-                    </div>
-                ` : ''}
-            </div>
-        `;
-        
-        // Show the modal
-        const orderModal = new bootstrap.Modal(document.getElementById('orderDetailsModal'));
-        orderModal.show();
-    } catch (error) {
-        console.error('Error viewing order details:', error);
-        showAlert('Error loading order details: ' + error.message, 'danger');
+        showAlert('Error loading orders: ' + error.message, 'danger');
     }
 }
 
 // Function to confirm cancellation of an order
 function confirmCancelOrder(orderId) {
-    // Hide the details modal
-    const orderModal = bootstrap.Modal.getInstance(document.getElementById('orderDetailsModal'));
-    if (orderModal) orderModal.hide();
+    console.log(`Confirming cancellation of order ${orderId}`);
+    currentOrderId = orderId;
     
-    // Set the order ID for the cancel button
-    document.getElementById('confirm-cancel-btn').setAttribute('data-order-id', orderId);
+    // Hide any existing modals
+    const orderModal = document.getElementById('orderDetailsModal');
+    if (orderModal && bootstrap.Modal.getInstance(orderModal)) {
+        bootstrap.Modal.getInstance(orderModal).hide();
+    }
+    
+    // Check if the cancel modal exists
+    let cancelModal = document.getElementById('cancelOrderModal');
+    
+    if (!cancelModal) {
+        // Create the modal if it doesn't exist
+        cancelModal = document.createElement('div');
+        cancelModal.className = 'modal fade';
+        cancelModal.id = 'cancelOrderModal';
+        cancelModal.setAttribute('tabindex', '-1');
+        cancelModal.setAttribute('aria-labelledby', 'cancelOrderModalLabel');
+        cancelModal.setAttribute('aria-hidden', 'true');
+        
+        cancelModal.innerHTML = `
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="cancelOrderModalLabel">Cancel Order</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Are you sure you want to cancel Order #${orderId}?</p>
+                        <p>This action cannot be undone.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Keep Order</button>
+                        <button type="button" class="btn btn-danger" id="confirm-cancel-btn" data-order-id="${orderId}">
+                            Yes, Cancel Order
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(cancelModal);
+    } else {
+        // Update the order ID in the modal
+        const modalBody = cancelModal.querySelector('.modal-body');
+        if (modalBody) {
+            modalBody.innerHTML = `
+                <p>Are you sure you want to cancel Order #${orderId}?</p>
+                <p>This action cannot be undone.</p>
+            `;
+        }
+        
+        const confirmBtn = cancelModal.querySelector('#confirm-cancel-btn');
+        if (confirmBtn) {
+            confirmBtn.setAttribute('data-order-id', orderId);
+        }
+    }
     
     // Show the cancel confirmation modal
-    const cancelModal = new bootstrap.Modal(document.getElementById('cancelOrderModal'));
-    cancelModal.show();
+    const bsModal = new bootstrap.Modal(cancelModal);
+    bsModal.show();
     
     // Add click event to the confirm button
-    document.getElementById('confirm-cancel-btn').onclick = function() {
-        cancelOrder(this.getAttribute('data-order-id'));
-    };
+    const confirmBtn = document.getElementById('confirm-cancel-btn');
+    if (confirmBtn) {
+        // Remove any existing event listeners by cloning and replacing
+        const newBtn = confirmBtn.cloneNode(true);
+        confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
+        
+        // Add the new event listener
+        newBtn.addEventListener('click', function() {
+            const id = this.getAttribute('data-order-id');
+            cancelOrder(id);
+        });
+    }
 }
 
 // Function to cancel an order
 async function cancelOrder(orderId) {
     try {
+        const accessToken = getAccessToken();
+        if (!accessToken) {
+            showAlert('Please log in to cancel your order', 'warning');
+            return;
+        }
+
+        console.log(`Cancelling order ${orderId}`);
         const response = await fetch(`/api/user/orders/${orderId}/cancel`, {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+                'Authorization': `Bearer ${accessToken}`
             }
         });
         
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            const errorData = await response.json().catch(() => ({ error: `HTTP error! status: ${response.status}` }));
+            throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
         }
         
         const data = await response.json();
@@ -775,6 +776,312 @@ function getStatusBadgeClass(status) {
             return 'bg-danger';
         default:
             return 'bg-secondary';
+    }
+}
+
+// Update event listeners for buttons in order cards
+function setupOrderCardListeners() {
+    // Add listeners for view buttons
+    document.querySelectorAll('.view-order-btn').forEach(button => {
+        // Clone and replace to remove old listeners
+        const newBtn = button.cloneNode(true);
+        button.parentNode.replaceChild(newBtn, button);
+        
+        newBtn.addEventListener('click', function() {
+            const orderId = this.getAttribute('data-order-id');
+            viewOrderDetails(orderId);
+        });
+    });
+    
+    // Add listeners for cancel buttons
+    document.querySelectorAll('.cancel-order-btn').forEach(button => {
+        // Clone and replace to remove old listeners
+        const newBtn = button.cloneNode(true);
+        button.parentNode.replaceChild(newBtn, button);
+        
+        newBtn.addEventListener('click', function() {
+            const orderId = this.getAttribute('data-order-id');
+            confirmCancelOrder(orderId);
+        });
+    });
+}
+
+// Update the createOrderCard function to use the setupOrderCardListeners function
+function createOrderCard(order) {
+    console.log('Creating order card for:', order);
+    
+    if (!order || typeof order !== 'object') {
+        console.error('Invalid order object:', order);
+        throw new Error('Invalid order data');
+    }
+    
+    if (!order.orderid) {
+        console.error('Order missing orderid:', order);
+        throw new Error('Order missing ID');
+    }
+    
+    let orderDate = 'Unknown';
+    let orderTime = '';
+    
+    try {
+        if (order.time) {
+            const date = new Date(order.time);
+            if (!isNaN(date)) {
+                orderDate = date.toLocaleDateString();
+                orderTime = date.toLocaleTimeString();
+            }
+        }
+    } catch (error) {
+        console.error('Error formatting date:', error, order.time);
+    }
+    
+    // Create a div element for the order card
+    const orderCard = document.createElement('div');
+    orderCard.className = 'card mb-3 order-card';
+    
+    // Create status badge with appropriate color
+    let statusBadgeClass = 'bg-primary';
+    const status = order.status || 'Unknown';
+    
+    if (status.toLowerCase().includes('cancel')) {
+        statusBadgeClass = 'bg-danger';
+    } else if (status.toLowerCase().includes('deliver')) {
+        statusBadgeClass = 'bg-success';
+    } else if (status.toLowerCase().includes('ship')) {
+        statusBadgeClass = 'bg-info';
+    } else if (status.toLowerCase().includes('pack')) {
+        statusBadgeClass = 'bg-warning text-dark';
+    } else if (status.toLowerCase().includes('receiv')) {
+        statusBadgeClass = 'bg-secondary';
+    }
+    
+    // Generate cart items summary
+    let cartSummary = 'No items';
+    try {
+        if (order.cart && Array.isArray(order.cart) && order.cart.length > 0) {
+            cartSummary = order.cart.map(item => {
+                const name = item.name || 'Unknown item';
+                const qty = item.qty || 1;
+                return `${name} (${qty})`;
+            }).join(', ');
+        }
+    } catch (error) {
+        console.error('Error generating cart summary:', error);
+    }
+    
+    // Set card content
+    const totalPrice = order.total ? `₹${order.total}` : 'Not specified';
+    
+    orderCard.innerHTML = `
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Order #${order.orderid}</h5>
+            <span class="badge ${statusBadgeClass}">${status}</span>
+        </div>
+        <div class="card-body">
+            <p class="card-text"><strong>Date:</strong> ${orderDate}${orderTime ? ` at ${orderTime}` : ''}</p>
+            <p class="card-text"><strong>Items:</strong> ${cartSummary}</p>
+            <p class="card-text"><strong>Total:</strong> ${totalPrice}</p>
+            <div class="d-flex justify-content-end mt-3">
+                <button class="btn btn-outline-primary btn-sm me-2 view-order-btn" data-order-id="${order.orderid}">
+                    <i class="fas fa-eye"></i> View Details
+                </button>
+                ${status.toLowerCase().includes('pending') || status.toLowerCase().includes('receiv') ? 
+                    `<button class="btn btn-outline-danger btn-sm cancel-order-btn" data-order-id="${order.orderid}">
+                        <i class="fas fa-times"></i> Cancel Order
+                    </button>` : ''}
+            </div>
+        </div>
+    `;
+    
+    return orderCard;
+}
+
+// Function to view order details
+async function viewOrderDetails(orderId) {
+    try {
+        console.log(`Viewing details for order ${orderId}`);
+        const accessToken = getAccessToken();
+        if (!accessToken) {
+            showAlert('Please log in to view order details', 'warning');
+            return;
+        }
+
+        // Show a loading indicator
+        const modalContent = document.getElementById('order-details-content');
+        if (modalContent) {
+            modalContent.innerHTML = `
+                <div class="d-flex justify-content-center p-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            `;
+            
+            // Show the modal while loading
+            const orderModal = new bootstrap.Modal(document.getElementById('orderDetailsModal'));
+            orderModal.show();
+        }
+
+        const response = await fetch(`/api/user/orders/${orderId}`, {
+            headers: {
+                'Authorization': `Bearer ${accessToken}`
+            }
+        });
+        
+        if (response.status === 401) {
+            if (modalContent) {
+                modalContent.innerHTML = `
+                    <div class="alert alert-warning">
+                        <p>Your session has expired. Please log in again.</p>
+                    </div>
+                `;
+            }
+            return;
+        }
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const order = await response.json();
+        console.log('Order details:', order);
+        
+        // Display order details in modal
+        if (!modalContent) {
+            console.error('Modal content element not found');
+            return;
+        }
+        
+        // Format date
+        let formattedDate = 'N/A';
+        if (order.time) {
+            try {
+                const orderDate = new Date(order.time);
+                formattedDate = orderDate.toLocaleString();
+            } catch (e) {
+                console.error('Error formatting date:', e);
+                formattedDate = order.time;
+            }
+        }
+        
+        // Get status badge
+        let statusBadgeClass = 'bg-primary';
+        const status = (order.status || '').toLowerCase();
+        if (status.includes('cancel')) {
+            statusBadgeClass = 'bg-danger';
+        } else if (status.includes('deliver')) {
+            statusBadgeClass = 'bg-success';
+        } else if (status.includes('ship')) {
+            statusBadgeClass = 'bg-info';
+        } else if (status.includes('pending') || status.includes('receiv')) {
+            statusBadgeClass = 'bg-warning text-dark';
+        }
+        
+        // Create the HTML for the order details
+        modalContent.innerHTML = `
+            <div class="order-details">
+                <div class="order-header mb-3">
+                    <h5>Order #${order.orderid}</h5>
+                    <p class="text-muted mb-1">Placed on: ${formattedDate}</p>
+                    <span class="badge ${statusBadgeClass}">${order.status || 'Unknown'}</span>
+                </div>
+                
+                <div class="order-items mb-3">
+                    <h6 class="mb-2">Items</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-striped">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Item</th>
+                                    <th class="text-center">Quantity</th>
+                                    <th class="text-end">Price</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${order.cart && Array.isArray(order.cart) && order.cart.length > 0 ? 
+                                    order.cart.map(item => `
+                                        <tr>
+                                            <td>${item.name || 'Unknown'}</td>
+                                            <td class="text-center">${item.qty || item.quantity || 1}</td>
+                                            <td class="text-end">${item.price ? ('₹' + item.price) : 'N/A'}</td>
+                                        </tr>
+                                    `).join('') : 
+                                    '<tr><td colspan="3" class="text-center">No items found</td></tr>'
+                                }
+                            </tbody>
+                            <tfoot class="table-light">
+                                <tr>
+                                    <th colspan="2" class="text-end">Total:</th>
+                                    <th class="text-end">₹${order.total || '0'}</th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0">Shipping Information</h6>
+                            </div>
+                            <div class="card-body">
+                                <p class="mb-1"><strong>Name:</strong> ${order.name || 'Not provided'}</p>
+                                <p class="mb-1"><strong>Address:</strong> ${order.address || 'Not provided'}</p>
+                                <p class="mb-1"><strong>Contact:</strong> ${order.contact || 'Not provided'}</p>
+                                <p class="mb-0">
+                                    <strong>Delivery Method:</strong> 
+                                    ${order.delivery_method || 'Standard Delivery'}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0">Payment Information</h6>
+                            </div>
+                            <div class="card-body">
+                                <p class="mb-1">
+                                    <strong>Payment Method:</strong> 
+                                    ${order.payment_method || 'Not specified'}
+                                </p>
+                                <p class="mb-1"><strong>Total Amount:</strong> ₹${order.total || '0'}</p>
+                                <p class="mb-0">
+                                    <strong>Status:</strong> 
+                                    <span class="badge ${statusBadgeClass}">${order.status || 'Unknown'}</span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                ${(status === 'pending' || status.includes('receiv')) ? `
+                    <div class="text-end">
+                        <button class="btn btn-danger" onclick="confirmCancelOrder('${order.orderid}')">
+                            <i class="fas fa-times me-1"></i> Cancel Order
+                        </button>
+                    </div>
+                ` : ''}
+            </div>
+        `;
+    } catch (error) {
+        console.error('Error viewing order details:', error);
+        
+        const modalContent = document.getElementById('order-details-content');
+        if (modalContent) {
+            modalContent.innerHTML = `
+                <div class="alert alert-danger">
+                    <p><strong>Failed to load order details.</strong> Please try again later.</p>
+                    <p class="small text-muted">Error details: ${error.message}</p>
+                    <button class="btn btn-outline-primary btn-sm mt-2" onclick="viewOrderDetails('${currentOrderId}')">
+                        <i class="fas fa-sync-alt"></i> Try Again
+                    </button>
+                </div>
+            `;
+        }
+        
+        showAlert('Error loading order details: ' + error.message, 'danger');
     }
 }
 

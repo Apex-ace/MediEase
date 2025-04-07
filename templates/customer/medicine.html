@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ medicine['name'] }} - MediEase</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='customer/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='customer/theme.css') }}">
+    
+    <style>
+        body {
+            background-color: #f5f7fa;
+        }
+        
+        .medicine-header {
+            background-color: #37586e;
+            color: white;
+            padding: 15px 0;
+            margin-bottom: 30px;
+            border-radius: 0 0 10px 10px;
+        }
+        
+        .medicine-container {
+            padding-bottom: 40px;
+        }
+        
+        .medicine-image {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .medicine-image img {
+            max-width: 100%;
+            max-height: 300px;
+            object-fit: contain;
+        }
+        
+        .medicine-details {
+            background-color: white;
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .medicine-name {
+            color: #37586e;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .medicine-price {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #28a745;
+            margin: 15px 0;
+        }
+        
+        .medicine-description {
+            margin: 20px 0;
+            color: #6c757d;
+        }
+        
+        .medicine-info {
+            background-color: white;
+            border-radius: 8px;
+            padding: 25px;
+            margin-top: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .medicine-info h4 {
+            color: #37586e;
+            margin-bottom: 15px;
+        }
+        
+        .info-item {
+            padding: 10px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .info-item:last-child {
+            border-bottom: none;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: #495057;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Include navbar -->
+    {% include 'customer/navbar.html' %}
+
+    <!-- Medicine header -->
+    <div class="medicine-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item"><a href="/" class="text-white">Home</a></li>
+                            <li class="breadcrumb-item active text-white-50" aria-current="page">{{ medicine['name'] }}</li>
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container medicine-container">
+        <div class="row">
+            <!-- Medicine image -->
+            <div class="col-md-5 mb-4">
+                <div class="medicine-image">
+                    <img src="{{ url_for('static', filename='images/medicine.png') }}" alt="{{ medicine['name'] }}">
+                </div>
+            </div>
+            
+            <!-- Medicine details -->
+            <div class="col-md-7">
+                <div class="medicine-details">
+                    <h2 class="medicine-name">{{ medicine['name'] }}</h2>
+                    
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="me-3">
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star-half-alt text-warning"></i>
+                        </div>
+                        <small class="text-muted">(4.5/5)</small>
+                    </div>
+                    
+                    <div class="medicine-price">{{ medicine['price'] }}</div>
+                    
+                    <div class="d-flex align-items-center my-4">
+                        <span class="text-success me-2"><i class="fas fa-check-circle"></i></span>
+                        <span>In Stock</span>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-primary" onclick="addToCart({{ medicine['id'] }}, '{{ medicine['name'] | replace("'", "\\'") }}', '{{ medicine['price'] }}')">
+                            <i class="fas fa-cart-plus me-2"></i>Add to Cart
+                        </button>
+                    </div>
+                    
+                    <div class="medicine-description">
+                        <h5>Description</h5>
+                        <p>{{ medicine['composition'] }}</p>
+                    </div>
+                </div>
+                
+                <div class="medicine-info">
+                    <h4>Product Information</h4>
+                    
+                    <div class="info-item row">
+                        <div class="col-md-4 info-label">Composition</div>
+                        <div class="col-md-8">{{ medicine['composition'] }}</div>
+                    </div>
+                    
+                    <div class="info-item row">
+                        <div class="col-md-4 info-label">Manufacturer</div>
+                        <div class="col-md-8">{{ medicine.get('manufacturer', 'MediEase Pharmaceuticals') }}</div>
+                    </div>
+                    
+                    <div class="info-item row">
+                        <div class="col-md-4 info-label">Available Form</div>
+                        <div class="col-md-8">{{ medicine.get('form', 'Tablet') }}</div>
+                    </div>
+                    
+                    <div class="info-item row">
+                        <div class="col-md-4 info-label">Prescription Required</div>
+                        <div class="col-md-8">{{ medicine.get('prescription_required', 'No') }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap & jQuery JS -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='customer/common.js') }}"></script>
+    <script src="{{ url_for('static', filename='customer/cart.js') }}"></script>
+</body>
+</html> 

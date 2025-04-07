@@ -1,12 +1,14 @@
 import requests
-from flask import Flask, request, render_template, redirect, url_for, session, flash, jsonify
-from flask_jwt_extended import create_access_token, JWTManager, jwt_required, decode_token,get_jwt_identity
+from flask import Flask, request, render_template, redirect, url_for, session, flash, jsonify, make_response
+from flask_jwt_extended import create_access_token, JWTManager, jwt_required, decode_token, get_jwt_identity
 import bcrypt
 from database import connect_to_db, init_db, initUserProfileTable, initRemindersTable
 import database, os, json
 import random
 import time
 import jwt
+from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
+import datetime
 
 # INIT the Flask APP
 app = Flask(__name__)
@@ -23,13 +25,175 @@ jwt = JWTManager(app)
 '''
 DATABASE INITIALIZATION
 '''
+# Function to ensure the orders table exists
+def ensure_orders_table_exists(conn):
+    cursor = None
+    try:
+        cursor = conn.cursor()
+        
+        # Check if we're using SQLite or PostgreSQL
+        is_sqlite_db = False
+        try:
+            cursor.execute("SELECT sqlite_version()")
+            is_sqlite_db = True
+        except:
+            # Assume PostgreSQL if not SQLite
+            pass
+        
+        if is_sqlite_db:
+            # SQLite version of the table creation
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS orders (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    username TEXT NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    name TEXT,
+                    address TEXT,
+                    contact TEXT,
+                    cart TEXT,
+                    status TEXT DEFAULT 'pending',
+                    total REAL,
+                    payment_method TEXT DEFAULT 'cod',
+                    delivery_method TEXT DEFAULT 'standard',
+                    upi_id TEXT,
+                    upi_reference TEXT
+                )
+            """)
+        else:
+            # PostgreSQL version of the table creation
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS orders (
+                    id SERIAL PRIMARY KEY,
+                    username TEXT NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    name TEXT,
+                    address TEXT,
+                    contact TEXT,
+                    cart TEXT,
+                    status TEXT DEFAULT 'pending',
+                    total REAL,
+                    payment_method TEXT DEFAULT 'cod',
+                    delivery_method TEXT DEFAULT 'standard',
+                    upi_id TEXT,
+                    upi_reference TEXT
+                )
+            """)
+        
+        conn.commit()
+        print("Orders table created or verified successfully")
+        return {"res": 1, "message": "Orders table created or verified successfully"}
+    except Exception as e:
+        try:
+            conn.rollback()
+        except:
+            pass
+        print(f"Error creating orders table: {str(e)}")
+        return {"res": 0, "message": f"Error creating orders table: {str(e)}"}
+    finally:
+        if cursor:
+            try:
+                cursor.close()
+            except:
+                pass
+
+# Helper function to check if database is SQLite
+def is_sqlite(conn):
+    try:
+        cursor = conn.cursor()
+        cursor.execute("SELECT sqlite_version()")
+        return True
+    except:
+        return False
+
 # Connect To DB
 conn = connect_to_db()
+
+# Initialize necessary tables on startup
+with app.app_context():
+    try:
+        # Start a new transaction
+        conn.rollback()  # Rollback any failed transaction
+        
+        # Initialize tables one by one with proper error handling
+        init_result = init_db(conn)
+        if init_result["res"] != 1:
+            print(f"Warning: {init_result['message']}")
+        
+        orders_result = ensure_orders_table_exists(conn)
+        if orders_result["res"] != 1:
+            print(f"Warning: {orders_result['message']}")
+        
+        profile_result = initUserProfileTable(conn)
+        if profile_result["res"] != 1:
+            print(f"Warning: {profile_result['message']}")
+        
+        reminders_result = initRemindersTable(conn)
+        if reminders_result["res"] != 1:
+            print(f"Warning: {reminders_result['message']}")
+        
+        # Add a default test order for demo if no orders exist
+        try:
+            cursor = conn.cursor()
+            cursor.execute("SELECT COUNT(*) FROM orders")
+            count = cursor.fetchone()[0]
+            
+            if count == 0:
+                # Add a sample order for testing
+                sample_cart = json.dumps([
+                    {"id": 1, "name": "Sample Medicine", "qty": 2, "price": "₹250"}
+                ])
+                
+                # Use PostgreSQL parameter style
+                if is_sqlite(conn):
+                    # SQLite uses ? placeholders
+                    cursor.execute("""
+                        INSERT INTO orders (username, name, address, contact, cart, status, total, payment_method)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    """, (
+                        "test_user", 
+                        "Test User", 
+                        "123 Test Street, Test City", 
+                        "9876543210", 
+                        sample_cart, 
+                        "pending", 
+                        500.00, 
+                        "cod"
+                    ))
+                else:
+                    # PostgreSQL uses $1, $2, etc.
+                    cursor.execute("""
+                        INSERT INTO orders (username, name, address, contact, cart, status, total, payment_method)
+                        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                    """, (
+                        "test_user", 
+                        "Test User", 
+                        "123 Test Street, Test City", 
+                        "9876543210", 
+                        sample_cart, 
+                        "pending", 
+                        500.00, 
+                        "cod"
+                    ))
+                conn.commit()
+                print("Added sample order for testing")
+        except Exception as e:
+            conn.rollback()  # Rollback on error
+            print(f"Error adding sample data: {str(e)}")
+            # Don't raise exception, just log it
+        
+        # Commit the transaction if everything succeeded
+        conn.commit()
+        print("Database initialization completed successfully")
+    except Exception as e:
+        conn.rollback()  # Rollback on any error
+        print(f"Error during database initialization: {str(e)}")
+        # Continue with the application even if initialization fails
 
 # DB Initializing Route
 @app.route("/initdb")
 def initdb():
-    msg=init_db(conn)
+    msg = init_db(conn)
+    ensure_orders_table_exists(conn)
     return msg
 
 
@@ -70,6 +234,11 @@ def shopOrderPage(orderid):
     else:
         return render_template('shop/orderpage.html'), 422
 
+# Shop Search Page Route
+@app.route('/shop/search')
+def shopSearchPage():
+    return render_template('shop/search.html')
+
 '''
 PAGE ROUTE FUNCTIONS FOR CUSTOMER
 '''
@@ -104,30 +273,50 @@ def medicinePage(id):
         return render_template('customer/medicine_page.html', medicine=response["data"])
     return render_template('customer/medicine_page.html')
 
-# Account Page Route
-@app.route("/myaccount/<accessToken>")
-def myAccountPage(accessToken):
+# Account Page Route (New version, more secure)
+@app.route("/myaccount")
+def myAccountPage():
     try:
-        # Check if token has proper structure first
-        if not accessToken or accessToken.count('.') != 2:
-            print(f"Invalid token format: {accessToken}")
-            # Render template with error flag
-            return render_template('customer/myaccount.html', invalid_token=True), 200
-            
+        # Check for Authorization cookie or query param
+        access_token = request.cookies.get('access_token')
+        
+        if not access_token:
+            # Try to get from Authorization header
+            auth_header = request.headers.get('Authorization')
+            if auth_header and auth_header.startswith('Bearer '):
+                access_token = auth_header[7:]  # Remove 'Bearer ' prefix
+        
+        if not access_token:
+            # Render the page with login required message
+            print("No access token found in cookies or headers")
+            return render_template('customer/myaccount.html', invalid_token=True, 
+                                  error_message="Please log in to view your account"), 200
+        
         try:
             # Try to decode token
-            payload = decode_token(accessToken)
-            username = payload['sub']
+            # First try using PyJWT
+            try:
+                payload = jwt.decode(access_token, app.config['JWT_SECRET_KEY'], algorithms=["HS256"])
+                username = payload['sub']
+            except:
+                # Fall back to flask-jwt-extended
+                payload = decode_token(access_token)
+                username = payload['sub']
             
             print(f"Successfully decoded token for user: {username}")
             
             # Just render the page - API calls will happen from client side JavaScript
             return render_template('customer/myaccount.html', username=username), 200
-        except jwt.exceptions.ExpiredSignatureError:
+        except ExpiredSignatureError:
             # Handle expired token specifically
             print("Token has expired")
             return render_template('customer/myaccount.html', invalid_token=True, 
                                 error_message="Your session has expired. Please log in again."), 200
+        except InvalidTokenError:
+            # Handle invalid token
+            print("Invalid token")
+            return render_template('customer/myaccount.html', invalid_token=True, 
+                                error_message="Invalid authentication token. Please log in again."), 200
         except Exception as e:
             # Handle other token-related errors
             print(f"Token validation error: {str(e)}")
@@ -139,24 +328,58 @@ def myAccountPage(accessToken):
         import traceback
         traceback.print_exc()
         # In case of any error, still render the page with error flag
-        # The client-side JavaScript will handle showing error messages
         return render_template('customer/myaccount.html', error_message="An unexpected error occurred. Please try again."), 200
 
+# Keep the old route for backward compatibility
+@app.route("/myaccount/<accessToken>")
+def myAccountPageOld(accessToken):
+    try:
+        # Set the token as a cookie and redirect to the main myaccount route
+        response = make_response(redirect('/myaccount'))
+        response.set_cookie('access_token', accessToken)
+        return response
+    except Exception as e:
+        print(f"Error in old myAccountPage route: {str(e)}")
+        return redirect('/myaccount')
+
 # Order Page Route
-@app.route("/myorder/<accessToken>/<id>")
-def myOrderPage(accessToken,id):
-    # Add AccessToken as header
-    headers = {
-    'Authorization': f'Bearer {accessToken}'
-    }
-    # Use relative URL instead of hard-coded localhost
-    response = requests.get(request.host_url.rstrip('/') + f"/api/getOrder/{id}", headers=headers)
-    if response.status_code == 200:
-        # Return the order as dict
-        order=response.json()['data']
-        return render_template('customer/orderpage.html', order=order), 200
-    else:
-        return render_template('customer/orderpage.html'), 422
+@app.route("/myorder/<id>")
+def myOrderPage(id):
+    try:
+        print(f"Loading order page for order ID: {id}")
+        # Get access token either from URL parameter or from cookies
+        token = request.cookies.get('access_token')
+        
+        if not token:
+            print("No access token provided for order page")
+            return render_template('customer/login.html', error_message="Please log in to view your order")
+            
+        try:
+            # Decode the JWT token
+            decoded = jwt.decode(token, app.config['JWT_SECRET_KEY'], algorithms=['HS256'])
+            username = decoded.get('username')
+            
+            # Fetch order details via API
+            headers = {'Authorization': f'Bearer {token}'}
+            response = requests.get(f"{request.url_root}api/user/orders/{id}", headers=headers)
+            
+            if response.status_code != 200:
+                error_data = response.json()
+                print(f"API error: {error_data.get('error')}")
+                return render_template('customer/orderpage.html', error_message=error_data.get('message', 'Error fetching order details'))
+                
+            order = response.json()
+            print(f"Rendering order page for Order ID: {id}")
+            return render_template('customer/orderpage.html', order=order)
+            
+        except (jwt.ExpiredSignatureError, jwt.InvalidTokenError) as e:
+            print(f"Token error in myOrderPage: {str(e)}")
+            return render_template('customer/login.html', error_message="Your session has expired. Please log in again.")
+            
+    except Exception as e:
+        print(f"Error in myOrderPage: {str(e)}")
+        traceback.print_exc()
+        return render_template('customer/orderpage.html', error_message="An unexpected error occurred")
 
 # Create Order Page Route
 @app.route("/createOrder")
@@ -276,93 +499,273 @@ def isValid():
     else:
         return {"res": 0, "message": "User Invalid"}
 
-# Search Medicine API
+# Search Medicine API - Improved
 @app.get("/api/search/<key>")
 def searchHelper(key):
-    # Search using the key in medicine table
-    response=database.select(conn,"medicines", columns=["id","name","composition","price"], condition=f"name ILIKE '%{key}%' OR composition ILIKE '%{key}%'", limit=20)
-    if(response["res"]==0):
-        return {"res": 0, "message": "Search Failure"}
-    
-    # Get the matched medicine with the key
-    searchedMedicine=[]
-    for med in response["result"]:
-        data={
-            "id":med[0],
-            "name":med[1],
-            "composition":med[2],
-            "price":med[3],
-        }
-        searchedMedicine.append(data)
-    
-    # Return the result
-    return {"res": 1, "message": "Search Success", "data": searchedMedicine}
+    try:
+        if not key or len(key) < 2:
+            return {"res": 0, "message": "Search query too short"}
+            
+        conn = connect_to_db()
+        cursor = conn.cursor()
+        
+        # Check if medicines table exists
+        if is_sqlite(conn):
+            cursor.execute("""
+                SELECT name FROM sqlite_master 
+                WHERE type='table' AND name='medicines'
+            """)
+        else:
+            cursor.execute("""
+                SELECT EXISTS (
+                    SELECT FROM information_schema.tables 
+                    WHERE table_name = 'medicines'
+                )
+            """)
+        
+        table_exists = cursor.fetchone()
+        if not table_exists or not table_exists[0]:
+            return {"res": 0, "message": "Medicines database not available"}
+        
+        # Improved search with better SQL query and error handling
+        try:
+            cursor.execute("""
+                SELECT id, name, composition, price, category, manufacturer 
+                FROM medicines 
+                WHERE name LIKE ? OR composition LIKE ? OR category LIKE ?
+                ORDER BY 
+                    CASE 
+                        WHEN name LIKE ? THEN 1
+                        WHEN name LIKE ? THEN 2
+                        WHEN composition LIKE ? THEN 3
+                        ELSE 4
+                    END,
+                    name ASC
+                LIMIT 20
+            """, (
+                f'%{key}%', f'%{key}%', f'%{key}%', 
+                f'{key}%', f'%{key}', f'%{key}%'
+            ))
+        except Exception as e:
+            # Fallback to simpler query if the more complex one fails
+            cursor.execute("""
+                SELECT id, name, composition, price, category, manufacturer 
+                FROM medicines 
+                WHERE name LIKE ? OR composition LIKE ?
+                ORDER BY name ASC
+                LIMIT 20
+            """, (f'%{key}%', f'%{key}%'))
+        
+        medicines = cursor.fetchall()
+        
+        if not medicines:
+            return {"res": 0, "message": "No medicines found"}
+        
+        # Get column names
+        column_names = [description[0] for description in cursor.description]
+        
+        # Process results with better formatting
+        searchedMedicine = []
+        for medicine in medicines:
+            data = {}
+            for i, value in enumerate(medicine):
+                column_name = column_names[i]
+                # Format price with currency symbol
+                if column_name == 'price':
+                    data[column_name] = f"₹{value:.2f}" if value else "₹0.00"
+                else:
+                    data[column_name] = value if value else ""
+            searchedMedicine.append(data)
+        
+        return {"res": 1, "message": "Search Success", "data": searchedMedicine}
+        
+    except Exception as e:
+        app.logger.error(f"Error in medicine search: {str(e)}")
+        return {"res": 0, "message": f"Search Error: {str(e)}"}
+        
+    finally:
+        if conn:
+            conn.close()
 
-# Get medicine details API
+# Get medicine details API - Improved
 @app.get("/api/medicine/<id>")
 def medicineDetails(id):
-    # Get the medicine with that id
-    response=database.select(conn,"medicines", condition=f"id='{id}'")
-    if(response["res"]==0):
-        return {"res": 0, "message": "Get Medicine Details Failure"}
-    
-    # Prepare a JSON/dict before sending
-    data={
-            "id":response["result"][0][0],
-            "name":response["result"][0][1],
-            "composition":response["result"][0][2],
-            "price":response["result"][0][3],
-            "manufacturer":response["result"][0][4],
-            "description":response["result"][0][5],
-            "category":response["result"][0][6],
-            "side_effects":response["result"][0][7],
-        }
-
-    # Return the response
-    return {"res": 1, "message": "Medicine Details Fetched", "data": data}
+    try:
+        if not id:
+            return {"res": 0, "message": "Invalid medicine ID"}
+            
+        conn = connect_to_db()
+        cursor = conn.cursor()
+        
+        # Check if medicines table exists
+        if is_sqlite(conn):
+            cursor.execute("""
+                SELECT name FROM sqlite_master 
+                WHERE type='table' AND name='medicines'
+            """)
+        else:
+            cursor.execute("""
+                SELECT EXISTS (
+                    SELECT FROM information_schema.tables 
+                    WHERE table_name = 'medicines'
+                )
+            """)
+        
+        table_exists = cursor.fetchone()
+        if not table_exists or not table_exists[0]:
+            return {"res": 0, "message": "Medicines database not available"}
+        
+        # Get medicine details with better query and error handling
+        cursor.execute("SELECT * FROM medicines WHERE id = ?", (id,))
+        medicine = cursor.fetchone()
+        
+        if not medicine:
+            return {"res": 0, "message": "Medicine not found"}
+        
+        # Get column names
+        column_names = [description[0] for description in cursor.description]
+        
+        # Create medicine data dictionary with proper formatting
+        medicine_data = {}
+        for i, value in enumerate(medicine):
+            column_name = column_names[i]
+            # Format price with currency symbol
+            if column_name == 'price':
+                medicine_data[column_name] = f"₹{value:.2f}" if value else "₹0.00"
+            else:
+                medicine_data[column_name] = value if value else ""
+        
+        return {"res": 1, "message": "Get Medicine Details Success", "data": medicine_data}
+        
+    except Exception as e:
+        app.logger.error(f"Error getting medicine details: {str(e)}")
+        return {"res": 0, "message": f"Error: {str(e)}"}
+        
+    finally:
+        if conn:
+            conn.close()
 
 # Create Order API
 @app.post("/api/createOrder")
 @jwt_required()
 def createOrder():
-    # Get the user details from accesstoken
-    current_user = decode_token(request.headers['Authorization'][7:])  # Extract the token from the "Bearer" header
-    username = current_user['sub']
-
-    # Get the order details from post body
-    data = request.get_json()
-
-    # Calculate the total amount
-    response=calculateTotal(data["cart"])
-    if(response['res']==0):
-        return response
-    
-    # Insert the order in DB
-    total=response['total']
-    print(total)
-    data["time"]="CURRENT_TIMESTAMP(2)"
-    data["cart"]=json.dumps(data["cart"])
-    data["status"]="Order Received"
-    
-    # Get payment details
-    payment_method = data.get("payment_method", "cod")
-    upi_id = data.get("upi_id", None)
-    
-    # Include payment information in the DB query
-    query = f'''INSERT INTO orders 
-    (username, time, name, address, contact, cart, status, total, payment_method, upi_id) VALUES (
-    '{username}', {data["time"]}, '{data["name"]}', '{data["address"]}',
-    '{data["contact"]}', '{data["cart"]}', '{data["status"]}', {total},
-    '{payment_method}', '{upi_id if upi_id else ""}')'''
-    
     try:
-        with conn:
-            with conn.cursor() as cursor:
-                cursor.execute(query)
-                return {"res": 1, "message": "Insertion Success"}
+        # Get the user details from accesstoken
+        current_user = get_jwt_identity()
+        print(f"Creating order for user: {current_user}")
+
+        # Get the order details from post body
+        data = request.get_json()
+        
+        if not data:
+            return {"res": 0, "message": "No data provided"}, 400
+            
+        required_fields = ['cart', 'name', 'address', 'contact']
+        for field in required_fields:
+            if field not in data:
+                return {"res": 0, "message": f"Missing required field: {field}"}, 400
+        
+        # Calculate the total amount
+        total = 0
+        cart = data["cart"]
+        
+        if not cart or not isinstance(cart, list) or len(cart) == 0:
+            return {"res": 0, "message": "Cart cannot be empty"}, 400
+            
+        # Connect to the database
+        conn = connect_to_db()
+        
+        # Ensure the tables exist
+        ensure_orders_table_exists(conn)
+        
+        # Calculate total by fetching product prices
+        for item in cart:
+            try:
+                cursor = conn.cursor()
+                cursor.execute("SELECT price FROM medicines WHERE id = ?", (item['id'],))
+                result = cursor.fetchone()
+                
+                if not result:
+                    return {"res": 0, "message": f"Product with ID {item['id']} not found"}, 404
+                    
+                price_str = result[0]
+                # Remove currency symbol if present
+                if price_str.startswith('₹'):
+                    price_str = price_str[1:]
+                    
+                price = float(price_str)
+                qty = int(item.get('qty', 1))
+                total += price * qty
+                
+            except Exception as e:
+                print(f"Error calculating item price: {str(e)}")
+                return {"res": 0, "message": f"Error calculating price: {str(e)}"}, 500
+        
+        # Round total to 2 decimal places
+        total = round(total, 2)
+        print(f"Total order amount: {total}")
+        
+        # Get other order details
+        payment_method = data.get("payment_method", "cod")
+        upi_id = data.get("upi_id", "")
+        upi_reference = data.get("upi_reference", "")
+        
+        # Prepare cart data for storage
+        cart_json = json.dumps(cart)
+        
+        # Status is always "pending" for new orders
+        status = "pending"
+        
+        # Get current timestamp (SQLite and PostgreSQL compatible)
+        current_time = datetime.datetime.now().isoformat()
+        
+        try:
+            cursor = conn.cursor()
+            
+            # Check if we're using SQLite or PostgreSQL
+            if hasattr(conn, 'server_version'):  # PostgreSQL
+                # Use PostgreSQL syntax
+                query = """
+                    INSERT INTO orders 
+                    (username, time, name, address, contact, cart, status, total, payment_method, upi_id, upi_reference) 
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    RETURNING orderid
+                """
+                cursor.execute(query, (
+                    current_user, current_time, data["name"], data["address"],
+                    data["contact"], cart_json, status, total, payment_method, upi_id, upi_reference
+                ))
+                new_order_id = cursor.fetchone()[0]
+            else:  # SQLite
+                # Use SQLite syntax
+                query = """
+                    INSERT INTO orders 
+                    (username, time, name, address, contact, cart, status, total, payment_method, upi_id, upi_reference) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """
+                cursor.execute(query, (
+                    current_user, current_time, data["name"], data["address"],
+                    data["contact"], cart_json, status, total, payment_method, upi_id, upi_reference
+                ))
+                new_order_id = cursor.lastrowid
+                
+            conn.commit()
+            
+            print(f"Order created successfully with ID: {new_order_id}")
+            return {"res": 1, "message": "Order created successfully", "orderid": new_order_id, "total": total}
+            
+        except Exception as e:
+            conn.rollback()
+            print(f"Error inserting order: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            return {"res": 0, "message": f"Error creating order: {str(e)}"}, 500
+            
     except Exception as e:
-        print(e)
-        return {"res": 0, "message": "Insertion Failure"}
+        print(f"Error in createOrder: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return {"res": 0, "message": f"Unexpected error: {str(e)}"}, 500
 
 # Get Order API
 @app.get("/api/getOrder/<orderid>")
@@ -448,45 +851,685 @@ def shopGetOrderList():
 # Shop Get Order API
 @app.get("/api/shop/getOrder/<orderid>")
 def shopGetOrder(orderid):
-    # Get the order based on order id
-    response=database.select(conn,"orders",condition=f"orderid={orderid}")
-    
-    # Return the response
-    if(response["res"]==1):
-        result=response["result"][0]
-        data={
-            "orderid": result[0],
-            "username": result[1],
-            "time": result[2],
-            "name": result[3],
-            "address": result[4],
-            "contact": result[5],
-            "cart": json.loads(result[6]),
-            "status": result[7],
-            "total": result[8]
-        }
-        return {"res": 1, "message": "Order Fetched", "data": data}
-    return {"res": 0, "message": "Order Could Not be Fetched"}
+    conn = None
+    cursor = None
+    try:
+        print(f"Shop fetching order ID: {orderid}")
+        
+        # Connect to the database
+        conn = connect_to_db()
+        cursor = conn.cursor()
+        
+        # Ensure the orders table exists
+        ensure_orders_table_exists(conn)
+        
+        # Get the column information from the orders table
+        if hasattr(conn, 'server_version'):  # PostgreSQL
+            cursor.execute("""
+                SELECT column_name 
+                FROM information_schema.columns 
+                WHERE table_name = 'orders'
+            """)
+            columns = [column[0] for column in cursor.fetchall()]
+        else:  # SQLite
+            cursor.execute("PRAGMA table_info(orders)")
+            columns = [column[1] for column in cursor.fetchall()]
+        
+        # Construct the query based on available columns
+        select_columns = ["orderid", "username", "time"]
+        
+        # Add required columns if they exist
+        required_fields = ["name", "address", "contact", "cart", "total", "status"]
+        for field in required_fields:
+            if field in columns:
+                select_columns.append(field)
+        
+        # Add optional columns if they exist
+        for optional_field in ["payment_method", "delivery_method", "upi_id"]:
+            if optional_field in columns:
+                select_columns.append(optional_field)
+                
+        columns_str = ", ".join(select_columns)
+        
+        # Query the database for the order
+        if hasattr(conn, 'server_version'):  # PostgreSQL
+            query = f"""
+                SELECT {columns_str} 
+                FROM orders 
+                WHERE orderid = %s
+            """
+            cursor.execute(query, (orderid,))
+        else:  # SQLite
+            query = f"""
+                SELECT {columns_str} 
+                FROM orders 
+                WHERE orderid = ?
+            """
+            cursor.execute(query, (orderid,))
+            
+        order = cursor.fetchone()
+        
+        if not order:
+            print(f"No order found with ID: {orderid}")
+            return jsonify({"res": 0, "message": "Order not found"}), 404
+            
+        # Prepare the order data for JSON response
+        column_names = [desc[0] for desc in cursor.description]
+        order_dict = dict(zip(column_names, order))
+        
+        # Handle JSON parsing for cart
+        try:
+            if 'cart' in order_dict and order_dict['cart']:
+                order_dict['cart'] = json.loads(order_dict['cart'])
+            else:
+                order_dict['cart'] = []
+        except Exception as e:
+            print(f"Error parsing cart JSON for order {orderid}. Raw cart data: {order_dict.get('cart')}")
+            print(f"Error details: {str(e)}")
+            order_dict['cart'] = []
+            
+        # Handle datetime objects
+        if 'time' in order_dict and order_dict['time'] and hasattr(order_dict['time'], 'isoformat'):
+            order_dict['time'] = order_dict['time'].isoformat()
+            
+        print(f"Successfully retrieved order details for Order ID: {orderid}")
+        return jsonify({"res": 1, "message": "Order Fetched", "data": order_dict})
+        
+    except Exception as e:
+        print(f"Error in shopGetOrder: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"res": 0, "message": f"Error fetching order: {str(e)}"}), 500
+    finally:
+        if cursor:
+            try:
+                cursor.close()
+            except:
+                pass
+        if conn:
+            try:
+                conn.close()
+                print("Database connection closed")
+            except:
+                pass
 
 # Shop Update Order API
 @app.post("/api/shop/updateOrder")
 def shopUpdateOrder():
-    data = request.get_json()
+    conn = None
+    cursor = None
+    try:
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({"res": 0, "message": "No data provided"}), 400
+            
+        required_fields = ['orderid', 'status']
+        for field in required_fields:
+            if field not in data:
+                return jsonify({"res": 0, "message": f"Missing required field: {field}"}), 400
 
-    print(data)
+        print(f"Updating order {data['orderid']} status to: {data['status']}")
 
-    # Get the credentials
-    orderid=data["orderid"]
-    status=data["status"]
+        # Get the data
+        orderid = data["orderid"]
+        status = data["status"]
+        
+        # Validate status
+        valid_statuses = [
+            "Order Received", 
+            "Order Packed", 
+            "Order Shipped", 
+            "Order Delivered", 
+            "Order Cancelled"
+        ]
+        
+        if status not in valid_statuses:
+            return jsonify({"res": 0, "message": f"Invalid status value: {status}"}), 400
 
-    # Update the status of that orderid
-    response=database.update(conn,"orders",{"status":status},condition=f"orderid={orderid}")
-    print(response)
-    if response["res"]==1:
-        return {"res": 1, "message": "Update Successful"}
-    else:
-        return {"res": 0, "message": "Update Unsuccessful!"}
+        # Connect to database
+        conn = connect_to_db()
+        cursor = conn.cursor()
+        
+        # Ensure orders table exists
+        ensure_orders_table_exists(conn)
+        
+        # Update the status of that orderid
+        try:
+            if hasattr(conn, 'server_version'):  # PostgreSQL
+                cursor.execute("""
+                    UPDATE orders 
+                    SET status = %s 
+                    WHERE orderid = %s
+                """, (status, orderid))
+            else:  # SQLite
+                cursor.execute("""
+                    UPDATE orders 
+                    SET status = ? 
+                    WHERE orderid = ?
+                """, (status, orderid))
+                
+            conn.commit()
+            print(f"Successfully updated order {orderid} status to {status}")
+            return jsonify({"res": 1, "message": "Order status updated successfully"})
+            
+        except Exception as e:
+            conn.rollback()
+            print(f"Error updating order status: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            return jsonify({"res": 0, "message": f"Error updating order: {str(e)}"}), 500
+            
+    except Exception as e:
+        print(f"Error in shopUpdateOrder: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"res": 0, "message": f"Unexpected error: {str(e)}"}), 500
+    finally:
+        if cursor:
+            try:
+                cursor.close()
+            except:
+                pass
+        if conn:
+            try:
+                conn.close()
+                print("Database connection closed")
+            except:
+                pass
+
+# Shop Dashboard Stats API
+@app.route('/api/shop/dashboard-stats')
+def shopDashboardStats():
+    try:
+        conn = connect_to_db()
+        cursor = conn.cursor()
+        
+        stats = {}
+        
+        # Total orders
+        cursor.execute("SELECT COUNT(*) FROM orders")
+        stats['total_orders'] = cursor.fetchone()[0]
+        
+        # Pending orders
+        cursor.execute("SELECT COUNT(*) FROM orders WHERE status NOT IN ('delivered', 'cancelled')")
+        stats['pending_orders'] = cursor.fetchone()[0]
+        
+        # Completed orders
+        cursor.execute("SELECT COUNT(*) FROM orders WHERE status = 'delivered'")
+        stats['completed_orders'] = cursor.fetchone()[0]
+        
+        # Total medicines
+        try:
+            cursor.execute("SELECT COUNT(*) FROM medicines")
+            stats['total_medicines'] = cursor.fetchone()[0]
+        except:
+            # If medicines table doesn't exist
+            stats['total_medicines'] = 0
+        
+        # Recent orders (last 5)
+        cursor.execute("""
+            SELECT id, username, name, total, status, created_at 
+            FROM orders 
+            ORDER BY created_at DESC LIMIT 5
+        """)
+        
+        recent_orders = []
+        orders = cursor.fetchall()
+        
+        for order in orders:
+            recent_orders.append({
+                'id': order[0],
+                'username': order[1],
+                'customer': order[2],
+                'amount': f"₹{order[3]}",
+                'status': order[4],
+                'date': order[5]
+            })
+        
+        stats['recent_orders'] = recent_orders
+        
+        # Today's orders count
+        cursor.execute("""
+            SELECT COUNT(*) FROM orders 
+            WHERE DATE(created_at) = DATE('now')
+        """)
+        stats['today_orders'] = cursor.fetchone()[0]
+        
+        # Today's revenue
+        cursor.execute("""
+            SELECT SUM(total) FROM orders 
+            WHERE DATE(created_at) = DATE('now')
+        """)
+        result = cursor.fetchone()[0]
+        stats['today_revenue'] = f"₹{result}" if result else "₹0"
+        
+        return jsonify({
+            'success': True,
+            'stats': stats
+        })
     
+    except Exception as e:
+        app.logger.error(f"Error fetching shop stats: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+    
+    finally:
+        if conn:
+            conn.close()
+
+# Create an inventory page route and API endpoints
+@app.route("/shop/inventory")
+def inventoryPage():
+    return render_template('shop/inventory.html')
+
+# API to get inventory data
+@app.route('/api/shop/inventory', methods=['GET'])
+def getInventory():
+    try:
+        conn = connect_to_db()
+        cursor = conn.cursor()
+        
+        # Check if medicines table exists
+        if is_sqlite(conn):
+            cursor.execute("""
+                SELECT name FROM sqlite_master 
+                WHERE type='table' AND name='medicines'
+            """)
+        else:
+            cursor.execute("""
+                SELECT EXISTS (
+                    SELECT FROM information_schema.tables 
+                    WHERE table_name = 'medicines'
+                )
+            """)
+        
+        table_exists = cursor.fetchone()
+        if not table_exists or not table_exists[0]:
+            # Create medicines table if it doesn't exist
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS medicines (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name TEXT NOT NULL,
+                    composition TEXT,
+                    price REAL NOT NULL,
+                    category TEXT,
+                    manufacturer TEXT,
+                    description TEXT,
+                    prescription_required BOOLEAN DEFAULT 0,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+            conn.commit()
+            
+            # Add sample data
+            sample_medicines = [
+                ('Paracetamol', 'Acetaminophen 500mg', 35.00, 'Painkillers', 'MediTech', 'For fever and pain relief', 0),
+                ('Amoxicillin', 'Amoxicillin trihydrate 250mg', 120.00, 'Antibiotics', 'PharmaCare', 'For bacterial infections', 1),
+                ('Vitamin D3', 'Cholecalciferol 60,000 IU', 150.00, 'Vitamins', 'HealthPlus', 'Weekly vitamin supplement', 0),
+                ('Omeprazole', 'Omeprazole 20mg', 90.00, 'Antacids', 'DigestCare', 'For acidity and heartburn', 0),
+                ('Cetirizine', 'Cetirizine HCl 10mg', 45.00, 'Antihistamines', 'AllergyMed', 'For allergies and cold', 0)
+            ]
+            
+            cursor.executemany("""
+                INSERT INTO medicines (name, composition, price, category, manufacturer, description, prescription_required)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            """, sample_medicines)
+            conn.commit()
+        
+        # Fetch all medicines
+        cursor.execute("SELECT * FROM medicines ORDER BY name")
+        medicines = cursor.fetchall()
+        
+        # Get column names
+        column_names = [description[0] for description in cursor.description]
+        
+        # Convert to dictionary list
+        medicines_list = []
+        for medicine in medicines:
+            medicine_dict = {}
+            for i, value in enumerate(medicine):
+                column_name = column_names[i]
+                # Format price with currency symbol
+                if column_name == 'price':
+                    medicine_dict[column_name] = f"₹{value:.2f}"
+                else:
+                    medicine_dict[column_name] = value
+            medicines_list.append(medicine_dict)
+        
+        return jsonify({
+            'success': True,
+            'medicines': medicines_list
+        })
+    
+    except Exception as e:
+        app.logger.error(f"Error fetching inventory: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+    
+    finally:
+        if conn:
+            conn.close()
+
+@app.route('/api/shop/inventory/<int:medicine_id>', methods=['GET'])
+def getMedicine(medicine_id):
+    try:
+        conn = connect_to_db()
+        cursor = conn.cursor()
+        
+        cursor.execute("SELECT * FROM medicines WHERE id = ?", (medicine_id,))
+        medicine = cursor.fetchone()
+        
+        if not medicine:
+            return jsonify({
+                'success': False,
+                'error': 'Medicine not found'
+            }), 404
+        
+        # Get column names
+        column_names = [description[0] for description in cursor.description]
+        
+        # Convert to dictionary
+        medicine_dict = {}
+        for i, value in enumerate(medicine):
+            column_name = column_names[i]
+            # Format price with currency symbol
+            if column_name == 'price':
+                medicine_dict[column_name] = f"₹{value:.2f}"
+            else:
+                medicine_dict[column_name] = value
+        
+        return jsonify({
+            'success': True,
+            'medicine': medicine_dict
+        })
+    
+    except Exception as e:
+        app.logger.error(f"Error fetching medicine: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+    
+    finally:
+        if conn:
+            conn.close()
+
+@app.route('/api/shop/inventory', methods=['POST'])
+def addMedicine():
+    try:
+        data = request.json
+        
+        # Validate required fields
+        required_fields = ['name', 'price']
+        for field in required_fields:
+            if field not in data or not data[field]:
+                return jsonify({
+                    'success': False,
+                    'error': f'Missing required field: {field}'
+                }), 400
+        
+        conn = connect_to_db()
+        cursor = conn.cursor()
+        
+        # Extract data
+        name = data.get('name')
+        composition = data.get('composition', '')
+        price = float(data.get('price', 0))
+        category = data.get('category', '')
+        manufacturer = data.get('manufacturer', '')
+        description = data.get('description', '')
+        prescription_required = 1 if data.get('prescription_required') == 'Yes' else 0
+        
+        # Insert medicine
+        cursor.execute("""
+            INSERT INTO medicines (name, composition, price, category, manufacturer, description, prescription_required)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, (name, composition, price, category, manufacturer, description, prescription_required))
+        
+        conn.commit()
+        medicine_id = cursor.lastrowid
+        
+        return jsonify({
+            'success': True,
+            'message': 'Medicine added successfully',
+            'medicine_id': medicine_id
+        })
+    
+    except Exception as e:
+        app.logger.error(f"Error adding medicine: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+    
+    finally:
+        if conn:
+            conn.close()
+
+@app.route('/api/shop/inventory/<int:medicine_id>', methods=['PUT'])
+def updateMedicine(medicine_id):
+    try:
+        data = request.json
+        
+        # Validate required fields
+        required_fields = ['name', 'price']
+        for field in required_fields:
+            if field not in data or not data[field]:
+                return jsonify({
+                    'success': False,
+                    'error': f'Missing required field: {field}'
+                }), 400
+        
+        conn = connect_to_db()
+        cursor = conn.cursor()
+        
+        # Check if medicine exists
+        cursor.execute("SELECT id FROM medicines WHERE id = ?", (medicine_id,))
+        medicine = cursor.fetchone()
+        
+        if not medicine:
+            return jsonify({
+                'success': False,
+                'error': 'Medicine not found'
+            }), 404
+        
+        # Extract data
+        name = data.get('name')
+        composition = data.get('composition', '')
+        price = float(data.get('price', 0))
+        category = data.get('category', '')
+        manufacturer = data.get('manufacturer', '')
+        description = data.get('description', '')
+        prescription_required = 1 if data.get('prescription_required') == 'Yes' else 0
+        
+        # Update medicine
+        cursor.execute("""
+            UPDATE medicines SET
+                name = ?,
+                composition = ?,
+                price = ?,
+                category = ?,
+                manufacturer = ?,
+                description = ?,
+                prescription_required = ?
+            WHERE id = ?
+        """, (name, composition, price, category, manufacturer, description, prescription_required, medicine_id))
+        
+        conn.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Medicine updated successfully'
+        })
+    
+    except Exception as e:
+        app.logger.error(f"Error updating medicine: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+    
+    finally:
+        if conn:
+            conn.close()
+
+@app.route('/api/shop/inventory/<int:medicine_id>', methods=['DELETE'])
+def deleteMedicine(medicine_id):
+    try:
+        conn = connect_to_db()
+        cursor = conn.cursor()
+        
+        # Check if medicine exists
+        cursor.execute("SELECT id FROM medicines WHERE id = ?", (medicine_id,))
+        medicine = cursor.fetchone()
+        
+        if not medicine:
+            return jsonify({
+                'success': False,
+                'error': 'Medicine not found'
+            }), 404
+        
+        # Delete medicine
+        cursor.execute("DELETE FROM medicines WHERE id = ?", (medicine_id,))
+        conn.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Medicine deleted successfully'
+        })
+    
+    except Exception as e:
+        app.logger.error(f"Error deleting medicine: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+    
+    finally:
+        if conn:
+            conn.close()
+
+# Shop API search for orders and medicines
+@app.route('/api/shop/search')
+def shopSearch():
+    conn = None
+    cursor = None
+    try:
+        query = request.args.get('q', '').strip()
+        search_type = request.args.get('type', 'all')  # all, orders, medicines
+        
+        if not query:
+            return jsonify({
+                'success': False,
+                'error': 'Search query is required'
+            }), 400
+        
+        conn = connect_to_db()
+        cursor = conn.cursor()
+        
+        results = {
+            'orders': [],
+            'medicines': []
+        }
+        
+        # Search orders if type is 'all' or 'orders'
+        if search_type in ['all', 'orders']:
+            try:
+                # Search by order ID, customer name, or username
+                cursor.execute("""
+                    SELECT id, username, name, total, status, created_at 
+                    FROM orders 
+                    WHERE id LIKE ? OR username LIKE ? OR name LIKE ? OR contact LIKE ?
+                    ORDER BY created_at DESC
+                    LIMIT 10
+                """, (f'%{query}%', f'%{query}%', f'%{query}%', f'%{query}%'))
+                
+                orders = cursor.fetchall()
+                
+                for order in orders:
+                    results['orders'].append({
+                        'id': order[0],
+                        'username': order[1],
+                        'customer': order[2],
+                        'amount': f"₹{order[3]}",
+                        'status': order[4],
+                        'date': order[5]
+                    })
+            except Exception as e:
+                app.logger.error(f"Error searching orders: {str(e)}")
+                # Continue with medicines search even if orders search fails
+        
+        # Search medicines if type is 'all' or 'medicines'
+        if search_type in ['all', 'medicines']:
+            try:
+                # Check if medicines table exists
+                if is_sqlite(conn):
+                    cursor.execute("""
+                        SELECT name FROM sqlite_master 
+                        WHERE type='table' AND name='medicines'
+                    """)
+                else:
+                    cursor.execute("""
+                        SELECT EXISTS (
+                            SELECT FROM information_schema.tables 
+                            WHERE table_name = 'medicines'
+                        )
+                    """)
+                
+                table_exists = cursor.fetchone()
+                if table_exists and table_exists[0]:
+                    # Search by medicine name, composition, or category
+                    cursor.execute("""
+                        SELECT id, name, composition, price, category, manufacturer 
+                        FROM medicines 
+                        WHERE name LIKE ? OR composition LIKE ? OR category LIKE ?
+                        ORDER BY name ASC
+                        LIMIT 10
+                    """, (f'%{query}%', f'%{query}%', f'%{query}%'))
+                    
+                    medicines = cursor.fetchall()
+                    
+                    for medicine in medicines:
+                        results['medicines'].append({
+                            'id': medicine[0],
+                            'name': medicine[1],
+                            'composition': medicine[2] or '-',
+                            'price': f"₹{medicine[3]:.2f}",
+                            'category': medicine[4] or '-'
+                        })
+            except Exception as e:
+                app.logger.error(f"Error searching medicines: {str(e)}")
+        
+        return jsonify({
+            'success': True,
+            'results': results
+        })
+    
+    except Exception as e:
+        app.logger.error(f"Error in shop search: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+    
+    finally:
+        if cursor:
+            try:
+                cursor.close()
+            except:
+                pass
+        if conn:
+            try:
+                conn.close()
+                print("Database connection closed")
+            except:
+                pass
+
 '''
 NORMAL FUNCTIONS
 '''
@@ -503,7 +1546,31 @@ def calculateTotal(cart):
 
 # Inventory API endpoint
 @app.get("/api/inventory")
-def getInventory():
+def getInventoryAPI():
+    # Get medicines from the database
+    response = database.select(conn, "medicines", columns=["id", "name", "composition", "price", "manufacturer", "category"])
+    
+    if response["res"] == 0:
+        return {"res": 0, "message": "Failed to fetch inventory"}
+    
+    # Format the data for the frontend
+    inventory = []
+    for med in response["result"]:
+        data = {
+            "id": med[0],
+            "name": med[1],
+            "composition": med[2],
+            "price": med[3],
+            "manufacturer": med[4],
+            "category": med[5]
+        }
+        inventory.append(data)
+    
+    return {"res": 1, "message": "Inventory fetched successfully", "data": inventory}
+
+# Rename this function to avoid duplicate route
+@app.get("/api/customer/inventory")
+def getCustomerInventory():
     # Get medicines from the database
     response = database.select(conn, "medicines", columns=["id", "name", "composition", "price", "manufacturer", "category"])
     
@@ -708,54 +1775,109 @@ def getUserOrders():
         
         cursor = conn.cursor()
         
-        # Check if orders table exists
-        cursor.execute("SELECT to_regclass('public.orders')")
-        table_exists = cursor.fetchone()[0]
-        
-        if not table_exists:
-            print("Table orders does not exist")
-            return jsonify([])
-        
-        # Get user orders
+        # Check what database system we're using (SQLite or PostgreSQL)
         try:
-            query = '''
-                SELECT orderid, time, cart, status, total, payment_method
-                FROM orders
-                WHERE username = %s
-                ORDER BY time DESC
-            '''
-            cursor.execute(query, (current_user,))
+            # Try PostgreSQL syntax first
+            cursor.execute("SELECT to_regclass('public.orders')")
+            result = cursor.fetchone()
+            if not result or not result[0]:
+                # If PostgreSQL query fails or returns null, try SQLite approach
+                raise Exception("Table not found or PostgreSQL query failed")
+        except Exception as e:
+            print(f"PostgreSQL check failed: {str(e)}, trying SQLite approach")
+            try:
+                # Check if the orders table exists using SQLite syntax
+                cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='orders'")
+                if not cursor.fetchone():
+                    print("Orders table doesn't exist")
+                    # Return empty array for no orders instead of error
+                    return jsonify([])
+            except Exception as sqlite_error:
+                print(f"SQLite check failed: {str(sqlite_error)}")
+                # If both checks fail, return a generic response
+                return jsonify([])
+        
+        try:
+            # Get column names safely for any database
+            try:
+                cursor.execute("PRAGMA table_info(orders)")
+                columns = [column[1] for column in cursor.fetchall()]
+                print(f"SQLite columns: {columns}")
+            except:
+                # PostgreSQL approach
+                cursor.execute("SELECT column_name FROM information_schema.columns WHERE table_name = 'orders'")
+                columns = [column[0] for column in cursor.fetchall()]
+                print(f"PostgreSQL columns: {columns}")
+            
+            # Default minimum columns that must exist
+            basic_columns = ["orderid", "username", "time", "cart", "status", "total"]
+            
+            # Safely build query based on available columns
+            select_columns = []
+            for col in basic_columns:
+                if col in columns:
+                    select_columns.append(col)
+                    
+            # Add optional columns if they exist
+            for extra_col in ["payment_method", "delivery_method", "name", "address", "contact"]:
+                if extra_col in columns:
+                    select_columns.append(extra_col)
+            
+            # If we couldn't determine columns, use a safe default set
+            if not select_columns:
+                select_columns = ["orderid", "username", "time", "cart", "status", "total"]
+                
+            columns_str = ", ".join(select_columns)
+            
+            # For Postgres, we need $1 style parameters
+            if hasattr(conn, 'server_version'):  # Check if PostgreSQL
+                query = f"""
+                    SELECT {columns_str}
+                    FROM orders
+                    WHERE username = $1
+                    ORDER BY time DESC
+                """
+                cursor.execute(query, (current_user,))
+            else:  # SQLite
+                query = f"""
+                    SELECT {columns_str}
+                    FROM orders
+                    WHERE username = ?
+                    ORDER BY time DESC
+                """
+                cursor.execute(query, (current_user,))
+                
             orders = cursor.fetchall()
             
             if not orders:
                 print(f"No orders found for user: {current_user}")
                 return jsonify([])
             
+            # Get column names from cursor description
+            column_names = [desc[0] for desc in cursor.description]
+            
             result = []
             for order in orders:
+                # Create order dict based on column names
+                order_dict = dict(zip(column_names, order))
+                
+                # Handle JSON parsing for cart
                 try:
-                    # Handle potential JSON parsing errors
-                    cart = json.loads(order[2])
-                except:
-                    # If cart can't be parsed, use empty list
-                    print(f"Error parsing cart JSON for order {order[0]}")
-                    cart = []
+                    if 'cart' in order_dict and order_dict['cart']:
+                        order_dict['cart'] = json.loads(order_dict['cart'])
+                    else:
+                        order_dict['cart'] = []
+                except Exception as e:
+                    print(f"Error parsing cart JSON for order {order_dict.get('orderid')}: {str(e)}")
+                    order_dict['cart'] = []
                 
-                # Use None for missing fields to avoid KeyError
-                order_dict = {
-                    "orderid": order[0],
-                    "time": order[1].isoformat() if order[1] else None,
-                    "cart": cart,
-                    "status": order[3] or "Unknown",
-                    "total": order[4] or 0
-                }
-                
-                # Add payment_method only if it exists in the query results
-                if len(order) > 5 and order[5]:
-                    order_dict["payment_method"] = order[5]
+                # Handle datetime objects
+                if 'time' in order_dict and order_dict['time'] and hasattr(order_dict['time'], 'isoformat'):
+                    order_dict['time'] = order_dict['time'].isoformat()
                 
                 result.append(order_dict)
             
+            print(f"Successfully retrieved {len(result)} orders for user {current_user}")
             return jsonify(result)
             
         except Exception as e:
@@ -782,87 +1904,191 @@ def getUserOrders():
             except Exception as e:
                 print(f"Error closing database connection: {str(e)}")
 
-@app.route('/api/user/orders/<order_id>', methods=['GET'])
+@app.route('/api/user/orders/<orderid>', methods=['GET'])
 @jwt_required()
-def getOrderDetails(order_id):
+def getOrderDetails(orderid):
+    conn = None
+    cursor = None
     try:
+        print(f"Loading order details for order ID: {orderid}")
         current_user = get_jwt_identity()
+        
+        print(f"Fetching order details for User: {current_user}, Order ID: {orderid}")
+        
+        # Connect to the database
         conn = connect_to_db()
         cursor = conn.cursor()
         
-        # Get order details
-        cursor.execute('''
-            SELECT orderid, time, cart, status, total, delivery_method, address, contact
-            FROM orders
-            WHERE orderid = %s AND username = %s
-        ''', (order_id, current_user))
+        # Ensure the orders table exists
+        ensure_orders_table_exists(conn)
         
+        # Get the column information from the orders table
+        if hasattr(conn, 'server_version'):  # PostgreSQL
+            cursor.execute("""
+                SELECT column_name 
+                FROM information_schema.columns 
+                WHERE table_name = 'orders'
+            """)
+            columns = [column[0] for column in cursor.fetchall()]
+        else:  # SQLite
+            cursor.execute("PRAGMA table_info(orders)")
+            columns = [column[1] for column in cursor.fetchall()]
+        
+        # Construct the query based on available columns
+        select_columns = ["orderid", "username", "time"]
+        
+        # Add required columns if they exist
+        required_fields = ["name", "address", "contact", "cart", "total", "status"]
+        for field in required_fields:
+            if field in columns:
+                select_columns.append(field)
+        
+        # Add optional columns if they exist
+        for optional_field in ["payment_method", "delivery_method", "upi_id"]:
+            if optional_field in columns:
+                select_columns.append(optional_field)
+                
+        columns_str = ", ".join(select_columns)
+        
+        # Query the database for the order
+        if hasattr(conn, 'server_version'):  # PostgreSQL
+            query = f"""
+                SELECT {columns_str} 
+                FROM orders 
+                WHERE orderid = %s AND username = %s
+            """
+            cursor.execute(query, (orderid, current_user))
+        else:  # SQLite
+            query = f"""
+                SELECT {columns_str} 
+                FROM orders 
+                WHERE orderid = ? AND username = ?
+            """
+            cursor.execute(query, (orderid, current_user))
+            
         order = cursor.fetchone()
         
         if not order:
+            print(f"No order found with ID: {orderid} for user: {current_user}")
             return jsonify({"error": "Order not found"}), 404
             
-        return jsonify({
-            "orderid": order[0],
-            "time": order[1],
-            "cart": json.loads(order[2]),
-            "status": order[3],
-            "total": order[4],
-            "delivery_method": order[5],
-            "address": order[6],
-            "contact": order[7]
-        })
+        # Prepare the order data for JSON response
+        column_names = [desc[0] for desc in cursor.description]
+        order_dict = dict(zip(column_names, order))
+        
+        # Handle JSON parsing for cart
+        try:
+            if 'cart' in order_dict and order_dict['cart']:
+                order_dict['cart'] = json.loads(order_dict['cart'])
+            else:
+                order_dict['cart'] = []
+        except Exception as e:
+            print(f"Error parsing cart JSON for order {orderid}. Raw cart data: {order_dict.get('cart')}")
+            print(f"Error details: {str(e)}")
+            order_dict['cart'] = []
+            
+        # Handle datetime objects
+        if 'time' in order_dict and order_dict['time'] and hasattr(order_dict['time'], 'isoformat'):
+            order_dict['time'] = order_dict['time'].isoformat()
+            
+        print(f"Successfully retrieved order details for Order ID: {orderid}")
+        return jsonify(order_dict)
         
     except Exception as e:
-        print(f"Error getting order details: {str(e)}")
+        print(f"Error in getOrderDetails: {str(e)}")
         import traceback
         traceback.print_exc()
-        return jsonify({"error": "Internal server error"}), 500
+        return jsonify({"error": "An unexpected error occurred while fetching order details"}), 500
     finally:
+        if cursor:
+            try:
+                cursor.close()
+            except:
+                pass
         if conn:
-            conn.close()
+            try:
+                conn.close()
+                print("Database connection closed")
+            except:
+                pass
 
-@app.route('/api/user/orders/<order_id>/cancel', methods=['POST'])
+@app.route('/api/user/orders/<orderid>/cancel', methods=['POST'])
 @jwt_required()
-def cancelOrder(order_id):
+def cancelOrder(orderid):
+    conn = None
+    cursor = None
     try:
+        print(f"Processing cancellation request for order ID: {orderid}")
         current_user = get_jwt_identity()
+            
+        print(f"User {current_user} is attempting to cancel order {orderid}")
+        
+        # Connect to database
         conn = connect_to_db()
         cursor = conn.cursor()
         
-        # Check if order exists and belongs to user
-        cursor.execute('''
-            SELECT status
-            FROM orders
-            WHERE orderid = %s AND username = %s
-        ''', (order_id, current_user))
+        # Ensure orders table exists
+        ensure_orders_table_exists(conn)
         
+        # Query the database to check if the order exists and belongs to the user
+        if hasattr(conn, 'server_version'):  # PostgreSQL
+            cursor.execute("SELECT status FROM orders WHERE orderid = %s AND username = %s", 
+                          (orderid, current_user))
+        else:  # SQLite
+            cursor.execute("SELECT status FROM orders WHERE orderid = ? AND username = ?", 
+                          (orderid, current_user))
+            
         order = cursor.fetchone()
         
         if not order:
-            return jsonify({"error": "Order not found"}), 404
+            print(f"No order found with ID: {orderid} for user: {current_user}")
+            return jsonify({"error": "Order not found", "success": False}), 404
             
-        if order[0] != 'pending':
-            return jsonify({"error": "Only pending orders can be cancelled"}), 400
+        current_status = order[0]
+        print(f"Current order status: {current_status}")
+        
+        # Check if the order can be cancelled (only pending orders can be cancelled)
+        if current_status.lower() not in ['pending', 'order received', 'processing']:
+            msg = f"Cannot cancel order with status: {current_status}"
+            print(msg)
+            return jsonify({"error": msg, "success": False}), 400
             
-        # Cancel order
-        cursor.execute('''
-            UPDATE orders
-            SET status = 'cancelled'
-            WHERE orderid = %s AND username = %s
-        ''', (order_id, current_user))
-        
-        conn.commit()
-        return jsonify({"message": "Order cancelled successfully"})
-        
+        # Update the order status to cancelled
+        try:
+            if hasattr(conn, 'server_version'):  # PostgreSQL
+                cursor.execute("UPDATE orders SET status = %s WHERE orderid = %s AND username = %s", 
+                              ('Order Cancelled', orderid, current_user))
+            else:  # SQLite
+                cursor.execute("UPDATE orders SET status = ? WHERE orderid = ? AND username = ?", 
+                              ('Order Cancelled', orderid, current_user))
+                
+            conn.commit()
+            print(f"Order {orderid} successfully cancelled")
+            return jsonify({"message": "Order cancelled successfully", "success": True})
+        except Exception as e:
+            conn.rollback()
+            print(f"Error cancelling order: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            return jsonify({"error": f"Database error while cancelling order: {str(e)}", "success": False}), 500
+            
     except Exception as e:
-        print(f"Error cancelling order: {str(e)}")
+        print(f"Error in cancelOrder: {str(e)}")
         import traceback
         traceback.print_exc()
-        return jsonify({"error": "Internal server error"}), 500
+        return jsonify({"error": f"An unexpected error occurred: {str(e)}", "success": False}), 500
     finally:
+        if cursor:
+            try:
+                cursor.close()
+            except:
+                pass
         if conn:
-            conn.close()
+            try:
+                conn.close()
+                print("Database connection closed")
+            except:
+                pass
 
 @app.route('/api/user/reminders', methods=['GET'])
 @jwt_required()

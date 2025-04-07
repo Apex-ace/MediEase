@@ -129,6 +129,21 @@
         <dl class="content">
           <b>Order Status:</b> {{order['status']}}
         </dl>
+        <dl class="content">
+          <b>Payment Method:</b> &nbsp;
+          {% if order['payment_method'] == 'cod' %}
+            Cash on Delivery
+          {% elif order['payment_method'] == 'upi' %}
+            UPI Payment
+          {% else %}
+            {{ order['payment_method']|default('Not specified', true) }}
+          {% endif %}
+        </dl>
+        {% if order['payment_method'] == 'upi' and order['upi_reference'] %}
+        <dl class="content">
+          <b>UPI Reference ID:</b> &nbsp;{{ order['upi_reference'] }}
+        </dl>
+        {% endif %}
       </div>
     </div>
   

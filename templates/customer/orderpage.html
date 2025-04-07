@@ -8,14 +8,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
    <!-- Title of the page -->
-  <title>My Order Page</title>
+  <title>My Order Details - MediEase</title>
 
   <!-- Adding font for the webpage -->
   <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@300&display=swap" rel="stylesheet">
   
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+  
+  <!-- Font Awesome -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+  
   <!-- Adding the necessary css and javascript files for the webpage -->
   <link rel="stylesheet" href="{{ url_for('static', filename='customer/orderpage.css') }}" />
-  <script src="{{ url_for('static', filename='customer/orderpage.js') }}"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='customer/theme.css') }}" />
   <script src="{{ url_for('static', filename='customer/common.js') }}"></script>
   <style>
 
@@ -62,6 +68,26 @@
       justify-content: center;
     }
 
+    .cancel-button {
+      background-color: #dc3545;
+      color: white;
+      border: none;
+    }
+
+    .cancel-button:hover {
+      background-color: #c82333;
+    }
+
+    .contact-button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+    }
+
+    .contact-button:hover {
+      background-color: #0069d9;
+    }
+
     a:link {
       text-decoration: none;
     }
@@ -85,93 +111,184 @@
   <!-- Including the navigation bar -->
   {% include 'customer/navbar.html' %}
 
+  <!-- Alert area for error messages -->
+  <div class="container mt-3">
+    <div id="alert-container">
+      {% if error_message %}
+      <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        {{ error_message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if order and not error_message %}
   <!-- Heading for the Order details -->
   <header>
     <h1>Order Details</h1>
   </header>
 
   <!-- Vertical division for the Shipping address and Order detials -->
-  <div id="vertical_divide" style="justify-content: center;">
-
-    <!-- Shipping address section -->
-    <div id="medicines" style="font-family: 'Red Hat Display', sans-serif; margin-left: 50px;">
-
-      <!-- Individual details of shipping address -->
-      <dl style="text-align: center;">
-        <h2><b>Shipping Address</b></h2>
-      </dl>
-      <dl class="content">
-        <b>Username:</b> &nbsp;{{ order['username'] }}
-      </dl>
-      <dl class="content">
-        <b>Cutomer Name:</b> &nbsp;{{ order['name'] }}
-      </dl>
-      <dl class="content">
-        <b>Billing Address:</b> &nbsp;{{ order['address'] }}
-      </dl>
-      <dl class="content">
-        <b>Contact Detils:</b> &nbsp;{{ order['contact'] }}
-      </dl>
-    </div>
-
-    <!-- Order details section -->
-    <div id="medicines" style="font-family: 'Red Hat Display', sans-serif; margin-left: 50px;">
-
-      <!-- Individual details of order details -->
-      <dl style="text-align: center;">
-        <h2><b>Order Details</b></h2>
-      </dl>
-      <dl class="content">
-        <b>Order Id:</b> &nbsp;{{ order['orderid'] }}
-      </dl>
-      <dl class="content">
-        <b>Order Time:</b> &nbsp;{{ order['time'] }}
-      </dl>
-      {% for item in order['cart'] %}
-      <div id="item">
-        <dl class="content" style="margin-left: 2px;">
-          <b>Product Name:</b> &nbsp;{{ item['name'] }}
-        </dl>
-        <dl class="content" style="margin-left: 2px";>
-          <b>Quantity:</b> &nbsp;{{ item['qty'] }}
-        </dl>
+  <div id="vertical_divide" style="justify-content: center;" class="container mt-4">
+    <div class="row">
+      <!-- Shipping address section -->
+      <div class="col-md-6">
+        <div class="card mb-4">
+          <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Shipping Address</h4>
+          </div>
+          <div class="card-body">
+            <dl>
+              <dt>Username:</dt>
+              <dd>{{ order['username'] }}</dd>
+              <dt>Customer Name:</dt>
+              <dd>{{ order['name'] }}</dd>
+              <dt>Billing Address:</dt>
+              <dd>{{ order['address'] }}</dd>
+              <dt>Contact Details:</dt>
+              <dd>{{ order['contact'] }}</dd>
+            </dl>
+          </div>
+        </div>
       </div>
-      {% endfor %}
-      <dl class="content">
-        <b>Total Amount:</b> {{order['total']}}
-      </dl>
-      <dl class="content">
-        <b>Order Status:</b> {{order['status']}}
-      </dl>
+
+      <!-- Order details section -->
+      <div class="col-md-6">
+        <div class="card mb-4">
+          <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Order Details</h4>
+          </div>
+          <div class="card-body">
+            <dl>
+              <dt>Order Id:</dt>
+              <dd>{{ order['orderid'] }}</dd>
+              <dt>Order Time:</dt>
+              <dd>{{ order['time'] }}</dd>
+              <dt>Items:</dt>
+              <dd>
+                {% if order['cart'] %}
+                  <ul class="list-group mt-2">
+                    {% for item in order['cart'] %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                      {{ item['name'] }}
+                      <span class="badge bg-primary rounded-pill">{{ item['qty'] }}</span>
+                    </li>
+                    {% endfor %}
+                  </ul>
+                {% else %}
+                  <p>No items found</p>
+                {% endif %}
+              </dd>
+              <dt>Total Amount:</dt>
+              <dd>{{ order['total'] }}</dd>
+              <dt>Order Status:</dt>
+              <dd>
+                {% if order['status'] %}
+                <span class="badge 
+                  {% if 'cancel' in order['status']|lower %}bg-danger
+                  {% elif 'deliver' in order['status']|lower %}bg-success
+                  {% elif 'ship' in order['status']|lower %}bg-info
+                  {% elif 'pack' in order['status']|lower %}bg-warning text-dark
+                  {% elif 'receiv' in order['status']|lower %}bg-secondary
+                  {% else %}bg-primary{% endif %}">
+                  {{ order['status'] }}
+                </span>
+                {% else %}
+                <span class="badge bg-secondary">Unknown</span>
+                {% endif %}
+              </dd>
+              <dt>Payment Method:</dt>
+              <dd>
+                {% if order['payment_method'] == 'cod' %}
+                Cash on Delivery
+                {% elif order['payment_method'] == 'upi' %}
+                UPI Payment
+                {% else %}
+                {{ order['payment_method']|default('Not specified', true) }}
+                {% endif %}
+              </dd>
+              {% if order['payment_method'] == 'upi' and order['upi_reference'] %}
+              <dt>UPI Reference:</dt>
+              <dd>{{ order['upi_reference'] }}</dd>
+              {% endif %}
+            </dl>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
   <!-- Button section for Cancel and Contact Us -->
-  <div style="text-align: center; margin-top: 20px;">
-    {% if order['status'] == 'pending' %}
-    <button class="cancel-button" id="cancelOrderBtn" data-order-id="{{ order['orderid'] }}">Cancel Order</button>
+  <div class="text-center mt-4 mb-5">
+    {% if order['status'] == 'pending' or order['status'] == 'Order Received' %}
+    <button class="cancel-button" id="cancelOrderBtn" data-order-id="{{ order['orderid'] }}">
+      <i class="fas fa-times me-2"></i>Cancel Order
+    </button>
     {% else %}
-    <button class="cancel-button" disabled>Cancel Order</button>
+    <button class="cancel-button" disabled>
+      <i class="fas fa-times me-2"></i>Cancel Order
+    </button>
     {% endif %}
-    <button class="contact-button" onclick="location.href='#'">Contact Us</button>
+    <button class="contact-button" onclick="window.location.href='#'">
+      <i class="fas fa-envelope me-2"></i>Contact Us
+    </button>
   </div>
 
   <!-- Cancel Order Confirmation Modal -->
-  <div id="cancelModal" class="modal" style="display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
-    <div class="modal-content" style="background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 500px; border-radius: 8px;">
-      <h3>Cancel Order</h3>
-      <p>Are you sure you want to cancel this order?</p>
-      <div style="text-align: right;">
-        <button id="confirmCancelBtn" class="cancel-button">Yes, Cancel Order</button>
-        <button id="keepOrderBtn" class="contact-button">No, Keep Order</button>
+  <div class="modal fade" id="cancelModal" tabindex="-1" aria-labelledby="cancelModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="cancelModalLabel">Cancel Order</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p>Are you sure you want to cancel this order?</p>
+        </div>
+        <div class="modal-footer">
+          <button id="keepOrderBtn" class="btn btn-secondary" data-bs-dismiss="modal">No, Keep Order</button>
+          <button id="confirmCancelBtn" class="btn btn-danger">Yes, Cancel Order</button>
+        </div>
       </div>
     </div>
   </div>
+  {% else %}
+  <!-- Display if no order is found -->
+  <div class="container mt-5">
+    <div class="card text-center">
+      <div class="card-body">
+        <i class="fas fa-exclamation-triangle fa-4x text-warning mb-3"></i>
+        <h3>Order Not Found</h3>
+        <p class="lead">We couldn't find the order you're looking for.</p>
+        <a href="/myaccount" class="btn btn-primary mt-3">Go to My Account</a>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Bootstrap JavaScript -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
   
   <script>
+    // Function to get access token from cookies or localStorage
+    function getAccessToken() {
+      // Try to get from cookie first
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.startsWith('access_token=')) {
+          return cookie.substring('access_token='.length, cookie.length);
+        }
+      }
+      
+      // Fallback to localStorage
+      return localStorage.getItem('accessToken');
+    }
+    
     document.addEventListener('DOMContentLoaded', function() {
       // Get the modal
-      const modal = document.getElementById('cancelModal');
+      const modal = new bootstrap.Modal(document.getElementById('cancelModal'));
       
       // Get the button that opens the modal
       const cancelBtn = document.getElementById('cancelOrderBtn');
@@ -183,32 +300,22 @@
       // When the user clicks on the cancel button, open the modal
       if (cancelBtn) {
         cancelBtn.addEventListener('click', function() {
-          modal.style.display = "block";
+          modal.show();
         });
       }
       
-      // When the user clicks on "No, Keep Order", close the modal
-      keepBtn.addEventListener('click', function() {
-        modal.style.display = "none";
-      });
-      
       // When the user clicks on "Yes, Cancel Order", send cancellation request
-      confirmBtn.addEventListener('click', function() {
-        const orderId = cancelBtn.getAttribute('data-order-id');
-        cancelOrder(orderId);
-      });
-      
-      // When the user clicks anywhere outside of the modal, close it
-      window.addEventListener('click', function(event) {
-        if (event.target == modal) {
-          modal.style.display = "none";
-        }
-      });
+      if (confirmBtn) {
+        confirmBtn.addEventListener('click', function() {
+          const orderId = cancelBtn.getAttribute('data-order-id');
+          cancelOrder(orderId);
+        });
+      }
       
       // Function to call the API to cancel the order
       async function cancelOrder(orderId) {
         try {
-          const accessToken = localStorage.getItem('accessToken');
+          const accessToken = getAccessToken();
           const response = await fetch(`/api/user/orders/${orderId}/cancel`, {
             method: 'POST',
             headers: {
@@ -221,16 +328,39 @@
           }
           
           const data = await response.json();
-          alert(data.message || 'Order cancelled successfully');
           
-          // Reload the page to show updated status
-          window.location.reload();
-        } catch (error) {
-          console.error('Error cancelling order:', error);
-          alert('Error cancelling order: ' + error.message);
+          // Create and show alert
+          const alertContainer = document.getElementById('alert-container');
+          const alertDiv = document.createElement('div');
+          alertDiv.className = 'alert alert-success alert-dismissible fade show';
+          alertDiv.innerHTML = `
+            ${data.message || 'Order cancelled successfully'}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          `;
+          alertContainer.appendChild(alertDiv);
           
           // Close the modal
-          modal.style.display = "none";
+          modal.hide();
+          
+          // Reload the page after a short delay
+          setTimeout(() => {
+            window.location.reload();
+          }, 2000);
+        } catch (error) {
+          console.error('Error cancelling order:', error);
+          
+          // Create and show error alert
+          const alertContainer = document.getElementById('alert-container');
+          const alertDiv = document.createElement('div');
+          alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+          alertDiv.innerHTML = `
+            Error cancelling order: ${error.message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          `;
+          alertContainer.appendChild(alertDiv);
+          
+          // Close the modal
+          modal.hide();
         }
       }
     });

@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - MediEase</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='customer/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='customer/theme.css') }}">
+    
+    <style>
+        body {
+            background-color: #f5f7fa;
+        }
+        
+        .checkout-header {
+            background-color: #37586e;
+            color: white;
+            padding: 15px 0;
+            margin-bottom: 30px;
+            border-radius: 0 0 10px 10px;
+        }
+        
+        .checkout-container {
+            padding-bottom: 40px;
+        }
+        
+        .form-container {
+            background-color: white;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .order-summary {
+            background-color: white;
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 20px;
+        }
+        
+        .order-item {
+            padding: 10px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .order-item:last-child {
+            border-bottom: none;
+        }
+        
+        .total-amount {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #37586e;
+        }
+        
+        .payment-method-container {
+            margin-top: 15px;
+        }
+        
+        .upi-details {
+            display: none;
+            margin-top: 15px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .qr-container {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border: 1px solid #e9ecef;
+            transition: transform 0.3s ease;
+        }
+        
+        .qr-container:hover {
+            transform: scale(1.02);
+        }
+        
+        .payment-steps {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e8f4ff;
+            border-radius: 8px;
+            border-left: 4px solid #0d6efd;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Include navbar -->
+    {% include 'customer/navbar.html' %}
+
+    <!-- Checkout header -->
+    <div class="checkout-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h4 class="mb-0"><i class="fas fa-shopping-bag me-2"></i>Checkout</h4>
+                </div>
+                <div class="col-md-6 text-end">
+                    <a href="/cart" class="btn btn-sm btn-outline-light">
+                        <i class="fas fa-arrow-left me-1"></i>Back to Cart
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container checkout-container">
+        <div class="row">
+            <!-- Checkout Form -->
+            <div class="col-md-8">
+                <div class="form-container">
+                    <h5 class="mb-4">Shipping Information</h5>
+                    
+                    <form id="checkout-form">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="fullName" class="form-label">Full Name</label>
+                                <input type="text" class="form-control" id="fullName" name="fullName" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="contactNumber" class="form-label">Contact Number</label>
+                                <input type="text" class="form-control" id="contactNumber" name="contactNumber" required>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="address" class="form-label">Delivery Address</label>
+                            <textarea class="form-control" id="address" name="address" rows="3" required></textarea>
+                        </div>
+                        
+                        <h5 class="mb-3 mt-4">Payment Method</h5>
+                        
+                        <div class="payment-method-container">
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="paymentMethod" id="codPayment" value="cod" checked>
+                                <label class="form-check-label" for="codPayment">
+                                    Cash on Delivery
+                                </label>
+                            </div>
+                            
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="paymentMethod" id="upiPayment" value="upi">
+                                <label class="form-check-label" for="upiPayment">
+                                    UPI Payment
+                                </label>
+                            </div>
+                            
+                            <div id="upiDetails" class="upi-details">
+                                <div class="row">
+                                    <div class="col-md-6 text-center mb-3">
+                                        <div class="qr-container bg-white p-3 rounded">
+                                            <img src="{{ url_for('static', filename='images/payment.jpg') }}" alt="UPI QR Code" class="img-fluid" style="max-width: 200px;">
+                                            <p class="mt-2 mb-0 fw-bold">Scan to pay</p>
+                                            <small class="text-muted">UPI ID: ayushmishra.pi-1@oksbi</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="upiId" class="form-label">UPI ID</label>
+                                            <input type="text" class="form-control" id="upiId" name="upiId" value="ayushmishra.pi-1@oksbi" readonly>
+                                            <div class="form-text">Scan the QR code or use this UPI ID to make the payment</div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="upiReference" class="form-label">Payment Reference ID</label>
+                                            <input type="text" class="form-control" id="upiReference" name="upiReference" placeholder="Enter UPI reference number">
+                                            <div class="form-text">Enter the reference number after payment</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="payment-steps">
+                                <h6 class="mb-3"><i class="fas fa-info-circle me-2"></i>How to pay</h6>
+                                <ol class="mb-0">
+                                    <li>Open your UPI app (GPay, PhonePe, Paytm, etc.)</li>
+                                    <li>Scan the QR code or enter the UPI ID: ayushmishra.pi-1@oksbi</li>
+                                    <li>Enter the amount shown above (₹<span id="upi-amount">0.00</span>)</li>
+                                    <li>Complete the payment</li>
+                                    <li>Enter the payment reference ID in the field above</li>
+                                </ol>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary py-2" id="place-order-btn">
+                                <i class="fas fa-check-circle me-2"></i>Place Order
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Order Summary -->
+            <div class="col-md-4">
+                <div class="order-summary">
+                    <h5 class="mb-4">Order Summary</h5>
+                    
+                    <div id="order-items">
+                        <!-- Order items will be loaded here by JavaScript -->
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Subtotal</span>
+                        <span id="order-subtotal">₹0.00</span>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Shipping</span>
+                        <span class="text-success">Free</span>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="fw-bold">Total</span>
+                        <span class="total-amount" id="order-total">₹0.00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap & jQuery JS -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='customer/common.js') }}"></script>
+    <script src="{{ url_for('static', filename='customer/create_order.js') }}"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load cart items into order summary
+            const cartItems = JSON.parse(localStorage.getItem('cart')) || [];
+            const orderItemsContainer = document.getElementById('order-items');
+            
+            if (cartItems.length === 0) {
+                // Redirect to cart if empty
+                window.location.href = '/cart';
+                return;
+            }
+            
+            let total = 0;
+            let orderItemsHTML = '';
+            
+            cartItems.forEach(item => {
+                const priceValue = parseFloat(item.price.replace(/[^\d.]/g, ''));
+                const itemTotal = priceValue * item.qty;
+                total += itemTotal;
+                
+                orderItemsHTML += `
+                <div class="order-item">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <strong>${item.name}</strong> 
+                            <div class="text-muted">Qty: ${item.qty}</div>
+                        </div>
+                        <div>₹${itemTotal.toFixed(2)}</div>
+                    </div>
+                </div>`;
+            });
+            
+            orderItemsContainer.innerHTML = orderItemsHTML;
+            
+            // Update totals
+            document.getElementById('order-subtotal').textContent = `₹${total.toFixed(2)}`;
+            document.getElementById('order-total').textContent = `₹${total.toFixed(2)}`;
+            
+            // Update UPI amount
+            document.getElementById('upi-amount').textContent = total.toFixed(2);
+            
+            // Toggle UPI details section
+            const paymentMethods = document.querySelectorAll('input[name="paymentMethod"]');
+            const upiDetails = document.getElementById('upiDetails');
+            
+            paymentMethods.forEach(method => {
+                method.addEventListener('change', function() {
+                    if (this.value === 'upi') {
+                        upiDetails.style.display = 'block';
+                    } else {
+                        upiDetails.style.display = 'none';
+                    }
+                });
+            });
+            
+            // Load user profile data if available
+            loadUserProfile();
+        });
+        
+        function loadUserProfile() {
+            const token = localStorage.getItem('access_token');
+            if (!token) return;
+            
+            fetch('/api/getUserProfile', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.profile) {
+                    // Pre-fill form with user data
+                    document.getElementById('fullName').value = data.profile.name || '';
+                    document.getElementById('contactNumber').value = data.profile.contact || '';
+                    document.getElementById('address').value = data.profile.address || '';
+                }
+            })
+            .catch(error => {
+                console.error('Error loading user profile:', error);
+            });
+        }
+    </script>
+</body>
+</html> 
