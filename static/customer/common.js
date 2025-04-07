@@ -296,6 +296,23 @@ function redirectToMyAccount(event) {
             return;
         }
         
+        // Check if token might be expired by decoding it
+        try {
+            const payload = JSON.parse(atob(parts[1]));
+            const currentTime = Math.floor(Date.now() / 1000);
+            
+            if (payload.exp && payload.exp < currentTime) {
+                console.error('Token has expired');
+                alert('Your login session has expired. Please log in again.');
+                localStorage.removeItem('accessToken');
+                window.location.href = '/login';
+                return;
+            }
+        } catch (error) {
+            console.error('Error decoding token payload', error);
+            // Continue anyway, server will validate
+        }
+        
         // Redirect to my account page
         window.location.href = '/myaccount/' + accessToken;
     } catch (error) {

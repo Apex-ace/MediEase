@@ -1,264 +1,288 @@
-{% extends "customer/base.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Account - MediEase</title>
 
-{% block content %}
-<div class="container mt-5">
-    <div id="alert-container">
-        {% if error_message %}
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            {{ error_message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-        {% endif %}
-        
-        {% if invalid_token %}
-        <div class="alert alert-warning alert-dismissible fade show" role="alert">
-            Your session has expired or is invalid. Please <a href="/login" class="alert-link">log in again</a>.
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-        {% endif %}
-    </div>
+    <!-- Link to Bootstrap CSS from CDN for styling -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
     
-    {% if invalid_token != True %}
-    <div class="row">
-        <div class="col-md-4">
-            <div class="card profile-card">
-                <div class="card-body text-center">
-                    <div class="profile-image mb-3">
-                        <img src="/static/customer/images/default-avatar.png" alt="Profile Image" id="profile-image" class="rounded-circle" style="width: 100px; height: 100px; object-fit: cover;">
+    <!-- Font Awesome for icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+
+    <!-- Link to custom CSS files -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='customer/theme.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='customer/navbar.css') }}">
+    
+    <!-- Link to common JavaScript files -->
+    <script src="{{ url_for('static', filename='customer/common.js') }}"></script>
+</head>
+<body>
+    <!-- Include navbar -->
+    {% include 'customer/navbar.html' %}
+
+    <div class="container mt-5">
+        <div id="alert-container">
+            {% if error_message %}
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                {{ error_message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endif %}
+            
+            {% if invalid_token %}
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                Your session has expired or is invalid. Please <a href="/login" class="alert-link">log in again</a>.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endif %}
+        </div>
+        
+        {% if invalid_token != True %}
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card profile-card">
+                    <div class="card-body text-center">
+                        <div class="profile-image mb-3">
+                            <img src="/static/customer/images/default-avatar.png" alt="Profile Image" id="profile-image" class="rounded-circle" style="width: 100px; height: 100px; object-fit: cover;">
+                        </div>
+                        <h2 id="profile-full-name" class="mb-3">Loading...</h2>
+                        <div class="profile-info text-start">
+                            <p><strong>Email:</strong> <span id="profile-email">Loading...</span></p>
+                            <p><strong>Phone:</strong> <span id="profile-phone">Loading...</span></p>
+                            <p><strong>Address:</strong> <span id="profile-address">Loading...</span></p>
+                        </div>
+                        <button class="btn btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+                            <i class="fas fa-edit"></i> Edit Profile
+                        </button>
                     </div>
-                    <h2 id="profile-full-name" class="mb-3">Loading...</h2>
-                    <div class="profile-info text-start">
-                        <p><strong>Email:</strong> <span id="profile-email">Loading...</span></p>
-                        <p><strong>Phone:</strong> <span id="profile-phone">Loading...</span></p>
-                        <p><strong>Address:</strong> <span id="profile-address">Loading...</span></p>
+                </div>
+            </div>
+            
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <ul class="nav nav-tabs card-header-tabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="orders-tab" data-bs-toggle="tab" data-bs-target="#orders" type="button" role="tab" aria-controls="orders" aria-selected="true">
+                                    <i class="fas fa-shopping-bag"></i> My Orders
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="reminders-tab" data-bs-toggle="tab" data-bs-target="#reminders" type="button" role="tab" aria-controls="reminders" aria-selected="false">
+                                    <i class="fas fa-bell"></i> Medication Reminders
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings" type="button" role="tab" aria-controls="settings" aria-selected="false">
+                                    <i class="fas fa-cog"></i> Account Settings
+                                </button>
+                            </li>
+                        </ul>
                     </div>
-                    <button class="btn btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#editProfileModal">
-                        <i class="fas fa-edit"></i> Edit Profile
-                    </button>
+                    
+                    <div class="card-body">
+                        <div class="tab-content">
+                            <div class="tab-pane fade show active" id="orders" role="tabpanel" aria-labelledby="orders-tab">
+                                <h4 class="mb-4">My Orders</h4>
+                                <div id="orders-container">
+                                    <div class="d-flex justify-content-center">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="tab-pane fade" id="reminders" role="tabpanel" aria-labelledby="reminders-tab">
+                                <div class="d-flex justify-content-between align-items-center mb-4">
+                                    <h4 class="mb-0">Medication Reminders</h4>
+                                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addReminderModal">
+                                        <i class="fas fa-plus"></i> Add Reminder
+                                    </button>
+                                </div>
+                                <div id="reminders-container">
+                                    <div class="d-flex justify-content-center">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="tab-pane fade" id="settings" role="tabpanel" aria-labelledby="settings-tab">
+                                <h4 class="mb-4">Account Settings</h4>
+                                <form id="change-password-form">
+                                    <div class="mb-3">
+                                        <label for="current-password" class="form-label">Current Password</label>
+                                        <input type="password" class="form-control" id="current-password" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="new-password" class="form-label">New Password</label>
+                                        <input type="password" class="form-control" id="new-password" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="confirm-password" class="form-label">Confirm New Password</label>
+                                        <input type="password" class="form-control" id="confirm-password" required>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">Change Password</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-        
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
-                    <ul class="nav nav-tabs card-header-tabs" role="tablist">
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="orders-tab" data-bs-toggle="tab" data-bs-target="#orders" type="button" role="tab" aria-controls="orders" aria-selected="true">
-                                <i class="fas fa-shopping-bag"></i> My Orders
-                            </button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="reminders-tab" data-bs-toggle="tab" data-bs-target="#reminders" type="button" role="tab" aria-controls="reminders" aria-selected="false">
-                                <i class="fas fa-bell"></i> Medication Reminders
-                            </button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings" type="button" role="tab" aria-controls="settings" aria-selected="false">
-                                <i class="fas fa-cog"></i> Account Settings
-                            </button>
-                        </li>
-                    </ul>
-                </div>
-                
-                <div class="card-body">
-                    <div class="tab-content">
-                        <div class="tab-pane fade show active" id="orders" role="tabpanel" aria-labelledby="orders-tab">
-                            <h4 class="mb-4">My Orders</h4>
-                            <div id="orders-container">
-                                <div class="d-flex justify-content-center">
-                                    <div class="spinner-border text-primary" role="status">
-                                        <span class="visually-hidden">Loading...</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="tab-pane fade" id="reminders" role="tabpanel" aria-labelledby="reminders-tab">
-                            <div class="d-flex justify-content-between align-items-center mb-4">
-                                <h4 class="mb-0">Medication Reminders</h4>
-                                <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addReminderModal">
-                                    <i class="fas fa-plus"></i> Add Reminder
-                                </button>
-                            </div>
-                            <div id="reminders-container">
-                                <div class="d-flex justify-content-center">
-                                    <div class="spinner-border text-primary" role="status">
-                                        <span class="visually-hidden">Loading...</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="tab-pane fade" id="settings" role="tabpanel" aria-labelledby="settings-tab">
-                            <h4 class="mb-4">Account Settings</h4>
-                            <form id="change-password-form">
-                                <div class="mb-3">
-                                    <label for="current-password" class="form-label">Current Password</label>
-                                    <input type="password" class="form-control" id="current-password" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="new-password" class="form-label">New Password</label>
-                                    <input type="password" class="form-control" id="new-password" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="confirm-password" class="form-label">Confirm New Password</label>
-                                    <input type="password" class="form-control" id="confirm-password" required>
-                                </div>
-                                <button type="submit" class="btn btn-primary">Change Password</button>
-                            </form>
-                        </div>
+        {% else %}
+        <div class="row">
+            <div class="col-md-12 text-center py-5">
+                <div class="card">
+                    <div class="card-body">
+                        <i class="fas fa-exclamation-triangle fa-4x text-warning mb-3"></i>
+                        <h3>Session Expired</h3>
+                        <p class="lead">Your login session has expired or is invalid.</p>
+                        <a href="/login" class="btn btn-primary mt-3">Log In Again</a>
                     </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    {% if invalid_token != True %}
+    <!-- Edit Profile Modal -->
+    <div class="modal fade" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editProfileModalLabel">Edit Profile</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="edit-profile-form">
+                        <div class="mb-3">
+                            <label for="edit-full-name" class="form-label">Full Name</label>
+                            <input type="text" class="form-control" id="edit-full-name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="edit-email" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-phone" class="form-label">Phone</label>
+                            <input type="tel" class="form-control" id="edit-phone">
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-address" class="form-label">Address</label>
+                            <textarea class="form-control" id="edit-address" rows="3"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="saveProfileInfo()">Save Changes</button>
                 </div>
             </div>
         </div>
     </div>
-    {% else %}
-    <div class="row">
-        <div class="col-md-12 text-center py-5">
-            <div class="card">
-                <div class="card-body">
-                    <i class="fas fa-exclamation-triangle fa-4x text-warning mb-3"></i>
-                    <h3>Session Expired</h3>
-                    <p class="lead">Your login session has expired or is invalid.</p>
-                    <a href="/login" class="btn btn-primary mt-3">Log In Again</a>
+
+    <!-- Add Reminder Modal -->
+    <div class="modal fade" id="addReminderModal" tabindex="-1" aria-labelledby="addReminderModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addReminderModalLabel">Add Medication Reminder</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="add-reminder-form">
+                        <div class="mb-3">
+                            <label for="medication-name" class="form-label">Medication Name</label>
+                            <input type="text" class="form-control" id="medication-name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="dosage" class="form-label">Dosage</label>
+                            <input type="text" class="form-control" id="dosage" placeholder="e.g. 1 tablet">
+                        </div>
+                        <div class="mb-3">
+                            <label for="time" class="form-label">Time</label>
+                            <input type="time" class="form-control" id="time" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Frequency</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="frequency" id="frequency-daily" value="daily" checked>
+                                <label class="form-check-label" for="frequency-daily">
+                                    Daily
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="frequency" id="frequency-weekly" value="weekly">
+                                <label class="form-check-label" for="frequency-weekly">
+                                    Weekly
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="frequency" id="frequency-custom" value="custom">
+                                <label class="form-check-label" for="frequency-custom">
+                                    Custom
+                                </label>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="notes" class="form-label">Notes</label>
+                            <textarea class="form-control" id="notes" rows="2"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="saveReminderBtn">Save Reminder</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Details Modal -->
+    <div class="modal fade" id="orderDetailsModal" tabindex="-1" aria-labelledby="orderDetailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="orderDetailsModalLabel">Order Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="order-details-content">
+                    <!-- Order details will be loaded dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cancel Order Confirmation Modal -->
+    <div class="modal fade" id="cancelOrderModal" tabindex="-1" aria-labelledby="cancelOrderModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="cancelOrderModalLabel">Cancel Order</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to cancel this order?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Keep Order</button>
+                    <button type="button" class="btn btn-danger" id="confirm-cancel-btn">Cancel Order</button>
                 </div>
             </div>
         </div>
     </div>
     {% endif %}
-</div>
 
-{% if invalid_token != True %}
-<!-- Edit Profile Modal -->
-<div class="modal fade" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="editProfileModalLabel">Edit Profile</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="edit-profile-form">
-                    <div class="mb-3">
-                        <label for="edit-full-name" class="form-label">Full Name</label>
-                        <input type="text" class="form-control" id="edit-full-name" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="edit-email" class="form-label">Email</label>
-                        <input type="email" class="form-control" id="edit-email" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="edit-phone" class="form-label">Phone</label>
-                        <input type="tel" class="form-control" id="edit-phone">
-                    </div>
-                    <div class="mb-3">
-                        <label for="edit-address" class="form-label">Address</label>
-                        <textarea class="form-control" id="edit-address" rows="3"></textarea>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" onclick="saveProfileInfo()">Save Changes</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Add Reminder Modal -->
-<div class="modal fade" id="addReminderModal" tabindex="-1" aria-labelledby="addReminderModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="addReminderModalLabel">Add Medication Reminder</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="add-reminder-form">
-                    <div class="mb-3">
-                        <label for="medication-name" class="form-label">Medication Name</label>
-                        <input type="text" class="form-control" id="medication-name" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="dosage" class="form-label">Dosage</label>
-                        <input type="text" class="form-control" id="dosage" placeholder="e.g. 1 tablet">
-                    </div>
-                    <div class="mb-3">
-                        <label for="time" class="form-label">Time</label>
-                        <input type="time" class="form-control" id="time" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Frequency</label>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="frequency" id="frequency-daily" value="daily" checked>
-                            <label class="form-check-label" for="frequency-daily">
-                                Daily
-                            </label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="frequency" id="frequency-weekly" value="weekly">
-                            <label class="form-check-label" for="frequency-weekly">
-                                Weekly
-                            </label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="frequency" id="frequency-custom" value="custom">
-                            <label class="form-check-label" for="frequency-custom">
-                                Custom
-                            </label>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="notes" class="form-label">Notes</label>
-                        <textarea class="form-control" id="notes" rows="2"></textarea>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" id="saveReminderBtn">Save Reminder</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Order Details Modal -->
-<div class="modal fade" id="orderDetailsModal" tabindex="-1" aria-labelledby="orderDetailsModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="orderDetailsModalLabel">Order Details</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body" id="order-details-content">
-                <!-- Order details will be loaded dynamically -->
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Cancel Order Confirmation Modal -->
-<div class="modal fade" id="cancelOrderModal" tabindex="-1" aria-labelledby="cancelOrderModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="cancelOrderModalLabel">Cancel Order</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p>Are you sure you want to cancel this order?</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Keep Order</button>
-                <button type="button" class="btn btn-danger" id="confirm-cancel-btn">Cancel Order</button>
-            </div>
-        </div>
-    </div>
-</div>
-{% endif %}
-{% endblock %}
-
-{% block scripts %}
-<script src="{{ url_for('static', filename='customer/profile.js') }}"></script>
-{% endblock %}
+    <!-- Bootstrap JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Profile JavaScript -->
+    <script src="{{ url_for('static', filename='customer/profile.js') }}"></script>
+</body>
+</html>

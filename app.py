@@ -6,6 +6,7 @@ from database import connect_to_db, init_db, initUserProfileTable, initReminders
 import database, os, json
 import random
 import time
+import jwt
 
 # INIT the Flask APP
 app = Flask(__name__)
@@ -113,21 +114,33 @@ def myAccountPage(accessToken):
             # Render template with error flag
             return render_template('customer/myaccount.html', invalid_token=True), 200
             
-        # Decode token to get username
-        payload = decode_token(accessToken)
-        username = payload['sub']
-        
-        print(f"Successfully decoded token for user: {username}")
-        
-        # Just render the page - API calls will happen from client side JavaScript
-        return render_template('customer/myaccount.html', username=username), 200
+        try:
+            # Try to decode token
+            payload = decode_token(accessToken)
+            username = payload['sub']
+            
+            print(f"Successfully decoded token for user: {username}")
+            
+            # Just render the page - API calls will happen from client side JavaScript
+            return render_template('customer/myaccount.html', username=username), 200
+        except jwt.exceptions.ExpiredSignatureError:
+            # Handle expired token specifically
+            print("Token has expired")
+            return render_template('customer/myaccount.html', invalid_token=True, 
+                                error_message="Your session has expired. Please log in again."), 200
+        except Exception as e:
+            # Handle other token-related errors
+            print(f"Token validation error: {str(e)}")
+            return render_template('customer/myaccount.html', invalid_token=True, 
+                                error_message="Invalid authentication token. Please log in again."), 200
+            
     except Exception as e:
         print(f"Error in myAccountPage: {str(e)}")
         import traceback
         traceback.print_exc()
         # In case of any error, still render the page with error flag
         # The client-side JavaScript will handle showing error messages
-        return render_template('customer/myaccount.html', error_message="Invalid or expired session"), 200
+        return render_template('customer/myaccount.html', error_message="An unexpected error occurred. Please try again."), 200
 
 # Order Page Route
 @app.route("/myorder/<accessToken>/<id>")
