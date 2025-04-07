@@ -546,69 +546,344 @@ def chatbot_proxy():
 @app.route('/api/user/profile', methods=['GET'])
 @jwt_required()
 def getUserProfile():
-    current_user = get_jwt_identity()
-    query = "SELECT * FROM user_profiles WHERE username = %s;"
-    result = selectQuery(query, (current_user,))
-    if result["res"] == 1 and result["data"]:
-        return jsonify({"res": 1, "data": result["data"][0]})
-    return jsonify({"res": 0, "message": "Profile not found"})
+    try:
+        current_user = get_jwt_identity()
+        conn = connect_to_db()
+        cursor = conn.cursor()
+        
+        # Get user profile
+        cursor.execute('SELECT * FROM user_profiles WHERE username = ?', (current_user,))
+        profile = cursor.fetchone()
+        
+        if profile is None:
+            # Create a new profile if it doesn't exist
+            cursor.execute('''
+                INSERT INTO user_profiles (username)
+                VALUES (?)
+            ''', (current_user,))
+            conn.commit()
+            
+            return jsonify({
+                "username": current_user,
+                "full_name": None,
+                "email": None,
+                "phone": None,
+                "address": None
+            })
+        
+        return jsonify({
+            "username": profile[0],
+            "full_name": profile[1],
+            "email": profile[2],
+            "phone": profile[3],
+            "address": profile[4]
+        })
+        
+    except Exception as e:
+        print(f"Error getting user profile: {str(e)}")
+        return jsonify({"error": "Internal server error"}), 500
+    finally:
+        if conn:
+            conn.close()
 
-@app.route('/api/user/profile', methods=['POST'])
+@app.route('/api/user/profile', methods=['PUT'])
 @jwt_required()
 def updateUserProfile():
-    current_user = get_jwt_identity()
-    data = request.get_json()
-    
-    # Validate required fields
-    if not data.get('full_name') or not data.get('email'):
-        return jsonify({"res": 0, "message": "Full name and email are required"})
-    
-    # Check if profile exists
-    check_query = "SELECT * FROM user_profiles WHERE username = %s;"
-    check_result = selectQuery(check_query, (current_user,))
-    
-    if check_result["res"] == 1 and check_result["data"]:
-        # Update existing profile
-        query = """
-        UPDATE user_profiles 
-        SET full_name = %s, email = %s, phone = %s, address = %s, last_updated = CURRENT_TIMESTAMP 
-        WHERE username = %s;
-        """
-        params = (data['full_name'], data['email'], data.get('phone'), data.get('address'), current_user)
-    else:
-        # Create new profile
-        query = """
-        INSERT INTO user_profiles (username, full_name, email, phone, address) 
-        VALUES (%s, %s, %s, %s, %s);
-        """
-        params = (current_user, data['full_name'], data['email'], data.get('phone'), data.get('address'))
-    
-    result = insertQuery(query, params)
-    return jsonify(result)
+    try:
+        current_user = get_jwt_identity()
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({"error": "No data provided"}), 400
+            
+        conn = connect_to_db()
+        cursor = conn.cursor()
+        
+        # Update user profile
+        cursor.execute('''
+            UPDATE user_profiles
+            SET full_name = ?,
+                email = ?,
+                phone = ?,
+                address = ?
+            WHERE username = ?
+        ''', (
+            data.get('full_name'),
+            data.get('email'),
+            data.get('phone'),
+            data.get('address'),
+            current_user
+        ))
+        
+        conn.commit()
+        return jsonify({"message": "Profile updated successfully"})
+        
+    except Exception as e:
+        print(f"Error updating user profile: {str(e)}")
+        return jsonify({"error": "Internal server error"}), 500
+    finally:
+        if conn:
+            conn.close()
 
 @app.route('/api/user/orders', methods=['GET'])
 @jwt_required()
 def getUserOrders():
-    current_user = get_jwt_identity()
-    query = "SELECT * FROM orders WHERE username = %s ORDER BY time DESC;"
-    result = selectQuery(query, (current_user,))
-    return jsonify(result)
+    try:
+        current_user = get_jwt_identity()
+        conn = connect_to_db()
+        cursor = conn.cursor()
+        
+        # Get user orders
+        cursor.execute('''
+            SELECT orderid, time, cart, status, total, delivery_method
+            FROM orders
+            WHERE username = ?
+            ORDER BY time DESC
+        ''', (current_user,))
+        
+        orders = cursor.fetchall()
+        
+        if not orders:
+            return jsonify([])
+            
+        return jsonify([{
+            "orderid": order[0],
+            "time": order[1],
+            "cart": json.loads(order[2]),
+            "status": order[3],
+            "total": order[4],
+            "delivery_method": order[5]
+        } for order in orders])
+        
+    except Exception as e:
+        print(f"Error getting user orders: {str(e)}")
+        return jsonify({"error": "Internal server error"}), 500
+    finally:
+        if conn:
+            conn.close()
 
-@app.route('/api/user/order/<order_id>', methods=['GET'])
+@app.route('/api/user/orders/<order_id>', methods=['GET'])
 @jwt_required()
-def getUserOrder(order_id):
-    current_user = get_jwt_identity()
-    query = "SELECT * FROM orders WHERE orderid = %s AND username = %s;"
-    result = selectQuery(query, (order_id, current_user))
-    return jsonify(result)
+def getOrderDetails(order_id):
+    try:
+        current_user = get_jwt_identity()
+        conn = connect_to_db()
+        cursor = conn.cursor()
+        
+        # Get order details
+        cursor.execute('''
+            SELECT orderid, time, cart, status, total, delivery_method, address, contact
+            FROM orders
+            WHERE orderid = ? AND username = ?
+        ''', (order_id, current_user))
+        
+        order = cursor.fetchone()
+        
+        if not order:
+            return jsonify({"error": "Order not found"}), 404
+            
+        return jsonify({
+            "orderid": order[0],
+            "time": order[1],
+            "cart": json.loads(order[2]),
+            "status": order[3],
+            "total": order[4],
+            "delivery_method": order[5],
+            "address": order[6],
+            "contact": order[7]
+        })
+        
+    except Exception as e:
+        print(f"Error getting order details: {str(e)}")
+        return jsonify({"error": "Internal server error"}), 500
+    finally:
+        if conn:
+            conn.close()
 
-@app.route('/api/user/order/<order_id>/cancel', methods=['POST'])
+@app.route('/api/user/orders/<order_id>/cancel', methods=['POST'])
 @jwt_required()
 def cancelOrder(order_id):
-    current_user = get_jwt_identity()
-    query = "UPDATE orders SET status = 'cancelled' WHERE orderid = %s AND username = %s;"
-    result = insertQuery(query, (order_id, current_user))
-    return jsonify(result)
+    try:
+        current_user = get_jwt_identity()
+        conn = connect_to_db()
+        cursor = conn.cursor()
+        
+        # Check if order exists and belongs to user
+        cursor.execute('''
+            SELECT status
+            FROM orders
+            WHERE orderid = ? AND username = ?
+        ''', (order_id, current_user))
+        
+        order = cursor.fetchone()
+        
+        if not order:
+            return jsonify({"error": "Order not found"}), 404
+            
+        if order[0] != 'pending':
+            return jsonify({"error": "Only pending orders can be cancelled"}), 400
+            
+        # Cancel order
+        cursor.execute('''
+            UPDATE orders
+            SET status = 'cancelled'
+            WHERE orderid = ? AND username = ?
+        ''', (order_id, current_user))
+        
+        conn.commit()
+        return jsonify({"message": "Order cancelled successfully"})
+        
+    except Exception as e:
+        print(f"Error cancelling order: {str(e)}")
+        return jsonify({"error": "Internal server error"}), 500
+    finally:
+        if conn:
+            conn.close()
+
+@app.route('/api/user/reminders', methods=['GET'])
+@jwt_required()
+def getUserReminders():
+    try:
+        current_user = get_jwt_identity()
+        conn = connect_to_db()
+        cursor = conn.cursor()
+        
+        # Get user reminders
+        cursor.execute('''
+            SELECT id, medication_name, dosage, time, frequency, notes
+            FROM medication_reminders
+            WHERE username = ?
+            ORDER BY time
+        ''', (current_user,))
+        
+        reminders = cursor.fetchall()
+        
+        if not reminders:
+            return jsonify([])
+            
+        return jsonify([{
+            "id": reminder[0],
+            "medication_name": reminder[1],
+            "dosage": reminder[2],
+            "time": reminder[3],
+            "frequency": reminder[4],
+            "notes": reminder[5]
+        } for reminder in reminders])
+        
+    except Exception as e:
+        print(f"Error getting user reminders: {str(e)}")
+        return jsonify({"error": "Internal server error"}), 500
+    finally:
+        if conn:
+            conn.close()
+
+@app.route('/api/user/reminders', methods=['POST'])
+@jwt_required()
+def createReminder():
+    try:
+        current_user = get_jwt_identity()
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({"error": "No data provided"}), 400
+            
+        required_fields = ['medication_name', 'dosage', 'time', 'frequency']
+        for field in required_fields:
+            if field not in data:
+                return jsonify({"error": f"Missing required field: {field}"}), 400
+                
+        conn = connect_to_db()
+        cursor = conn.cursor()
+        
+        # Create reminder
+        cursor.execute('''
+            INSERT INTO medication_reminders (username, medication_name, dosage, time, frequency, notes)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ''', (
+            current_user,
+            data['medication_name'],
+            data['dosage'],
+            data['time'],
+            data['frequency'],
+            data.get('notes')
+        ))
+        
+        conn.commit()
+        return jsonify({"message": "Reminder created successfully"})
+        
+    except Exception as e:
+        print(f"Error creating reminder: {str(e)}")
+        return jsonify({"error": "Internal server error"}), 500
+    finally:
+        if conn:
+            conn.close()
+
+@app.route('/api/user/reminders/<reminder_id>', methods=['DELETE'])
+@jwt_required()
+def deleteReminder(reminder_id):
+    try:
+        current_user = get_jwt_identity()
+        conn = connect_to_db()
+        cursor = conn.cursor()
+        
+        # Delete reminder
+        cursor.execute('''
+            DELETE FROM medication_reminders
+            WHERE id = ? AND username = ?
+        ''', (reminder_id, current_user))
+        
+        conn.commit()
+        return jsonify({"message": "Reminder deleted successfully"})
+        
+    except Exception as e:
+        print(f"Error deleting reminder: {str(e)}")
+        return jsonify({"error": "Internal server error"}), 500
+    finally:
+        if conn:
+            conn.close()
+
+@app.route('/api/user/password', methods=['PUT'])
+@jwt_required()
+def changePassword():
+    try:
+        current_user = get_jwt_identity()
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({"error": "No data provided"}), 400
+            
+        required_fields = ['current_password', 'new_password']
+        for field in required_fields:
+            if field not in data:
+                return jsonify({"error": f"Missing required field: {field}"}), 400
+                
+        conn = connect_to_db()
+        cursor = conn.cursor()
+        
+        # Verify current password
+        cursor.execute('SELECT password FROM customerAuth WHERE username = ?', (current_user,))
+        user = cursor.fetchone()
+        
+        if not user or not bcrypt.check_password_hash(user[0], data['current_password']):
+            return jsonify({"error": "Current password is incorrect"}), 400
+            
+        # Update password
+        hashed_password = bcrypt.generate_password_hash(data['new_password']).decode('utf-8')
+        cursor.execute('''
+            UPDATE customerAuth
+            SET password = ?
+            WHERE username = ?
+        ''', (hashed_password, current_user))
+        
+        conn.commit()
+        return jsonify({"message": "Password changed successfully"})
+        
+    except Exception as e:
+        print(f"Error changing password: {str(e)}")
+        return jsonify({"error": "Internal server error"}), 500
+    finally:
+        if conn:
+            conn.close()
 
 '''
 MAIN FUNCTION

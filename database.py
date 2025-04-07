@@ -29,6 +29,9 @@ def init_db(conn):
     response=initOrdersDatabase(conn)
     if(response["res"]==0):
         return {"res": 0, "message": "INIT orders Table Failure"}
+    response=initUserProfileTable(conn)
+    if(response["res"]==0):
+        return {"res": 0, "message": "INIT user_profiles Table Failure"}
     return {"res": 1, "message": "INIT Success"}
 
 # Standard Insert Query
@@ -192,21 +195,76 @@ def initOrdersDatabase(conn):
 
 # Initialise the User Profile Table
 def initUserProfileTable(conn):
-    query = '''
-    CREATE TABLE IF NOT EXISTS user_profiles 
-    (username TEXT PRIMARY KEY REFERENCES customerAuth(username),
-    full_name TEXT,
-    email TEXT,
-    phone TEXT,
-    address TEXT,
-    profile_image TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP);'''
     try:
-        with conn:
-            with conn.cursor() as cursor:
-                cursor.execute(query)
-        return {"res": 1, "message": "Table Creation Successful"}
+        cursor = conn.cursor()
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS user_profiles (
+                username VARCHAR(50) PRIMARY KEY,
+                full_name VARCHAR(100),
+                email VARCHAR(100),
+                phone VARCHAR(20),
+                address TEXT,
+                FOREIGN KEY (username) REFERENCES customerAuth(username)
+            )
+        ''')
+        conn.commit()
+        return {"res": 1, "message": "INIT user_profiles Table Success"}
     except Exception as e:
-        print(e)
-        return {"res": 0, "message": "Table Creation Unsuccessful"}
+        print(f"Error initializing user_profiles table: {str(e)}")
+        return {"res": 0, "message": f"INIT user_profiles Table Failure: {str(e)}"}
+
+def initRemindersTable(conn):
+    try:
+        cursor = conn.cursor()
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS medication_reminders (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username VARCHAR(50),
+                medication_name VARCHAR(100),
+                dosage VARCHAR(50),
+                time TIME,
+                frequency VARCHAR(20),
+                notes TEXT,
+                FOREIGN KEY (username) REFERENCES customerAuth(username)
+            )
+        ''')
+        conn.commit()
+        return {"res": 1, "message": "INIT medication_reminders Table Success"}
+    except Exception as e:
+        print(f"Error initializing medication_reminders table: {str(e)}")
+        return {"res": 0, "message": f"INIT medication_reminders Table Failure: {str(e)}"}
+
+def init_db():
+    try:
+        conn = connect_to_db()
+        if conn is None:
+            return {"res": 0, "message": "Database connection failed"}
+            
+        # Initialize tables
+        response = initCustomerAuthTable(conn)
+        if response["res"] == 0:
+            return response
+            
+        response = initMedicineDatabase(conn)
+        if response["res"] == 0:
+            return response
+            
+        response = initOrdersDatabase(conn)
+        if response["res"] == 0:
+            return response
+            
+        response = initUserProfileTable(conn)
+        if response["res"] == 0:
+            return response
+            
+        response = initRemindersTable(conn)
+        if response["res"] == 0:
+            return response
+            
+        return {"res": 1, "message": "Database initialization successful"}
+    except Exception as e:
+        print(f"Error initializing database: {str(e)}")
+        return {"res": 0, "message": f"Database initialization failed: {str(e)}"}
+    finally:
+        if conn:
+            conn.close()

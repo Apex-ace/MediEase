@@ -1,3 +1,6 @@
+// Global variables
+let currentOrderId = null;
+
 // Function to handle saving medication reminders
 function saveReminder() {
     const medicationName = document.getElementById('medication-name').value;
@@ -211,6 +214,10 @@ document.addEventListener('DOMContentLoaded', function() {
             saveProfile();
         });
     }
+    
+    // Load user profile when the page loads
+    loadUserProfile();
+    loadUserOrders();
 });
 
 // Function to update an existing reminder
@@ -342,24 +349,51 @@ async function loadUserProfile() {
                 'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
             }
         });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const data = await response.json();
         
         if (data.res === 1 && data.data) {
             // Update profile information in the UI
-            document.getElementById('profile-full-name').textContent = data.data.full_name;
-            document.getElementById('profile-email').textContent = data.data.email;
-            document.getElementById('profile-phone').textContent = data.data.phone || 'Not provided';
-            document.getElementById('profile-address').textContent = data.data.address || 'Not provided';
+            const profileElements = {
+                'profile-full-name': data.data.full_name || 'Not provided',
+                'profile-email': data.data.email || 'Not provided',
+                'profile-phone': data.data.phone || 'Not provided',
+                'profile-address': data.data.address || 'Not provided'
+            };
             
             // Update form fields
-            document.getElementById('edit-full-name').value = data.data.full_name;
-            document.getElementById('edit-email').value = data.data.email;
-            document.getElementById('edit-phone').value = data.data.phone || '';
-            document.getElementById('edit-address').value = data.data.address || '';
+            const formElements = {
+                'edit-full-name': data.data.full_name || '',
+                'edit-email': data.data.email || '',
+                'edit-phone': data.data.phone || '',
+                'edit-address': data.data.address || ''
+            };
+            
+            // Update UI elements
+            Object.entries(profileElements).forEach(([id, value]) => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.textContent = value;
+                }
+            });
+            
+            // Update form fields
+            Object.entries(formElements).forEach(([id, value]) => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.value = value;
+                }
+            });
+        } else {
+            showAlert('Error loading profile data: ' + (data.message || 'Unknown error'), 'danger');
         }
     } catch (error) {
         console.error('Error loading profile:', error);
-        showAlert('Error loading profile data', 'danger');
+        showAlert('Error loading profile data: ' + error.message, 'danger');
     }
 }
 
@@ -390,6 +424,10 @@ async function saveProfileInfo() {
             })
         });
         
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const data = await response.json();
         if (data.res === 1) {
             showAlert('Profile updated successfully', 'success');
@@ -400,7 +438,7 @@ async function saveProfileInfo() {
         }
     } catch (error) {
         console.error('Error saving profile:', error);
-        showAlert('Error saving profile data', 'danger');
+        showAlert('Error saving profile data: ' + error.message, 'danger');
     }
 }
 
@@ -412,45 +450,78 @@ async function loadUserOrders() {
                 'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
             }
         });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const data = await response.json();
         
         if (data.res === 1 && data.data) {
             const ordersContainer = document.getElementById('orders-container');
-            ordersContainer.innerHTML = '';
-            
-            data.data.forEach(order => {
-                const orderCard = createOrderCard(order);
-                ordersContainer.appendChild(orderCard);
-            });
+            if (ordersContainer) {
+                ordersContainer.innerHTML = '';
+                
+                if (data.data.length === 0) {
+                    ordersContainer.innerHTML = '<div class="text-center py-4"><p>No orders found</p></div>';
+                } else {
+                    data.data.forEach(order => {
+                        const orderCard = createOrderCard(order);
+                        ordersContainer.appendChild(orderCard);
+                    });
+                }
+            }
+        } else {
+            showAlert('Error loading orders: ' + (data.message || 'Unknown error'), 'danger');
         }
     } catch (error) {
         console.error('Error loading orders:', error);
-        showAlert('Error loading orders', 'danger');
+        showAlert('Error loading orders: ' + error.message, 'danger');
     }
 }
 
 // Create order card element
 function createOrderCard(order) {
     const card = document.createElement('div');
-    card.className = 'order-card';
+    card.className = 'order-card mb-3';
     card.innerHTML = `
-        <div class="order-header">
-            <h3>Order #${order.orderid}</h3>
-            <span class="status ${order.status.toLowerCase()}">${order.status}</span>
-        </div>
-        <div class="order-details">
-            <p><strong>Date:</strong> ${new Date(order.time).toLocaleDateString()}</p>
-            <p><strong>Total:</strong> $${order.total}</p>
-            <p><strong>Items:</strong> ${order.cart}</p>
-        </div>
-        <div class="order-actions">
-            <button class="btn btn-primary" onclick="viewOrderDetails(${order.orderid})">View Details</button>
-            ${order.status === 'pending' ? `
-                <button class="btn btn-danger" onclick="confirmCancelOrder(${order.orderid})">Cancel Order</button>
-            ` : ''}
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Order #${order.orderid}</h5>
+                <span class="badge ${getStatusBadgeClass(order.status)}">${order.status}</span>
+            </div>
+            <div class="card-body">
+                <p><strong>Date:</strong> ${new Date(order.time).toLocaleDateString()}</p>
+                <p><strong>Total:</strong> $${order.total.toFixed(2)}</p>
+                <p><strong>Items:</strong> ${order.cart}</p>
+                <p><strong>Delivery Address:</strong> ${order.address || 'Not provided'}</p>
+                <p><strong>Contact:</strong> ${order.contact || 'Not provided'}</p>
+            </div>
+            <div class="card-footer">
+                <button class="btn btn-primary btn-sm" onclick="viewOrderDetails(${order.orderid})">View Details</button>
+                ${order.status === 'pending' ? `
+                    <button class="btn btn-danger btn-sm" onclick="confirmCancelOrder(${order.orderid})">Cancel Order</button>
+                ` : ''}
+            </div>
         </div>
     `;
     return card;
+}
+
+// Get status badge class
+function getStatusBadgeClass(status) {
+    switch (status.toLowerCase()) {
+        case 'pending':
+            return 'bg-warning';
+        case 'shipped':
+            return 'bg-info';
+        case 'delivered':
+            return 'bg-success';
+        case 'cancelled':
+            return 'bg-danger';
+        default:
+            return 'bg-secondary';
+    }
 }
 
 // View order details
@@ -500,16 +571,18 @@ async function cancelOrder(orderId) {
 // Show alert message
 function showAlert(message, type) {
     const alertContainer = document.getElementById('alert-container');
-    const alert = document.createElement('div');
-    alert.className = `alert alert-${type} alert-dismissible fade show`;
-    alert.innerHTML = `
-        ${message}
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-        </button>
-    `;
-    alertContainer.appendChild(alert);
-    setTimeout(() => alert.remove(), 5000);
+    if (alertContainer) {
+        const alert = document.createElement('div');
+        alert.className = `alert alert-${type} alert-dismissible fade show`;
+        alert.innerHTML = `
+            ${message}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        `;
+        alertContainer.appendChild(alert);
+        setTimeout(() => alert.remove(), 5000);
+    }
 }
 
 // Initialize page
