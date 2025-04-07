@@ -555,10 +555,17 @@ def chatbot_proxy():
 @app.route('/api/user/profile', methods=['GET'])
 @jwt_required()
 def getUserProfile():
+    conn = None
     try:
         current_user = get_jwt_identity()
         print(f"Loading profile for user: {current_user}")
+        
+        # Get a database connection
         conn = connect_to_db()
+        if not conn:
+            print("Failed to connect to database")
+            return jsonify({"error": "Database connection error"}), 500
+            
         cursor = conn.cursor()
         
         # Check if user profile table exists
@@ -567,7 +574,14 @@ def getUserProfile():
         
         if not table_exists:
             print("Table user_profiles does not exist, initializing...")
-            initUserProfileTable(conn)
+            # Close the cursor before initializing the table
+            cursor.close()
+            init_result = initUserProfileTable(conn)
+            if init_result["res"] != 1:
+                print(f"Failed to initialize user_profiles table: {init_result['message']}")
+                return jsonify({"error": "Could not initialize user profile table"}), 500
+            # Create a new cursor
+            cursor = conn.cursor()
         
         # Get user profile
         cursor.execute('SELECT * FROM user_profiles WHERE username = %s', (current_user,))
@@ -576,19 +590,27 @@ def getUserProfile():
         if profile is None:
             print(f"No profile found for {current_user}, creating a new one")
             # Create a new profile if it doesn't exist
-            cursor.execute('''
-                INSERT INTO user_profiles (username)
-                VALUES (%s)
-            ''', (current_user,))
-            conn.commit()
-            
-            return jsonify({
-                "username": current_user,
-                "full_name": None,
-                "email": None,
-                "phone": None,
-                "address": None
-            })
+            try:
+                cursor.execute('''
+                    INSERT INTO user_profiles (username)
+                    VALUES (%s)
+                ''', (current_user,))
+                conn.commit()
+                
+                # Return basic profile
+                return jsonify({
+                    "username": current_user,
+                    "full_name": None,
+                    "email": None,
+                    "phone": None,
+                    "address": None
+                })
+            except Exception as e:
+                conn.rollback()
+                print(f"Error creating new profile: {str(e)}")
+                import traceback
+                traceback.print_exc()
+                return jsonify({"error": f"Failed to create profile: {str(e)}"}), 500
         
         print(f"Profile found for {current_user}: {profile}")
         return jsonify({
@@ -606,7 +628,14 @@ def getUserProfile():
         return jsonify({"error": "Internal server error"}), 500
     finally:
         if conn:
-            conn.close()
+            try:
+                # Close the connection in the finally block to ensure it's always closed
+                if 'cursor' in locals() and cursor:
+                    cursor.close()
+                conn.close()
+                print("Database connection closed")
+            except Exception as e:
+                print(f"Error closing database connection: {str(e)}")
 
 @app.route('/api/user/profile', methods=['PUT'])
 @jwt_required()
@@ -652,32 +681,75 @@ def updateUserProfile():
 @app.route('/api/user/orders', methods=['GET'])
 @jwt_required()
 def getUserOrders():
+    conn = None
+    cursor = None
     try:
         current_user = get_jwt_identity()
+        print(f"Loading orders for user: {current_user}")
+        
+        # Get a database connection
         conn = connect_to_db()
+        if not conn:
+            print("Failed to connect to database")
+            return jsonify({"error": "Database connection error"}), 500
+        
         cursor = conn.cursor()
         
-        # Get user orders
-        cursor.execute('''
-            SELECT orderid, time, cart, status, total, delivery_method
-            FROM orders
-            WHERE username = %s
-            ORDER BY time DESC
-        ''', (current_user,))
+        # Check if orders table exists
+        cursor.execute("SELECT to_regclass('public.orders')")
+        table_exists = cursor.fetchone()[0]
         
-        orders = cursor.fetchall()
-        
-        if not orders:
+        if not table_exists:
+            print("Table orders does not exist")
             return jsonify([])
+        
+        # Get user orders
+        try:
+            query = '''
+                SELECT orderid, time, cart, status, total, payment_method
+                FROM orders
+                WHERE username = %s
+                ORDER BY time DESC
+            '''
+            cursor.execute(query, (current_user,))
+            orders = cursor.fetchall()
             
-        return jsonify([{
-            "orderid": order[0],
-            "time": order[1],
-            "cart": json.loads(order[2]),
-            "status": order[3],
-            "total": order[4],
-            "delivery_method": order[5]
-        } for order in orders])
+            if not orders:
+                print(f"No orders found for user: {current_user}")
+                return jsonify([])
+            
+            result = []
+            for order in orders:
+                try:
+                    # Handle potential JSON parsing errors
+                    cart = json.loads(order[2])
+                except:
+                    # If cart can't be parsed, use empty list
+                    print(f"Error parsing cart JSON for order {order[0]}")
+                    cart = []
+                
+                # Use None for missing fields to avoid KeyError
+                order_dict = {
+                    "orderid": order[0],
+                    "time": order[1].isoformat() if order[1] else None,
+                    "cart": cart,
+                    "status": order[3] or "Unknown",
+                    "total": order[4] or 0
+                }
+                
+                # Add payment_method only if it exists in the query results
+                if len(order) > 5 and order[5]:
+                    order_dict["payment_method"] = order[5]
+                
+                result.append(order_dict)
+            
+            return jsonify(result)
+            
+        except Exception as e:
+            print(f"Error executing orders query: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            return jsonify({"error": f"Error retrieving orders: {str(e)}"}), 500
         
     except Exception as e:
         print(f"Error getting user orders: {str(e)}")
@@ -685,8 +757,17 @@ def getUserOrders():
         traceback.print_exc()
         return jsonify({"error": "Internal server error"}), 500
     finally:
+        if cursor:
+            try:
+                cursor.close()
+            except:
+                pass
         if conn:
-            conn.close()
+            try:
+                conn.close()
+                print("Database connection closed")
+            except Exception as e:
+                print(f"Error closing database connection: {str(e)}")
 
 @app.route('/api/user/orders/<order_id>', methods=['GET'])
 @jwt_required()
