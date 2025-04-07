@@ -3,12 +3,27 @@ function submitLoginForm(event) {
     event.preventDefault();
 
     const form = document.getElementById('login-form');
+    
+    // Clear previous validation errors
+    clearValidationErrors();
 
     // Get the credentials
     const username = form.querySelector('#username').value;
     const password = form.querySelector('#password').value;
 
-    form.reset();
+    // Basic form validation
+    if (!username.trim()) {
+        showValidationError('username', 'Username is required');
+        return;
+    }
+
+    if (!password) {
+        showValidationError('password', 'Password is required');
+        return;
+    }
+
+    // Show loader during API call
+    showLoader();
 
     // Call the login api with the credentials
     fetch('/api/login', {
@@ -21,20 +36,27 @@ function submitLoginForm(event) {
         .then(response => response.json())
         .then(data => {
             if (data["res"] == 0) {
-                alert(data["message"])
+                hideLoader();
+                showValidationError('password', data["message"]);
             }
             else {
                 // Store the returned accesstoken from server
                 localStorage.setItem('accessToken', data["accessToken"]);
-                alert(data["message"]);
-                window.location.href = '/';
+                
+                // Set a success message for smooth visual transition
+                showSuccessMessage('Login successful! Redirecting...');
+                
+                // Delay redirect for smooth transition
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 1000);
             }
         })
         .catch(error => {
+            hideLoader();
             console.error('Error:', error);
-            alert(error);
+            showValidationError('password', 'An error occurred. Please try again.');
         });
-    form.reset();
 }
 
 // Function to submit the signup form
@@ -42,10 +64,45 @@ function submitSignupForm(event) {
     event.preventDefault();
 
     const form = document.getElementById('signup-form');
+    
+    // Clear previous validation errors
+    clearValidationErrors();
 
     // Get the credentials
     const username = form.querySelector('#username').value;
+    const email = form.querySelector('#email').value;
     const password = form.querySelector('#password').value;
+    const confirmPassword = form.querySelector('#confirmPassword').value;
+    const termsCheck = form.querySelector('#termsCheck').checked;
+
+    // Basic form validation
+    if (!username.trim()) {
+        showValidationError('username', 'Username is required');
+        return;
+    }
+
+    if (!email.trim() || !isValidEmail(email)) {
+        showValidationError('email', 'Please enter a valid email address');
+        return;
+    }
+
+    if (!password) {
+        showValidationError('password', 'Password is required');
+        return;
+    }
+
+    if (password !== confirmPassword) {
+        showValidationError('confirmPassword', 'Passwords do not match');
+        return;
+    }
+
+    if (!termsCheck) {
+        showValidationError('termsCheck', 'You must agree to the Terms & Conditions');
+        return;
+    }
+    
+    // Show loader during API call
+    showLoader();
 
     // Call signup api with credentials as body
     fetch('/api/signup', {
@@ -59,19 +116,116 @@ function submitSignupForm(event) {
         .then(data => {
             console.log(data);
             if (data["res"] == 0) {
-                alert(data["message"]);
+                hideLoader();
+                showValidationError('username', data["message"]);
             }
             else {
-                // Redirect to login upon successful sign up
-                alert(data["message"]);
-                window.location.href = '/login';
+                // Show success message before redirect
+                showSuccessMessage('Account created successfully! Redirecting to login...');
+                
+                // Delay redirect for smooth transition
+                setTimeout(() => {
+                    window.location.href = '/login';
+                }, 1500);
             }
         })
         .catch(error => {
+            hideLoader();
             console.error('Error:', error);
-            alert(error);
+            showValidationError('username', 'An error occurred. Please try again.');
         });
-    form.reset();
+}
+
+// Function to validate email format
+function isValidEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+}
+
+// Function to show validation error
+function showValidationError(fieldId, message) {
+    const field = document.getElementById(fieldId);
+    if (field) {
+        field.classList.add('error');
+        
+        // Check if feedback element already exists
+        let feedbackEl = field.nextElementSibling;
+        if (feedbackEl && !feedbackEl.classList.contains('form-feedback')) {
+            // If next element is not feedback, create a new one
+            feedbackEl = document.createElement('div');
+            feedbackEl.className = 'form-feedback error';
+            field.parentNode.insertBefore(feedbackEl, field.nextSibling);
+        } else if (!feedbackEl) {
+            // If no next element, create a new feedback element
+            feedbackEl = document.createElement('div');
+            feedbackEl.className = 'form-feedback error';
+            field.parentNode.appendChild(feedbackEl);
+        }
+        
+        feedbackEl.textContent = message;
+        feedbackEl.classList.add('error');
+    }
+}
+
+// Function to show success message
+function showSuccessMessage(message) {
+    // Create a success message element
+    const successEl = document.createElement('div');
+    successEl.className = 'alert alert-success fade-in mt-3';
+    successEl.textContent = message;
+    
+    // Find the form and append the message
+    const form = document.querySelector('#login-form') || document.querySelector('#signup-form');
+    if (form) {
+        form.insertAdjacentElement('afterend', successEl);
+    }
+}
+
+// Function to clear all validation errors
+function clearValidationErrors() {
+    // Remove all error classes
+    const errorFields = document.querySelectorAll('.error');
+    errorFields.forEach(field => field.classList.remove('error'));
+    
+    // Remove all feedback elements
+    const feedbackElements = document.querySelectorAll('.form-feedback');
+    feedbackElements.forEach(el => el.remove());
+}
+
+// Function to create the loader element
+function createLoaderElement() {
+    if (!document.querySelector('.loader-overlay')) {
+        const loaderOverlay = document.createElement('div');
+        loaderOverlay.className = 'loader-overlay';
+        
+        const loader = document.createElement('div');
+        loader.className = 'loader';
+        
+        // Add loading text
+        const loadingText = document.createElement('p');
+        loadingText.className = 'mt-3 text-primary fw-bold';
+        loadingText.textContent = 'Loading...';
+        
+        loaderOverlay.appendChild(loader);
+        loaderOverlay.appendChild(loadingText);
+        document.body.appendChild(loaderOverlay);
+    }
+}
+
+// Function to show the loader
+function showLoader() {
+    const loaderOverlay = document.querySelector('.loader-overlay');
+    if (loaderOverlay) {
+        loaderOverlay.classList.add('show');
+    }
+}
+
+// Function to hide the loader
+function hideLoader() {
+    const loaderOverlay = document.querySelector('.loader-overlay');
+    if (loaderOverlay) {
+        loaderOverlay.classList.remove('show');
+    }
 }
 
 // Function to logout
@@ -174,36 +328,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize loader
     createLoaderElement();
 });
-
-// Function to create the loader element
-function createLoaderElement() {
-    if (!document.querySelector('.loader-overlay')) {
-        const loaderOverlay = document.createElement('div');
-        loaderOverlay.className = 'loader-overlay';
-        
-        const loader = document.createElement('div');
-        loader.className = 'loader';
-        
-        loaderOverlay.appendChild(loader);
-        document.body.appendChild(loaderOverlay);
-    }
-}
-
-// Function to show the loader
-function showLoader() {
-    const loaderOverlay = document.querySelector('.loader-overlay');
-    if (loaderOverlay) {
-        loaderOverlay.classList.add('show');
-    }
-}
-
-// Function to hide the loader
-function hideLoader() {
-    const loaderOverlay = document.querySelector('.loader-overlay');
-    if (loaderOverlay) {
-        loaderOverlay.classList.remove('show');
-    }
-}
 
 // Function to open the chat bot
 function openChatBot() {

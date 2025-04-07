@@ -542,6 +542,74 @@ def chatbot_proxy():
         app.logger.error(f"Chatbot proxy error: {str(e)}")
         return jsonify({"response": "Sorry, I'm having trouble connecting to my brain right now. Please try again later."})
 
+# User Profile API Endpoints
+@app.route('/api/user/profile', methods=['GET'])
+@jwt_required()
+def getUserProfile():
+    current_user = get_jwt_identity()
+    query = "SELECT * FROM user_profiles WHERE username = %s;"
+    result = selectQuery(query, (current_user,))
+    if result["res"] == 1 and result["data"]:
+        return jsonify({"res": 1, "data": result["data"][0]})
+    return jsonify({"res": 0, "message": "Profile not found"})
+
+@app.route('/api/user/profile', methods=['POST'])
+@jwt_required()
+def updateUserProfile():
+    current_user = get_jwt_identity()
+    data = request.get_json()
+    
+    # Validate required fields
+    if not data.get('full_name') or not data.get('email'):
+        return jsonify({"res": 0, "message": "Full name and email are required"})
+    
+    # Check if profile exists
+    check_query = "SELECT * FROM user_profiles WHERE username = %s;"
+    check_result = selectQuery(check_query, (current_user,))
+    
+    if check_result["res"] == 1 and check_result["data"]:
+        # Update existing profile
+        query = """
+        UPDATE user_profiles 
+        SET full_name = %s, email = %s, phone = %s, address = %s, last_updated = CURRENT_TIMESTAMP 
+        WHERE username = %s;
+        """
+        params = (data['full_name'], data['email'], data.get('phone'), data.get('address'), current_user)
+    else:
+        # Create new profile
+        query = """
+        INSERT INTO user_profiles (username, full_name, email, phone, address) 
+        VALUES (%s, %s, %s, %s, %s);
+        """
+        params = (current_user, data['full_name'], data['email'], data.get('phone'), data.get('address'))
+    
+    result = insertQuery(query, params)
+    return jsonify(result)
+
+@app.route('/api/user/orders', methods=['GET'])
+@jwt_required()
+def getUserOrders():
+    current_user = get_jwt_identity()
+    query = "SELECT * FROM orders WHERE username = %s ORDER BY time DESC;"
+    result = selectQuery(query, (current_user,))
+    return jsonify(result)
+
+@app.route('/api/user/order/<order_id>', methods=['GET'])
+@jwt_required()
+def getUserOrder(order_id):
+    current_user = get_jwt_identity()
+    query = "SELECT * FROM orders WHERE orderid = %s AND username = %s;"
+    result = selectQuery(query, (order_id, current_user))
+    return jsonify(result)
+
+@app.route('/api/user/order/<order_id>/cancel', methods=['POST'])
+@jwt_required()
+def cancelOrder(order_id):
+    current_user = get_jwt_identity()
+    query = "UPDATE orders SET status = 'cancelled' WHERE orderid = %s AND username = %s;"
+    result = insertQuery(query, (order_id, current_user))
+    return jsonify(result)
+
 '''
 MAIN FUNCTION
 '''

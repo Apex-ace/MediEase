@@ -189,3 +189,24 @@ def initOrdersDatabase(conn):
     except Exception as e:
         print(e)
         return {"res": 0, "message": "Table Creation Unsuccessful"}
+
+# Initialise the User Profile Table
+def initUserProfileTable(conn):
+    query = '''
+    CREATE TABLE IF NOT EXISTS user_profiles 
+    (username TEXT PRIMARY KEY REFERENCES customerAuth(username),
+    full_name TEXT,
+    email TEXT,
+    phone TEXT,
+    address TEXT,
+    profile_image TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP);'''
+    try:
+        with conn:
+            with conn.cursor() as cursor:
+                cursor.execute(query)
+        return {"res": 1, "message": "Table Creation Successful"}
+    except Exception as e:
+        print(e)
+        return {"res": 0, "message": "Table Creation Unsuccessful"}

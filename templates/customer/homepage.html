@@ -207,7 +207,27 @@
         </div>
     </footer>
     
-    <!-- Scripts -->
+    <!-- Bootstrap JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Show loading screen when the page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Show loader when page loads
+            showLoader();
+            
+            // Hide loader after all content is loaded
+            window.addEventListener('load', function() {
+                setTimeout(function() {
+                    hideLoader();
+                }, 500);
+            });
+            
+            // Fallback to hide loader after 2 seconds in case 'load' event doesn't fire
+            setTimeout(function() {
+                hideLoader();
+            }, 2000);
+        });
+    </script>
 </body>
 </html>

@@ -332,4 +332,188 @@ function saveProfile() {
     modal.hide();
     
     alert('Profile updated successfully');
-} 
+}
+
+// Load user profile data
+async function loadUserProfile() {
+    try {
+        const response = await fetch('/api/user/profile', {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+            }
+        });
+        const data = await response.json();
+        
+        if (data.res === 1 && data.data) {
+            // Update profile information in the UI
+            document.getElementById('profile-full-name').textContent = data.data.full_name;
+            document.getElementById('profile-email').textContent = data.data.email;
+            document.getElementById('profile-phone').textContent = data.data.phone || 'Not provided';
+            document.getElementById('profile-address').textContent = data.data.address || 'Not provided';
+            
+            // Update form fields
+            document.getElementById('edit-full-name').value = data.data.full_name;
+            document.getElementById('edit-email').value = data.data.email;
+            document.getElementById('edit-phone').value = data.data.phone || '';
+            document.getElementById('edit-address').value = data.data.address || '';
+        }
+    } catch (error) {
+        console.error('Error loading profile:', error);
+        showAlert('Error loading profile data', 'danger');
+    }
+}
+
+// Save profile information
+async function saveProfileInfo() {
+    const fullName = document.getElementById('edit-full-name').value;
+    const email = document.getElementById('edit-email').value;
+    const phone = document.getElementById('edit-phone').value;
+    const address = document.getElementById('edit-address').value;
+    
+    if (!fullName || !email) {
+        showAlert('Full name and email are required', 'danger');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/user/profile', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+            },
+            body: JSON.stringify({
+                full_name: fullName,
+                email: email,
+                phone: phone,
+                address: address
+            })
+        });
+        
+        const data = await response.json();
+        if (data.res === 1) {
+            showAlert('Profile updated successfully', 'success');
+            $('#editProfileModal').modal('hide');
+            loadUserProfile();
+        } else {
+            showAlert(data.message || 'Error updating profile', 'danger');
+        }
+    } catch (error) {
+        console.error('Error saving profile:', error);
+        showAlert('Error saving profile data', 'danger');
+    }
+}
+
+// Load user orders
+async function loadUserOrders() {
+    try {
+        const response = await fetch('/api/user/orders', {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+            }
+        });
+        const data = await response.json();
+        
+        if (data.res === 1 && data.data) {
+            const ordersContainer = document.getElementById('orders-container');
+            ordersContainer.innerHTML = '';
+            
+            data.data.forEach(order => {
+                const orderCard = createOrderCard(order);
+                ordersContainer.appendChild(orderCard);
+            });
+        }
+    } catch (error) {
+        console.error('Error loading orders:', error);
+        showAlert('Error loading orders', 'danger');
+    }
+}
+
+// Create order card element
+function createOrderCard(order) {
+    const card = document.createElement('div');
+    card.className = 'order-card';
+    card.innerHTML = `
+        <div class="order-header">
+            <h3>Order #${order.orderid}</h3>
+            <span class="status ${order.status.toLowerCase()}">${order.status}</span>
+        </div>
+        <div class="order-details">
+            <p><strong>Date:</strong> ${new Date(order.time).toLocaleDateString()}</p>
+            <p><strong>Total:</strong> $${order.total}</p>
+            <p><strong>Items:</strong> ${order.cart}</p>
+        </div>
+        <div class="order-actions">
+            <button class="btn btn-primary" onclick="viewOrderDetails(${order.orderid})">View Details</button>
+            ${order.status === 'pending' ? `
+                <button class="btn btn-danger" onclick="confirmCancelOrder(${order.orderid})">Cancel Order</button>
+            ` : ''}
+        </div>
+    `;
+    return card;
+}
+
+// View order details
+async function viewOrderDetails(orderId) {
+    try {
+        const response = await fetch(`/api/user/order/${orderId}`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+            }
+        });
+        const data = await response.json();
+        
+        if (data.res === 1 && data.data) {
+            const order = data.data[0];
+            // Implement order details view logic here
+            // This could open a modal with detailed order information
+        }
+    } catch (error) {
+        console.error('Error loading order details:', error);
+        showAlert('Error loading order details', 'danger');
+    }
+}
+
+// Cancel order
+async function cancelOrder(orderId) {
+    try {
+        const response = await fetch(`/api/user/order/${orderId}/cancel`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+            }
+        });
+        const data = await response.json();
+        
+        if (data.res === 1) {
+            showAlert('Order cancelled successfully', 'success');
+            loadUserOrders();
+        } else {
+            showAlert(data.message || 'Error cancelling order', 'danger');
+        }
+    } catch (error) {
+        console.error('Error cancelling order:', error);
+        showAlert('Error cancelling order', 'danger');
+    }
+}
+
+// Show alert message
+function showAlert(message, type) {
+    const alertContainer = document.getElementById('alert-container');
+    const alert = document.createElement('div');
+    alert.className = `alert alert-${type} alert-dismissible fade show`;
+    alert.innerHTML = `
+        ${message}
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    `;
+    alertContainer.appendChild(alert);
+    setTimeout(() => alert.remove(), 5000);
+}
+
+// Initialize page
+document.addEventListener('DOMContentLoaded', () => {
+    loadUserProfile();
+    loadUserOrders();
+}); 
