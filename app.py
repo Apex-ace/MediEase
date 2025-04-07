@@ -2,7 +2,7 @@ import requests
 from flask import Flask, request, render_template, redirect, url_for, session, flash, jsonify
 from flask_jwt_extended import create_access_token, JWTManager, jwt_required, decode_token,get_jwt_identity
 import bcrypt
-from database import connect_to_db, init_db
+from database import connect_to_db, init_db, initUserProfileTable, initRemindersTable
 import database, os, json
 import random
 import time
