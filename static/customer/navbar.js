@@ -3,36 +3,57 @@
 
 // Hamburger menu functionality
 document.addEventListener('DOMContentLoaded', function() {
-    const hamburgerBtn = document.getElementById('hamburger-btn');
-    const navMenu = document.getElementById('index');
+    // Get navigation buttons
+    const myAccountBtn = document.getElementById('button1');
+    const cartBtn = document.getElementById('button2');
+    const shopBtn = document.getElementById('shop-inventory-btn');
+    const consultBtn = document.getElementById('video-call-btn');
+    const loginBtn = document.getElementById('button3');
+    const signupBtn = document.getElementById('button4');
+    const logoutBtn = document.getElementById('button5');
     
-    if (hamburgerBtn && navMenu) {
-        // Toggle menu when hamburger is clicked
+    // Check if user is logged in
+    const accessToken = localStorage.getItem('accessToken');
+    
+    if (accessToken) {
+        // User is logged in - show logged in buttons, hide login/signup
+        if (myAccountBtn) myAccountBtn.style.display = 'inline-block';
+        if (cartBtn) cartBtn.style.display = 'inline-block';
+        if (shopBtn) shopBtn.style.display = 'inline-block';
+        if (consultBtn) consultBtn.style.display = 'inline-block';
+        if (loginBtn) loginBtn.style.display = 'none';
+        if (signupBtn) signupBtn.style.display = 'none';
+        if (logoutBtn) logoutBtn.style.display = 'inline-block';
+    } else {
+        // User is not logged in - hide logged in buttons, show login/signup
+        if (myAccountBtn) myAccountBtn.style.display = 'none';
+        if (cartBtn) cartBtn.style.display = 'none';  
+        if (shopBtn) shopBtn.style.display = 'inline-block'; // Always show Shop button
+        if (consultBtn) consultBtn.style.display = 'none';
+        if (loginBtn) loginBtn.style.display = 'inline-block';
+        if (signupBtn) signupBtn.style.display = 'inline-block';
+        if (logoutBtn) logoutBtn.style.display = 'none';
+    }
+    
+    // Hamburger menu functionality
+    const hamburgerBtn = document.getElementById('hamburger-btn');
+    const navMenu = document.querySelector('.nav-menu');
+    
+    if (hamburgerBtn) {
         hamburgerBtn.addEventListener('click', function() {
-            this.classList.toggle('active');
             navMenu.classList.toggle('active');
-        });
-        
-        // Close menu when a link is clicked
-        const navLinks = navMenu.querySelectorAll('a');
-        navLinks.forEach(link => {
-            link.addEventListener('click', function() {
-                hamburgerBtn.classList.remove('active');
-                navMenu.classList.remove('active');
-            });
-        });
-        
-        // Close menu when clicking outside
-        document.addEventListener('click', function(event) {
-            const isClickInsideMenu = navMenu.contains(event.target);
-            const isClickOnHamburger = hamburgerBtn.contains(event.target);
-            
-            if (!isClickInsideMenu && !isClickOnHamburger && navMenu.classList.contains('active')) {
-                hamburgerBtn.classList.remove('active');
-                navMenu.classList.remove('active');
-            }
+            hamburgerBtn.classList.toggle('active');
         });
     }
+    
+    // Close mobile menu when a link is clicked
+    const navLinks = document.querySelectorAll('.nav-menu a');
+    navLinks.forEach(link => {
+        link.addEventListener('click', function() {
+            navMenu.classList.remove('active');
+            if (hamburgerBtn) hamburgerBtn.classList.remove('active');
+        });
+    });
 });
 
 // Get the accesstoken from local storage

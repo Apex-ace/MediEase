@@ -145,6 +145,142 @@
         </div>
     </section>
     
+    <!-- How to Use MediEase Section -->
+    <section class="how-to-use-section" style="background-color: #f9f9f9; padding: 60px 0;">
+        <div class="container">
+            <h2 class="section-title">How to Use MediEase</h2>
+            <div class="row mt-4">
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body text-center p-4">
+                            <div class="mb-3">
+                                <i class="fas fa-sign-in-alt fa-3x text-primary"></i>
+                            </div>
+                            <h5 class="card-title">Login & Register</h5>
+                            <ol class="text-start">
+                                <li>Click the <strong>"Login"</strong> button in the top navigation bar</li>
+                                <li>Enter your username and password</li>
+                                <li>New user? Click <strong>"Sign Up"</strong> to create an account</li>
+                                <li>After login, you'll have access to all features</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body text-center p-4">
+                            <div class="mb-3">
+                                <i class="fas fa-store fa-3x text-primary"></i>
+                            </div>
+                            <h5 class="card-title">Shop & Order</h5>
+                            <ol class="text-start">
+                                <li>Click <strong>"Shop"</strong> in the navigation menu</li>
+                                <li>Use the search bar to find specific medicines</li>
+                                <li>Add items to your cart by clicking "Add to Cart"</li>
+                                <li>Go to <strong>"Cart"</strong> and click "Checkout" to complete your order</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body text-center p-4">
+                            <div class="mb-3">
+                                <i class="fas fa-clipboard-list fa-3x text-primary"></i>
+                            </div>
+                            <h5 class="card-title">Manage Orders</h5>
+                            <ol class="text-start">
+                                <li>Click <strong>"My Account"</strong> in the navigation menu</li>
+                                <li>View your order history in the "My Orders" tab</li>
+                                <li>Click "View Details" to see complete order information</li>
+                                <li>Cancel pending orders using the "Cancel Order" button</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Medication Reminders Section (only shows for logged-in users) -->
+    <section class="reminders-section" id="reminders-section" style="display: none;">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-8 offset-md-2">
+                    <div class="card">
+                        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                            <h4 class="mb-0"><i class="fas fa-bell me-2"></i> Your Medication Reminders</h4>
+                            <button class="btn btn-light btn-sm" id="add-reminder-btn">
+                                <i class="fas fa-plus"></i> Add Reminder
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div id="home-reminders-container">
+                                <div class="text-center py-4">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="sr-only">Loading...</span>
+                                    </div>
+                                    <p class="mt-2">Loading your reminders...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Add Reminder Modal -->
+    <div class="modal fade" id="homeAddReminderModal" tabindex="-1" aria-labelledby="homeAddReminderModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="homeAddReminderModalLabel">Add Medication Reminder</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="home-add-reminder-form">
+                        <div class="mb-3">
+                            <label for="home-medication-name" class="form-label">Medication Name</label>
+                            <input type="text" class="form-control" id="home-medication-name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="home-dosage" class="form-label">Dosage</label>
+                            <input type="text" class="form-control" id="home-dosage" placeholder="e.g., 1 tablet" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="home-time" class="form-label">Time</label>
+                            <input type="time" class="form-control" id="home-time" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Frequency</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="home-frequency" id="home-frequency-daily" value="daily" checked>
+                                <label class="form-check-label" for="home-frequency-daily">Daily</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="home-frequency" id="home-frequency-weekly" value="weekly">
+                                <label class="form-check-label" for="home-frequency-weekly">Weekly</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="home-frequency" id="home-frequency-monthly" value="monthly">
+                                <label class="form-check-label" for="home-frequency-monthly">Monthly</label>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="home-notes" class="form-label">Notes</label>
+                            <textarea class="form-control" id="home-notes" rows="2"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="home-save-reminder-btn">Save Reminder</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <!-- Newsletter Section -->
     <section class="newsletter-section">
         <div class="container">
@@ -227,7 +363,131 @@
             setTimeout(function() {
                 hideLoader();
             }, 2000);
+            
+            // Check if user is logged in
+            const accessToken = localStorage.getItem('accessToken');
+            if (accessToken) {
+                // Show medication reminders section
+                document.getElementById('reminders-section').style.display = 'block';
+                loadHomeReminders();
+                
+                // Add event listeners for the reminders
+                document.getElementById('add-reminder-btn').addEventListener('click', function() {
+                    const reminderModal = new bootstrap.Modal(document.getElementById('homeAddReminderModal'));
+                    reminderModal.show();
+                });
+                
+                document.getElementById('home-save-reminder-btn').addEventListener('click', function() {
+                    saveHomeReminder();
+                });
+            }
         });
+        
+        // Function to load reminders on homepage
+        async function loadHomeReminders() {
+            try {
+                const response = await fetch('/api/user/reminders', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const reminders = await response.json();
+                const remindersContainer = document.getElementById('home-reminders-container');
+                
+                if (!reminders || reminders.length === 0) {
+                    remindersContainer.innerHTML = `
+                        <div class="text-center py-4">
+                            <i class="fas fa-pills fa-3x mb-3 text-muted"></i>
+                            <p>You don't have any medication reminders yet.</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Clear container
+                remindersContainer.innerHTML = '';
+                
+                // Add each reminder to the container
+                reminders.forEach(reminder => {
+                    const reminderElement = document.createElement('div');
+                    reminderElement.className = 'card mb-3 reminder-card';
+                    reminderElement.innerHTML = `
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h5 class="card-title mb-0">${reminder.medication_name}</h5>
+                                <span class="badge badge-primary">${reminder.frequency}</span>
+                            </div>
+                            <p class="card-text mb-1"><i class="fas fa-clock me-2"></i> ${reminder.time}</p>
+                            <p class="card-text mb-1"><i class="fas fa-prescription me-2"></i> ${reminder.dosage}</p>
+                            ${reminder.notes ? `<p class="card-text text-muted small"><i class="fas fa-sticky-note me-2"></i> ${reminder.notes}</p>` : ''}
+                        </div>
+                    `;
+                    
+                    remindersContainer.appendChild(reminderElement);
+                });
+            } catch (error) {
+                console.error('Error loading reminders:', error);
+                document.getElementById('home-reminders-container').innerHTML = `
+                    <div class="alert alert-danger">
+                        Failed to load reminders. Please try again later.
+                    </div>
+                `;
+            }
+        }
+        
+        // Function to save a new reminder from homepage
+        async function saveHomeReminder() {
+            const medicationName = document.getElementById('home-medication-name').value;
+            const dosage = document.getElementById('home-dosage').value;
+            const time = document.getElementById('home-time').value;
+            const notes = document.getElementById('home-notes').value;
+            const frequency = document.querySelector('input[name="home-frequency"]:checked').value;
+            
+            if (!medicationName || !dosage || !time) {
+                alert('Please fill in all required fields');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/user/reminders', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+                    },
+                    body: JSON.stringify({
+                        medication_name: medicationName,
+                        dosage: dosage,
+                        time: time,
+                        frequency: frequency,
+                        notes: notes
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                alert(data.message || 'Reminder added successfully');
+                
+                // Reset form and close modal
+                document.getElementById('home-add-reminder-form').reset();
+                const modal = bootstrap.Modal.getInstance(document.getElementById('homeAddReminderModal'));
+                modal.hide();
+                
+                // Reload reminders
+                loadHomeReminders();
+            } catch (error) {
+                console.error('Error saving reminder:', error);
+                alert('Error saving reminder: ' + error.message);
+            }
+        }
     </script>
 </body>
 </html>

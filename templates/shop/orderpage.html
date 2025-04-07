@@ -141,7 +141,7 @@
         <option value="Order Cancelled" {% if order.status == 'Order Cancelled' %}selected{% endif %}>Order Cancelled</option>
       </select>
       <br>
-      <button onclick="changeOrderStatus({{ order['orderid'] }})">Change Order Status</button>
+      <button onclick="changeOrderStatus('{{ order['orderid'] }}')">Change Order Status</button>
     </div>
     
   </body>

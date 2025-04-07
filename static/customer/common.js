@@ -284,6 +284,24 @@ function redirectToMyAccount(event) {
     window.location.href = redirectUrl;
 }
 
+// Function to show shop inventory
+function showShopInventory(event) {
+    event.preventDefault();
+    
+    // Check if user is logged in
+    const accessToken = localStorage.getItem('accessToken');
+    
+    if (!accessToken) {
+        // If not logged in, show alert and redirect to login page
+        alert('Please log in to browse our shop inventory.');
+        window.location.href = '/login';
+        return;
+    }
+    
+    // Redirect to shop page
+    window.location.href = '/search/medicine';
+}
+
 // Dark Mode Toggle functionality
 document.addEventListener('DOMContentLoaded', function() {
     // Check if dark mode is enabled in localStorage

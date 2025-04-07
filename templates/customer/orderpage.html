@@ -148,9 +148,93 @@
 
   <!-- Button section for Cancel and Contact Us -->
   <div style="text-align: center; margin-top: 20px;">
-    <button class="cancel-button">Cancel</button>
-    <button class="contact-button">Contact Us</button>
+    {% if order['status'] == 'pending' %}
+    <button class="cancel-button" id="cancelOrderBtn" data-order-id="{{ order['orderid'] }}">Cancel Order</button>
+    {% else %}
+    <button class="cancel-button" disabled>Cancel Order</button>
+    {% endif %}
+    <button class="contact-button" onclick="location.href='#'">Contact Us</button>
   </div>
+
+  <!-- Cancel Order Confirmation Modal -->
+  <div id="cancelModal" class="modal" style="display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
+    <div class="modal-content" style="background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 500px; border-radius: 8px;">
+      <h3>Cancel Order</h3>
+      <p>Are you sure you want to cancel this order?</p>
+      <div style="text-align: right;">
+        <button id="confirmCancelBtn" class="cancel-button">Yes, Cancel Order</button>
+        <button id="keepOrderBtn" class="contact-button">No, Keep Order</button>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Get the modal
+      const modal = document.getElementById('cancelModal');
+      
+      // Get the button that opens the modal
+      const cancelBtn = document.getElementById('cancelOrderBtn');
+      
+      // Get the buttons inside the modal
+      const confirmBtn = document.getElementById('confirmCancelBtn');
+      const keepBtn = document.getElementById('keepOrderBtn');
+      
+      // When the user clicks on the cancel button, open the modal
+      if (cancelBtn) {
+        cancelBtn.addEventListener('click', function() {
+          modal.style.display = "block";
+        });
+      }
+      
+      // When the user clicks on "No, Keep Order", close the modal
+      keepBtn.addEventListener('click', function() {
+        modal.style.display = "none";
+      });
+      
+      // When the user clicks on "Yes, Cancel Order", send cancellation request
+      confirmBtn.addEventListener('click', function() {
+        const orderId = cancelBtn.getAttribute('data-order-id');
+        cancelOrder(orderId);
+      });
+      
+      // When the user clicks anywhere outside of the modal, close it
+      window.addEventListener('click', function(event) {
+        if (event.target == modal) {
+          modal.style.display = "none";
+        }
+      });
+      
+      // Function to call the API to cancel the order
+      async function cancelOrder(orderId) {
+        try {
+          const accessToken = localStorage.getItem('accessToken');
+          const response = await fetch(`/api/user/orders/${orderId}/cancel`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${accessToken}`
+            }
+          });
+          
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          
+          const data = await response.json();
+          alert(data.message || 'Order cancelled successfully');
+          
+          // Reload the page to show updated status
+          window.location.reload();
+        } catch (error) {
+          console.error('Error cancelling order:', error);
+          alert('Error cancelling order: ' + error.message);
+          
+          // Close the modal
+          modal.style.display = "none";
+        }
+      }
+    });
+  </script>
 </body>
 
 </html>
