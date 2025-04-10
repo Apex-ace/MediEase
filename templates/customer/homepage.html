@@ -42,6 +42,25 @@
         </div>
     </div>
     
+    <!-- Prescription Upload Button (only shows for logged-in users) -->
+    <div class="container mt-4 mb-4" id="prescription-upload-section" style="display: none;">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card shadow-sm border-primary">
+                    <div class="card-body d-flex flex-column flex-md-row justify-content-between align-items-center p-4">
+                        <div>
+                            <h4 class="mb-2"><i class="fas fa-file-prescription text-primary me-2"></i>Need medicines from your prescription?</h4>
+                            <p class="mb-0 text-muted">Upload your doctor's prescription and we'll deliver your medicines.</p>
+                        </div>
+                        <button class="btn btn-primary btn-lg mt-3 mt-md-0" data-bs-toggle="modal" data-bs-target="#prescriptionModal">
+                            <i class="fas fa-upload me-2"></i>Upload Prescription
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <!-- Categories Section -->
     <section class="categories-section">
         <div class="container">
@@ -404,6 +423,80 @@
         </div>
     </footer>
     
+    <!-- Prescription Upload Modal -->
+    <div class="modal fade" id="prescriptionModal" tabindex="-1" aria-labelledby="prescriptionModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="prescriptionModalLabel"><i class="fas fa-file-prescription me-2"></i>Upload Prescription</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="prescriptionForm" enctype="multipart/form-data">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="prescriptionFile" class="form-label">Upload Prescription File*</label>
+                                    <input type="file" class="form-control" id="prescriptionFile" name="prescriptionFile" accept=".jpg,.jpeg,.png,.pdf" required>
+                                    <div class="form-text">Supported formats: JPG, PNG, PDF (Max size: 5MB)</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="prescriptionNotes" class="form-label">Additional Notes</label>
+                                    <textarea class="form-control" id="prescriptionNotes" name="prescriptionNotes" rows="4" placeholder="Any specific instructions or details..."></textarea>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="deliveryAddress" class="form-label">Delivery Address*</label>
+                                    <textarea class="form-control" id="deliveryAddress" name="deliveryAddress" rows="3" required></textarea>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="contactNumber" class="form-label">Contact Number*</label>
+                                    <input type="tel" class="form-control" id="contactNumber" name="contactNumber" required>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Priority</label>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="priority" id="priorityNormal" value="normal" checked>
+                                        <label class="form-check-label" for="priorityNormal">Normal (3-5 days)</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="priority" id="priorityUrgent" value="urgent">
+                                        <label class="form-check-label" for="priorityUrgent">Urgent (24-48 hours)</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="termsCheck" required>
+                                <label class="form-check-label" for="termsCheck">
+                                    I confirm this is a valid prescription from a registered medical practitioner
+                                </label>
+                            </div>
+                        </div>
+                    </form>
+                    <div class="alert alert-success mt-3" id="prescriptionSuccess" style="display: none;">
+                        Your prescription has been uploaded successfully! We'll process your request and contact you shortly.
+                    </div>
+                    <div class="alert alert-danger mt-3" id="prescriptionError" style="display: none;">
+                        There was an error uploading your prescription. Please try again.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="submitPrescriptionBtn">
+                        Submit Prescription
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <!-- Bootstrap JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     
@@ -430,6 +523,8 @@
             if (accessToken) {
                 // Show medication reminders section
                 document.getElementById('reminders-section').style.display = 'block';
+                // Show prescription upload section
+                document.getElementById('prescription-upload-section').style.display = 'block';
                 loadHomeReminders();
                 
                 // Add event listeners for the reminders
@@ -440,6 +535,27 @@
                 
                 document.getElementById('home-save-reminder-btn').addEventListener('click', function() {
                     saveHomeReminder();
+                });
+                
+                // Try to pre-fill delivery address if profile data is available
+                fetch('/api/user/profile', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.profile) {
+                        // Pre-fill address and contact info
+                        document.getElementById('deliveryAddress').value = data.profile.address || '';
+                        document.getElementById('contactNumber').value = data.profile.phone || '';
+                    }
+                })
+                .catch(error => console.error('Error loading profile:', error));
+                
+                // Add event listener for prescription form submit
+                document.getElementById('submitPrescriptionBtn').addEventListener('click', function() {
+                    uploadPrescription();
                 });
             }
         });
@@ -614,6 +730,77 @@
                 });
             }
         });
+        
+        // Function to handle prescription upload
+        async function uploadPrescription() {
+            const form = document.getElementById('prescriptionForm');
+            
+            // Validate form
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+            
+            // Check file size
+            const fileInput = document.getElementById('prescriptionFile');
+            if (fileInput.files[0] && fileInput.files[0].size > 5 * 1024 * 1024) {
+                alert('File size exceeds 5MB limit. Please upload a smaller file.');
+                return;
+            }
+            
+            // Show loading state
+            const submitBtn = document.getElementById('submitPrescriptionBtn');
+            const originalBtnText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Uploading...';
+            submitBtn.disabled = true;
+            
+            try {
+                // Create FormData object
+                const formData = new FormData();
+                formData.append('file', fileInput.files[0]);
+                formData.append('notes', document.getElementById('prescriptionNotes').value);
+                formData.append('address', document.getElementById('deliveryAddress').value);
+                formData.append('contact', document.getElementById('contactNumber').value);
+                formData.append('priority', document.querySelector('input[name="priority"]:checked').value);
+                
+                // Send to server
+                const response = await fetch('/api/prescriptions/upload', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+                    },
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                
+                // Show success message
+                document.getElementById('prescriptionSuccess').style.display = 'block';
+                document.getElementById('prescriptionError').style.display = 'none';
+                form.reset();
+                
+                // Hide success message after 5 seconds
+                setTimeout(() => {
+                    // Close modal after showing success message
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('prescriptionModal'));
+                    modal.hide();
+                    document.getElementById('prescriptionSuccess').style.display = 'none';
+                }, 3000);
+                
+            } catch (error) {
+                console.error('Error uploading prescription:', error);
+                document.getElementById('prescriptionError').style.display = 'block';
+                document.getElementById('prescriptionSuccess').style.display = 'none';
+            } finally {
+                // Restore button state
+                submitBtn.innerHTML = originalBtnText;
+                submitBtn.disabled = false;
+            }
+        }
     </script>
 </body>
 </html>

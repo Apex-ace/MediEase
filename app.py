@@ -2382,6 +2382,144 @@ def create_medicine_request():
         print(f"Error creating medicine request: {str(e)}")
         return jsonify({'success': False, 'message': f'Server error: {str(e)}'}), 500
 
+# API endpoint to handle prescription uploads
+@app.route('/api/prescriptions/upload', methods=['POST'])
+@jwt_required()
+def upload_prescription():
+    try:
+        # Get user details from access token
+        user_id = get_jwt_identity()
+        
+        # Check if the post request has the file part
+        if 'file' not in request.files:
+            return jsonify({'success': False, 'message': 'No file part in the request'}), 400
+            
+        file = request.files['file']
+        
+        # If user does not select a file, browser also submits an empty part without filename
+        if file.filename == '':
+            return jsonify({'success': False, 'message': 'No file selected for upload'}), 400
+            
+        # Get other form data
+        notes = request.form.get('notes', '')
+        address = request.form.get('address', '')
+        contact = request.form.get('contact', '')
+        priority = request.form.get('priority', 'normal')
+        
+        # Check if required fields are present
+        if not address or not contact:
+            return jsonify({'success': False, 'message': 'Missing required fields'}), 400
+            
+        # Make sure the filename is secure
+        import os
+        from werkzeug.utils import secure_filename
+        
+        # Define allowed extensions
+        ALLOWED_EXTENSIONS = {'pdf', 'png', 'jpg', 'jpeg'}
+        
+        # Check if the file extension is allowed
+        if not '.' in file.filename or file.filename.rsplit('.', 1)[1].lower() not in ALLOWED_EXTENSIONS:
+            return jsonify({'success': False, 'message': 'File type not allowed. Please upload PDF, PNG, or JPG.'}), 400
+            
+        # Create uploads directory if it doesn't exist
+        upload_dir = os.path.join('static', 'uploads', 'prescriptions')
+        os.makedirs(upload_dir, exist_ok=True)
+        
+        # Generate a unique filename
+        import uuid
+        secure_name = secure_filename(file.filename)
+        file_extension = secure_name.rsplit('.', 1)[1].lower()
+        unique_filename = f"{user_id}_{uuid.uuid4().hex}.{file_extension}"
+        file_path = os.path.join(upload_dir, unique_filename)
+        
+        # Save the file
+        file.save(file_path)
+        
+        # Save to database
+        conn = connect_to_db()
+        
+        # Add to database
+        data = {
+            'username': user_id,
+            'file_path': file_path,
+            'notes': notes,
+            'address': address,
+            'contact': contact,
+            'priority': priority,
+            'status': 'pending'
+        }
+        
+        result = insert(conn, 'prescriptions', data)
+        conn.close()
+        
+        if result['res'] == 0:
+            return jsonify({'success': False, 'message': 'Failed to save prescription data'}), 500
+            
+        # Send email notification
+        try:
+            import smtplib
+            from email.mime.text import MIMEText
+            from email.mime.multipart import MIMEMultipart
+            
+            # Set up the email details
+            sender_email = os.getenv('EMAIL_SENDER', 'noreply@mediease.com')
+            receiver_email = "ayushmishra.pi@gmail.com"  # Admin email for notifications
+            
+            # Create the email
+            message = MIMEMultipart()
+            message["From"] = sender_email
+            message["To"] = receiver_email
+            message["Subject"] = f"New Prescription Upload ({priority.capitalize()} Priority)"
+            
+            # Email body
+            body = f"""
+            <html>
+            <body>
+                <h2>New Prescription Upload</h2>
+                <p><strong>User:</strong> {user_id}</p>
+                <p><strong>Delivery Address:</strong> {address}</p>
+                <p><strong>Contact:</strong> {contact}</p>
+                <p><strong>Priority:</strong> {priority}</p>
+                <p><strong>Notes:</strong> {notes}</p>
+                <p><strong>File Path:</strong> {file_path}</p>
+                <p><strong>Submitted:</strong> {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
+            </body>
+            </html>
+            """
+            
+            # Attach the body to the email
+            message.attach(MIMEText(body, "html"))
+            
+            # Send the email
+            try:
+                # Connect to the SMTP server
+                server = smtplib.SMTP(os.getenv('SMTP_SERVER', 'smtp.gmail.com'), int(os.getenv('SMTP_PORT', 587)))
+                server.starttls()  # Secure the connection
+                server.login(os.getenv('EMAIL_USER', ''), os.getenv('EMAIL_PASSWORD', ''))
+                
+                # Send the email
+                server.send_message(message)
+                server.quit()
+                print("Email notification sent successfully")
+            except Exception as email_error:
+                print(f"Failed to send email notification: {str(email_error)}")
+                # Don't fail the request if email fails, just log it
+                pass
+                
+        except Exception as email_error:
+            print(f"Error setting up email: {str(email_error)}")
+            # Continue even if email fails
+        
+        return jsonify({
+            'success': True, 
+            'message': 'Prescription uploaded successfully!',
+            'file_path': file_path
+        }), 201
+        
+    except Exception as e:
+        print(f"Error uploading prescription: {str(e)}")
+        return jsonify({'success': False, 'message': f'Server error: {str(e)}'}), 500
+
 '''
 MAIN FUNCTION
 '''

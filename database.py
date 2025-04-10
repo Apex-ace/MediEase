@@ -42,6 +42,9 @@ def init_db(conn):
         response=initRequestsTable(conn)
         if(response["res"]==0):
             return {"res": 0, "message": "INIT medicine_requests Table Failure"}
+        response=initPrescriptionsTable(conn)
+        if(response["res"]==0):
+            return {"res": 0, "message": "INIT prescriptions Table Failure"}
         return {"res": 1, "message": "INIT Success"}
     except Exception as e:
         # If any unhandled exception occurs, ensure we rollback
@@ -370,6 +373,43 @@ def initRequestsTable(conn):
         except:
             pass
         print(f"Error creating medicine_requests table: {str(e)}")
+        return {"res": 0, "message": f"Table Creation Unsuccessful: {str(e)}"}
+    finally:
+        if cursor:
+            try:
+                cursor.close()
+            except:
+                pass
+
+# Initialize the Prescriptions Table
+def initPrescriptionsTable(conn):
+    cursor = None
+    try:
+        query = '''
+        CREATE TABLE IF NOT EXISTS prescriptions (
+            id SERIAL PRIMARY KEY,
+            username VARCHAR(50) NOT NULL,
+            file_path TEXT NOT NULL,
+            notes TEXT,
+            address TEXT NOT NULL,
+            contact VARCHAR(20) NOT NULL,
+            priority VARCHAR(20) DEFAULT 'normal',
+            status VARCHAR(20) DEFAULT 'pending',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            processed_at TIMESTAMP,
+            FOREIGN KEY (username) REFERENCES customerAuth(username)
+        );'''
+        
+        cursor = conn.cursor()
+        cursor.execute(query)
+        conn.commit()
+        return {"res": 1, "message": "Table Creation Successful"}
+    except Exception as e:
+        try:
+            conn.rollback()
+        except:
+            pass
+        print(f"Error creating prescriptions table: {str(e)}")
         return {"res": 0, "message": f"Table Creation Unsuccessful: {str(e)}"}
     finally:
         if cursor:
