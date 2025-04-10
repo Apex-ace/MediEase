@@ -1,5 +1,5 @@
 import requests
-from flask import Flask, request, render_template, redirect, url_for, session, flash, jsonify, make_response
+from flask import Flask, request, render_template, redirect, url_for, session, flash, jsonify, make_response, g
 from flask_jwt_extended import create_access_token, JWTManager, jwt_required, decode_token, get_jwt_identity
 import bcrypt
 from database import connect_to_db, init_db, initUserProfileTable, initRemindersTable
@@ -9,6 +9,36 @@ import time
 import jwt
 from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 import datetime
+from functools import wraps
+
+# JWT Secret Key
+JWT_SECRET_KEY = "your-secret-key"  # This should be in an environment variable in production
+
+# Add token validation decorator - makes token optional
+def validate_token_api(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        # Initialize g.user as None (unauthenticated)
+        g.user = None
+        
+        # Check for Authorization header
+        auth_header = request.headers.get('Authorization')
+        if auth_header and auth_header.startswith('Bearer '):
+            token = auth_header.split(' ')[1]
+            try:
+                # Decode and validate token
+                payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=['HS256'])
+                # Store user info in Flask's g object for use in the route
+                g.user = payload
+            except (jwt.ExpiredSignatureError, jwt.InvalidTokenError) as e:
+                # Token is invalid but we'll proceed without authentication
+                print(f"Token validation error: {str(e)}")
+                pass
+        
+        # Always proceed (with or without valid authentication)
+        return f(*args, **kwargs)
+    
+    return decorated
 
 # INIT the Flask APP
 app = Flask(__name__)
@@ -2250,6 +2280,107 @@ def changePassword():
     finally:
         if conn:
             conn.close()
+
+# API endpoint to handle medicine requests
+@app.route('/api/requests', methods=['POST'])
+@validate_token_api
+def create_medicine_request():
+    try:
+        # Get request data
+        request_data = request.get_json()
+        
+        # Validate required fields
+        required_fields = ['title', 'description', 'name', 'phone', 'email']
+        for field in required_fields:
+            if field not in request_data or not request_data[field]:
+                return jsonify({'success': False, 'message': f'Missing required field: {field}'}), 400
+        
+        # Get user ID if authenticated
+        user_id = None
+        if g.user and 'username' in g.user:
+            user_id = g.user['username']
+        
+        # Connect to database
+        conn = connect_to_db()
+        
+        # Add to database
+        data = {
+            'title': request_data['title'],
+            'description': request_data['description'],
+            'name': request_data['name'],
+            'phone': request_data['phone'],
+            'email': request_data['email'],
+            'urgency': request_data.get('urgency', 'normal'),
+            'status': 'pending',
+            'created_at': request_data.get('created_at', None)
+        }
+        
+        result = insert(conn, 'medicine_requests', data)
+        conn.close()
+        
+        if result['res'] == 0:
+            return jsonify({'success': False, 'message': 'Failed to save request'}), 500
+        
+        # Send email notification
+        try:
+            import smtplib
+            from email.mime.text import MIMEText
+            from email.mime.multipart import MIMEMultipart
+            
+            # Set up the email details
+            sender_email = os.getenv('EMAIL_SENDER', 'noreply@mediease.com')
+            receiver_email = "ayushmishra.pi@gmail.com"  # Admin email for notifications
+            
+            # Create the email
+            message = MIMEMultipart()
+            message["From"] = sender_email
+            message["To"] = receiver_email
+            message["Subject"] = f"New Medicine Request: {request_data['title']} ({request_data.get('urgency', 'normal')})"
+            
+            # Email body
+            body = f"""
+            <html>
+            <body>
+                <h2>New Medicine Request</h2>
+                <p><strong>Title:</strong> {request_data['title']}</p>
+                <p><strong>Description:</strong> {request_data['description']}</p>
+                <p><strong>From:</strong> {request_data['name']}</p>
+                <p><strong>Contact:</strong> {request_data['phone']}</p>
+                <p><strong>Email:</strong> {request_data['email']}</p>
+                <p><strong>Urgency:</strong> {request_data.get('urgency', 'normal')}</p>
+                <p><strong>Submitted:</strong> {request_data.get('created_at', 'now')}</p>
+            </body>
+            </html>
+            """
+            
+            # Attach the body to the email
+            message.attach(MIMEText(body, "html"))
+            
+            # Send the email
+            try:
+                # Connect to the SMTP server
+                server = smtplib.SMTP(os.getenv('SMTP_SERVER', 'smtp.gmail.com'), os.getenv('SMTP_PORT', 587))
+                server.starttls()  # Secure the connection
+                server.login(os.getenv('EMAIL_USER', ''), os.getenv('EMAIL_PASSWORD', ''))
+                
+                # Send the email
+                server.send_message(message)
+                server.quit()
+                print("Email notification sent successfully")
+            except Exception as email_error:
+                print(f"Failed to send email notification: {str(email_error)}")
+                # Don't fail the request if email fails, just log it
+                pass
+                
+        except Exception as email_error:
+            print(f"Error setting up email: {str(email_error)}")
+            # Continue even if email fails
+        
+        return jsonify({'success': True, 'message': 'Request submitted successfully'}), 201
+    
+    except Exception as e:
+        print(f"Error creating medicine request: {str(e)}")
+        return jsonify({'success': False, 'message': f'Server error: {str(e)}'}), 500
 
 '''
 MAIN FUNCTION
