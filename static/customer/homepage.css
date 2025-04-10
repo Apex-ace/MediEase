@@ -463,11 +463,11 @@ body.dark-mode .feature-title {
 
 .feature-text {
     color: var(--neutral-600);
-    line-height: 1.6;
+    margin-bottom: 0;
 }
 
 body.dark-mode .feature-text {
-    color: var(--neutral-400);
+    color: var(--dark-text-secondary);
 }
 
 /* Newsletter Section */
@@ -794,4 +794,71 @@ body.dark-mode .site-footer {
     .footer-contact-list li {
         justify-content: center;
     }
+}
+
+/* Reminders Section */
+.reminders-section {
+    padding: 80px 0;
+    background-color: white;
+}
+
+body.dark-mode .reminders-section {
+    background-color: var(--dark-surface);
+}
+
+/* Request Section */
+.request-section {
+    padding: 80px 0;
+}
+
+/* Card Header Styling */
+.card-header {
+    background: linear-gradient(to right, var(--primary-50), var(--accent-50));
+    border-bottom: 1px solid var(--primary-100);
+    padding: 1rem 1.5rem;
+}
+
+body.dark-mode .card-header {
+    background: linear-gradient(to right, var(--primary-900), var(--accent-900));
+    border-bottom: 1px solid var(--primary-800);
+}
+
+.card-header h4 {
+    font-weight: 600;
+    color: var(--primary-800);
+    margin: 0;
+}
+
+body.dark-mode .card-header h4 {
+    color: var(--primary-300);
+}
+
+/* Uniform modal styling */
+.modal-header {
+    background: linear-gradient(to right, var(--primary-50), var(--accent-50));
+    border-bottom: 1px solid var(--primary-100);
+}
+
+body.dark-mode .modal-header {
+    background: linear-gradient(to right, var(--primary-900), var(--accent-900));
+    border-bottom: 1px solid var(--primary-800);
+}
+
+.modal-title {
+    color: var(--primary-800);
+    font-weight: 600;
+}
+
+body.dark-mode .modal-title {
+    color: var(--primary-300);
+}
+
+.modal-footer {
+    background-color: var(--neutral-50);
+    border-top: 1px solid var(--neutral-200);
+}
+
+body.dark-mode .modal-footer {
+    background-color: var(--dark-surface-2);
+    border-top: 1px solid var(--neutral-800);
 }

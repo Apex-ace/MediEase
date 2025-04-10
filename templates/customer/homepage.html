@@ -46,7 +46,7 @@
     <div class="container mt-4 mb-4" id="prescription-upload-section" style="display: none;">
         <div class="row">
             <div class="col-md-12">
-                <div class="card shadow-sm border-primary">
+                <div class="card shadow">
                     <div class="card-body d-flex flex-column flex-md-row justify-content-between align-items-center p-4">
                         <div>
                             <h4 class="mb-2"><i class="fas fa-file-prescription text-primary me-2"></i>Need medicines from your prescription?</h4>
@@ -165,12 +165,12 @@
     </section>
     
     <!-- How to Use MediEase Section -->
-    <section class="how-to-use-section" style="background-color: #f9f9f9; padding: 60px 0;">
+    <section class="how-to-use-section">
         <div class="container">
             <h2 class="section-title">How to Use MediEase</h2>
             <div class="row mt-4">
                 <div class="col-md-4 mb-4">
-                    <div class="card h-100">
+                    <div class="card h-100 shadow">
                         <div class="card-body text-center p-4">
                             <div class="mb-3">
                                 <i class="fas fa-sign-in-alt fa-3x text-primary"></i>
@@ -186,7 +186,7 @@
                     </div>
                 </div>
                 <div class="col-md-4 mb-4">
-                    <div class="card h-100">
+                    <div class="card h-100 shadow">
                         <div class="card-body text-center p-4">
                             <div class="mb-3">
                                 <i class="fas fa-store fa-3x text-primary"></i>
@@ -202,7 +202,7 @@
                     </div>
                 </div>
                 <div class="col-md-4 mb-4">
-                    <div class="card h-100">
+                    <div class="card h-100 shadow">
                         <div class="card-body text-center p-4">
                             <div class="mb-3">
                                 <i class="fas fa-clipboard-list fa-3x text-primary"></i>
@@ -222,16 +222,19 @@
     </section>
     
     <!-- Medication Reminders Section (only shows for logged-in users) -->
-    <section class="reminders-section" id="reminders-section" style="display: none;">
+    <section class="reminders-section features-section" id="reminders-section" style="display: none;">
         <div class="container">
+            <h2 class="section-title">Your Medication Reminders</h2>
             <div class="row">
                 <div class="col-md-8 offset-md-2">
-                    <div class="card">
-                        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                            <h4 class="mb-0"><i class="fas fa-bell me-2"></i> Your Medication Reminders</h4>
-                            <button class="btn btn-light btn-sm" id="add-reminder-btn">
-                                <i class="fas fa-plus"></i> Add Reminder
-                            </button>
+                    <div class="card shadow">
+                        <div class="card-header">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h4 class="mb-0"><i class="fas fa-bell text-primary me-2"></i>Manage Your Reminders</h4>
+                                <button class="btn btn-primary btn-sm" id="add-reminder-btn">
+                                    <i class="fas fa-plus"></i> Add Reminder
+                                </button>
+                            </div>
                         </div>
                         <div class="card-body">
                             <div id="home-reminders-container">
@@ -249,65 +252,15 @@
         </div>
     </section>
     
-    <!-- Add Reminder Modal -->
-    <div class="modal fade" id="homeAddReminderModal" tabindex="-1" aria-labelledby="homeAddReminderModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="homeAddReminderModalLabel">Add Medication Reminder</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="home-add-reminder-form">
-                        <div class="mb-3">
-                            <label for="home-medication-name" class="form-label">Medication Name</label>
-                            <input type="text" class="form-control" id="home-medication-name" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="home-dosage" class="form-label">Dosage</label>
-                            <input type="text" class="form-control" id="home-dosage" placeholder="e.g., 1 tablet" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="home-time" class="form-label">Time</label>
-                            <input type="time" class="form-control" id="home-time" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Frequency</label>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="home-frequency" id="home-frequency-daily" value="daily" checked>
-                                <label class="form-check-label" for="home-frequency-daily">Daily</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="home-frequency" id="home-frequency-weekly" value="weekly">
-                                <label class="form-check-label" for="home-frequency-weekly">Weekly</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="home-frequency" id="home-frequency-monthly" value="monthly">
-                                <label class="form-check-label" for="home-frequency-monthly">Monthly</label>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="home-notes" class="form-label">Notes</label>
-                            <textarea class="form-control" id="home-notes" rows="2"></textarea>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" id="home-save-reminder-btn">Save Reminder</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    
     <!-- Request Section -->
-    <section class="request-section" style="background-color: #f5f9ff; padding: 60px 0;">
+    <section class="request-section categories-section">
         <div class="container">
+            <h2 class="section-title">Request a Medicine</h2>
             <div class="row">
-                <div class="col-md-8 offset-md-2">
+                <div class="col-md-10 offset-md-1">
                     <div class="card shadow">
-                        <div class="card-header bg-primary text-white">
-                            <h4 class="mb-0"><i class="fas fa-paper-plane me-2"></i>Request a Medicine or Service</h4>
+                        <div class="card-header">
+                            <h4 class="mb-0"><i class="fas fa-paper-plane text-primary me-2"></i>Submit Your Request</h4>
                         </div>
                         <div class="card-body p-4">
                             <p class="text-muted mb-4">Can't find what you're looking for? Submit a request and we'll try to help you.</p>
@@ -427,9 +380,9 @@
     <div class="modal fade" id="prescriptionModal" tabindex="-1" aria-labelledby="prescriptionModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title" id="prescriptionModalLabel"><i class="fas fa-file-prescription me-2"></i>Upload Prescription</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="modal-header">
+                    <h5 class="modal-title" id="prescriptionModalLabel"><i class="fas fa-file-prescription text-primary me-2"></i>Upload Prescription</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <form id="prescriptionForm" enctype="multipart/form-data">
@@ -492,6 +445,57 @@
                     <button type="button" class="btn btn-primary" id="submitPrescriptionBtn">
                         Submit Prescription
                     </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add Reminder Modal -->
+    <div class="modal fade" id="homeAddReminderModal" tabindex="-1" aria-labelledby="homeAddReminderModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="homeAddReminderModalLabel"><i class="fas fa-bell text-primary me-2"></i>Add Medication Reminder</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="home-add-reminder-form">
+                        <div class="mb-3">
+                            <label for="home-medication-name" class="form-label">Medication Name</label>
+                            <input type="text" class="form-control" id="home-medication-name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="home-dosage" class="form-label">Dosage</label>
+                            <input type="text" class="form-control" id="home-dosage" placeholder="e.g., 1 tablet" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="home-time" class="form-label">Time</label>
+                            <input type="time" class="form-control" id="home-time" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Frequency</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="home-frequency" id="home-frequency-daily" value="daily" checked>
+                                <label class="form-check-label" for="home-frequency-daily">Daily</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="home-frequency" id="home-frequency-weekly" value="weekly">
+                                <label class="form-check-label" for="home-frequency-weekly">Weekly</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="home-frequency" id="home-frequency-monthly" value="monthly">
+                                <label class="form-check-label" for="home-frequency-monthly">Monthly</label>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="home-notes" class="form-label">Notes</label>
+                            <textarea class="form-control" id="home-notes" rows="2"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="home-save-reminder-btn">Save Reminder</button>
                 </div>
             </div>
         </div>
